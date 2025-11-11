@@ -24,16 +24,17 @@ public class AdminLoginFrame extends JFrame {
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 // 배경색
-                g2d.setColor(new Color(255, 250, 245));
+                g2d.setColor(new Color(255, 255, 255));
                 g2d.fillRect(0, 0, getWidth(), getHeight());
-
-                // 파란색 원
-                g2d.setColor(new Color(135, 206, 250));
-                g2d.fillOval(-150, 100, 400, 400);
 
                 // 분홍색 원
                 g2d.setColor(new Color(255, 228, 225));
-                g2d.fillOval(50, -100, 500, 500);
+                g2d.fillOval(-200, 0, 500, getHeight());
+
+                // 파란색 원
+                g2d.setColor(new Color(135, 206, 250));
+                g2d.fillOval(-150, 128, 300, 300);
+
             }
         };
         mainPanel.setLayout(null);
