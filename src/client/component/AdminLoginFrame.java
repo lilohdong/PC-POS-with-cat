@@ -2,15 +2,12 @@ package client.component;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 
 import util.AdminLoginCheck;
 
 public class AdminLoginFrame extends JFrame implements ActionListener{
     private JTextField idField;
     private JPasswordField pwField;
-    private int loginAttempts = 0;
-    private static final int MAX_ATTEMPTS = 5;
 
     public AdminLoginFrame() {
         setTitle("POS PLACE");
@@ -19,28 +16,7 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
         setLocationRelativeTo(null);
 
         // 메인 패널
-        JPanel mainPanel = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                // 배경색
-                g2d.setColor(new Color(255, 255, 255));
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-
-                // 분홍색 원
-                g2d.setColor(new Color(255, 228, 225));
-                g2d.fillOval(-200, 0, 500, getHeight());
-
-                // 파란색 원
-                g2d.setColor(new Color(135, 206, 250));
-                g2d.fillOval(-150, 128, 300, 300);
-
-            }
-        };
-        mainPanel.setLayout(null);
+        JPanel mainPanel = getMainPanel();
 
         // 타이틀 레이블
         JLabel titleLabel = new JLabel("POS PLACE");
@@ -100,8 +76,34 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
         mainPanel.add(goButton);
 
         add(mainPanel);
-        setVisible(true);
     }
+
+    private static JPanel getMainPanel() {
+        JPanel mainPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // 배경색
+                g2d.setColor(new Color(255, 255, 255));
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+
+                // 분홍색 원
+                g2d.setColor(new Color(255, 228, 225));
+                g2d.fillOval(-200, 0, 500, getHeight());
+
+                // 파란색 원
+                g2d.setColor(new Color(135, 206, 250));
+                g2d.fillOval(-150, 128, 300, 300);
+
+            }
+        };
+        mainPanel.setLayout(null);
+        return mainPanel;
+    }
+
     public void actionPerformed(ActionEvent e) {
         if(AdminLoginCheck.COUNT == 0) {
             JOptionPane.showMessageDialog(this,
@@ -126,11 +128,9 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
 
 
     public static void start() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new AdminLoginFrame();
-            }
+        SwingUtilities.invokeLater(() -> {
+            AdminLoginFrame alf = new AdminLoginFrame();
+            alf.setVisible(true);
         });
     }
 }
