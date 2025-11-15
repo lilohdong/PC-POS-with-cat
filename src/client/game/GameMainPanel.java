@@ -8,7 +8,7 @@ public class GameMainPanel extends JPanel {
         setSize(1016, 832);
         setLayout(new BorderLayout(0, 7));
 
-        GameMainPanel TitlePanel = new GameMainPanel();
-        add(TitlePanel,BorderLayout.NORTH);
+        GameHeaderPanel headerPanel = new GameHeaderPanel();
+        add(headerPanel,BorderLayout.NORTH);
     }
 }

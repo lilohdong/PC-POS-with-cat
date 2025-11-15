@@ -77,7 +77,7 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
 
         add(mainPanel);
     }
-
+// Main Panel return method
     private static JPanel getMainPanel() {
         JPanel mainPanel = new JPanel() {
             @Override
