@@ -3,9 +3,10 @@ package client.game;
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
+import java.time.LocalTime;
 
+import util.*;
 public class MainGameStatistics extends JPanel {
-
     private String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
     private Object[][] data = {
             {"1", "League of Legend", "108:31", "90"},
@@ -40,7 +41,7 @@ public class MainGameStatistics extends JPanel {
     }
 
     private void initUI() {
-        setPreferredSize(new Dimension(740, 758));
+        setPreferredSize(new Dimension(747, 758));
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createMatteBorder(0, 0, 2, 2, Color.BLACK));
         setLayout(new BorderLayout());
@@ -50,17 +51,17 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBackground(new Color(220, 230, 240));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel dateLabel = new JLabel("현재 시간 : ");
+        JLabel dateLabel = new JLabel("현재 시간 : "+ LocalTime.now());
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 
         headerPanel.add(dateLabel);
         add(headerPanel, BorderLayout.NORTH);
 
         // 테이블 생성
-        DefaultTableModel dtm = new DefaultTableModel(data, columnNames);
-        JTable table = new JTable(dtm);
+
+        JTable table = new JTable(data, columnNames);
         table.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        table.setRowHeight(30);
+        table.setRowHeight(45);
         table.setGridColor(Color.LIGHT_GRAY);
         table.setShowGrid(true);
 
@@ -68,7 +69,7 @@ public class MainGameStatistics extends JPanel {
         JTableHeader header = table.getTableHeader();
         header.setFont(new Font("맑은 고딕", Font.BOLD, 12));
         header.setBackground(new Color(240, 240, 240));
-        header.setPreferredSize(new Dimension(header.getWidth(), 35));
+        header.setPreferredSize(new Dimension(header.getWidth() - 5, 35));
 
         // 컬럼 너비 설정
         TableColumnModel columnModel = table.getColumnModel();
@@ -76,8 +77,6 @@ public class MainGameStatistics extends JPanel {
         columnModel.getColumn(1).setPreferredWidth(250);
         columnModel.getColumn(2).setPreferredWidth(150);
         columnModel.getColumn(3).setPreferredWidth(150);
-        // Rows 높이 설정
-        table.setRowHeight(75);
         // 중앙 정렬
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);

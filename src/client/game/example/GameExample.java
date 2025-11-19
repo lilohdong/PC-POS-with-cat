@@ -1,7 +1,11 @@
 package client.game.example;
 import client.game.*;
 import javax.swing.*;
-import java.awt.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import util.*;
 
 public class GameExample extends JFrame {
 
@@ -37,6 +41,7 @@ public class GameExample extends JFrame {
         SwingUtilities.invokeLater(() -> {
             GameExample game = new GameExample();
             game.setVisible(true);
+
         });
     }
 }
