@@ -29,7 +29,12 @@ public class MainGameStatistics extends JPanel {
             {"19", "거상", "03:49", "28"},
             {"20", "스페셜포스", "03:40", "14"}
     };
-
+    private String[] years = {
+            "2025년",
+            "2024년",
+            "2023년",
+            "2022년"
+    };
     public MainGameStatistics() {
         initUI();
     }
@@ -45,25 +50,15 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBackground(new Color(220, 230, 240));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel dateLabel = new JLabel("일간");
+        JLabel dateLabel = new JLabel("현재 시간 : ");
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 
-        JComboBox<String> dateCombo = new JComboBox<>(new String[]{"25/11/07"});
-        dateCombo.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-
-        JButton calendarButton = new JButton("📅");
-        calendarButton.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
-        calendarButton.setBorderPainted(false);
-        calendarButton.setContentAreaFilled(false);
-
         headerPanel.add(dateLabel);
-        headerPanel.add(dateCombo);
-        headerPanel.add(calendarButton);
-
         add(headerPanel, BorderLayout.NORTH);
 
         // 테이블 생성
-        JTable table = new JTable(data, columnNames);
+        DefaultTableModel dtm = new DefaultTableModel(data, columnNames);
+        JTable table = new JTable(dtm);
         table.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
         table.setRowHeight(30);
         table.setGridColor(Color.LIGHT_GRAY);
@@ -78,10 +73,11 @@ public class MainGameStatistics extends JPanel {
         // 컬럼 너비 설정
         TableColumnModel columnModel = table.getColumnModel();
         columnModel.getColumn(0).setPreferredWidth(50);
-        columnModel.getColumn(1).setPreferredWidth(300);
+        columnModel.getColumn(1).setPreferredWidth(250);
         columnModel.getColumn(2).setPreferredWidth(150);
         columnModel.getColumn(3).setPreferredWidth(150);
-
+        // Rows 높이 설정
+        table.setRowHeight(75);
         // 중앙 정렬
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
