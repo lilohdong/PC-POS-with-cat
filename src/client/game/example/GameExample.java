@@ -15,12 +15,12 @@ public class GameExample extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-
-        Container ct = getContentPane();
-        setLayout(null);
         setSize(new Dimension(1280,832));
 
-        ct.add(gp);
+        SideBar sb = new SideBar();
+        add(sb, BorderLayout.WEST);
+
+        add(gp, BorderLayout.CENTER);
     }
 
 

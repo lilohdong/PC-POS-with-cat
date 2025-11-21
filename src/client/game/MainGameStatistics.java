@@ -41,7 +41,6 @@ public class MainGameStatistics extends JPanel {
     }
 
     private void initUI() {
-        setPreferredSize(new Dimension(Sizes.GAME_MAIN_STATISTICS_WIDTH, Sizes.GAME_MAIN_STATISTICS_HEIGHT));
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createMatteBorder(0, 0, 2, 2, Color.BLACK));
         setLayout(new BorderLayout());
@@ -60,8 +59,9 @@ public class MainGameStatistics extends JPanel {
         // 테이블 생성
 
         JTable table = new JTable(data, columnNames);
+        table.setColumnSelectionAllowed(false);
         table.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        table.setRowHeight(45);
+        table.setRowHeight(40);
         table.setGridColor(Color.LIGHT_GRAY);
         table.setShowGrid(true);
 
@@ -69,7 +69,7 @@ public class MainGameStatistics extends JPanel {
         JTableHeader header = table.getTableHeader();
         header.setFont(new Font("맑은 고딕", Font.BOLD, 12));
         header.setBackground(new Color(240, 240, 240));
-        header.setPreferredSize(new Dimension(header.getWidth() - 5, 35));
+        header.setPreferredSize(new Dimension(0, 35));
 
         // 컬럼 너비 설정
         TableColumnModel columnModel = table.getColumnModel();

@@ -3,6 +3,7 @@ package client.game;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import util.*;
 
 public class PopularGameRankingPanel extends JPanel {
 
@@ -24,7 +25,7 @@ public class PopularGameRankingPanel extends JPanel {
     }
 
     private void initUI() {
-        setPreferredSize(new Dimension(269, 758));
+        setPreferredSize(new Dimension(Sizes.GAME_POPULAR_WIDTH, 758));
         setBackground(new Color(240, 240, 240));
         setBorder(new MatteBorder(0, 2, 2, 1, Color.BLACK));
         setLayout(new BorderLayout());
@@ -63,12 +64,9 @@ public class PopularGameRankingPanel extends JPanel {
         for (String[] game : gameData) {
             JPanel gamePanel = createGameItem(game[0], game[1], game[2]);
             listPanel.add(gamePanel);
+            listPanel.add(Box.createVerticalStrut(20)); // 간격
         }
-
-        JScrollPane scrollPane = new JScrollPane(listPanel);
-        scrollPane.setBorder(null);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        add(scrollPane, BorderLayout.CENTER);
+        add(listPanel, BorderLayout.CENTER);
     }
 
     private JPanel createGameItem(String rank, String name, String share) {
