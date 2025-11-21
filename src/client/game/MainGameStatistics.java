@@ -41,7 +41,7 @@ public class MainGameStatistics extends JPanel {
     }
 
     private void initUI() {
-        setPreferredSize(new Dimension(747, 758));
+        setPreferredSize(new Dimension(Sizes.GAME_MAIN_STATISTICS_WIDTH, Sizes.GAME_MAIN_STATISTICS_HEIGHT));
         setBackground(Color.WHITE);
         setBorder(BorderFactory.createMatteBorder(0, 0, 2, 2, Color.BLACK));
         setLayout(new BorderLayout());
