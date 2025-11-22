@@ -32,7 +32,7 @@ public class PopularGameRankingPanel extends JPanel {
 
         // 헤더
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 10, 10, 10));
 
         JLabel titleLabel = new JLabel("인기게임 순위");
@@ -45,7 +45,7 @@ public class PopularGameRankingPanel extends JPanel {
         headerPanel.add(dateLabel, BorderLayout.CENTER);
 
         JPanel columnHeader = new JPanel(new GridLayout(1, 2));
-        columnHeader.setBackground(new Color(240, 240, 240));
+        columnHeader.setBackground(Color.WHITE);
         JLabel gameLabel = new JLabel("게임 이름");
         gameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 12));
         JLabel shareLabel = new JLabel("점유율", JLabel.RIGHT);
@@ -59,7 +59,7 @@ public class PopularGameRankingPanel extends JPanel {
         // 게임 리스트
         JPanel listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-        listPanel.setBackground(new Color(240, 240, 240));
+        listPanel.setBackground(Color.WHITE);
 
         for (String[] game : gameData) {
             JPanel gamePanel = createGameItem(game[0], game[1], game[2]);
@@ -68,11 +68,11 @@ public class PopularGameRankingPanel extends JPanel {
         }
         add(listPanel, BorderLayout.CENTER);
     }
-
+    // 게임 순위별로 한개씩
     private JPanel createGameItem(String rank, String name, String share) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setMaximumSize(new Dimension(269, 40));
-        panel.setBackground(new Color(240, 240, 240));
+        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
         JLabel nameLabel = new JLabel(rank + ". " + name);

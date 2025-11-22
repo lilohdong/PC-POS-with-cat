@@ -12,4 +12,5 @@ public class Sizes {
     public static final int GAME_POPULAR_WIDTH = 269;
     // Sales 관련 사이즈 - 동준
     public static final int SALES_HEADER_HEIGHT = 74;
+    public static final int SALES_TABLE_HEIGHT = PANEL_HEIGHT - SALES_HEADER_HEIGHT;
 }
