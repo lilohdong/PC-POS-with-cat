@@ -80,5 +80,10 @@ public class MainGameStatistics extends JPanel {
             tm.addRow(data);
         }
     }
-
+    public void refreshPanel() {
+        removeAll();
+        initUI();
+        revalidate();
+        repaint();
+    }
 }

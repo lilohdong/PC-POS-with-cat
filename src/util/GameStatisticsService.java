@@ -4,11 +4,11 @@ import java.util.Vector;
 
 public class GameStatisticsService {
     public Vector<Vector<String>> loadData() {
-        Vector<Vector<String>> datas = new  Vector<>();
+        Vector<Vector<String>> data = new  Vector<>();
 
-        Vector<String> data = new  Vector<>();
+        Vector<String> d = new  Vector<>();
 
-        datas.add(data);
-        return datas;
+        data.add(d);
+        return data;
     }
 }
