@@ -1,10 +1,12 @@
 package client.component;
 
+import util.Sizes;
+
 import javax.swing.*;
 
 public class MainFrame extends JFrame {
         public MainFrame() {
-            setSize(1200,832);
+            setSize(Sizes.FRAME_WIDTH,Sizes.FRAME_HEIGHT);
 
             setVisible(true);
         }
