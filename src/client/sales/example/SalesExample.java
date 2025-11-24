@@ -5,13 +5,15 @@ import client.sales.SalesMainPanel;
 import javax.swing.*;
 import java.awt.*;
 import client.game.example.SideBar;
+import util.Sizes;
+
 public class SalesExample extends JFrame {
     public SalesExample() {
         setTitle("Sales Example");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
-        setSize(new Dimension(1200, 832));
+        setSize(new Dimension(Sizes.FRAME_WIDTH, Sizes.FRAME_HEIGHT));
         SideBar sidebar = new SideBar();
         add(sidebar, BorderLayout.WEST);
 
