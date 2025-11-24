@@ -39,8 +39,7 @@ class Memberbtns extends JPanel implements ActionListener{
 
         btnJoin.addActionListener(this);
         btnUpdate.addActionListener(this);
-        btnDelete.addActionListener(this);
-
+        btnDelete.addActionListener(this);// 나이ㅡ
     }
 
     @Override
