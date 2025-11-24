@@ -1,12 +1,14 @@
 package client.member;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Vector;
 
 class Member extends JFrame implements ActionListener{
 
-    public Member(Memberbtns mbtns,SearchMember smem ){
+    public Member(Memberbtns mbtns,SearchMember smem, MTable mtable ){
 
         setLayout( new BorderLayout());
 
@@ -79,12 +81,36 @@ class SearchMember extends JPanel implements ActionListener{
 
 class MTable extends JPanel implements ActionListener{
 
+    Vector<String> columnNames;
+    Vector<Vector<String>> rows;
+    DefaultTableModel model;
     JTable table;
     JScrollPane scroll;
 
     MTable(){
 
+        columnNames = new Vector<>();
+        columnNames.add("번호");
+        columnNames.add("연령대");
+        columnNames.add("이름");
+        columnNames.add("아이디");
+        columnNames.add("생년월일");
+        columnNames.add("성별");
+        columnNames.add("나이");
+        columnNames.add("잔여시간");
+        columnNames.add("휴대폰");
+
+        rows = new Vector<>();
+
         setLayout( new BorderLayout());
+        model = new DefaultTableModel(rows,columnNames);
+        table = new JTable(model);
+        scroll = new JScrollPane(table);
+
+
+        add(scroll);
+        add(table);
+
 
     }
 
@@ -100,7 +126,7 @@ public class MemberList {
         Memberbtns mbtns = new Memberbtns();
         SearchMember smem = new SearchMember();
         MTable mtable = new MTable();
-        Member member = new Member(mbtns,smem);
+        Member member = new Member(mbtns,smem, mtable);
 
 
         member.setTitle("회원 관리");
