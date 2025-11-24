@@ -1,9 +1,10 @@
 package client.game;
 
+import util.Sizes;
+
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
-import util.*;
 
 public class PopularGameRankingPanel extends JPanel {
 
@@ -68,6 +69,7 @@ public class PopularGameRankingPanel extends JPanel {
         }
         add(listPanel, BorderLayout.CENTER);
     }
+
     // 게임 순위별로 한개씩
     private JPanel createGameItem(String rank, String name, String share) {
         JPanel panel = new JPanel(new BorderLayout());

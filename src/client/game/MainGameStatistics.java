@@ -1,12 +1,16 @@
 package client.game;
 
+import util.GameStatisticsService;
+
 import javax.swing.*;
-import javax.swing.table.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.time.LocalTime;
 import java.util.Vector;
 
-import util.*;
 public class MainGameStatistics extends JPanel {
     private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
     private DefaultTableModel tm;
@@ -18,6 +22,7 @@ public class MainGameStatistics extends JPanel {
             "2023년",
             "2022년"
     };
+
     public MainGameStatistics() {
         initUI();
     }
@@ -32,7 +37,7 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBackground(new Color(220, 230, 240));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel dateLabel = new JLabel("현재 시간 : "+ LocalTime.now());
+        JLabel dateLabel = new JLabel("현재 시간 : " + LocalTime.now());
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 
         headerPanel.add(dateLabel);
@@ -73,13 +78,15 @@ public class MainGameStatistics extends JPanel {
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
     }
+
     private void initData() {
         GameStatisticsService gss = new GameStatisticsService();
         datas = gss.loadData();
-        for(Vector<String> data : datas) {
+        for (Vector<String> data : datas) {
             tm.addRow(data);
         }
     }
+
     public void refreshPanel() {
         removeAll();
         initUI();

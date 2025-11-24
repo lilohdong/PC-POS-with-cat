@@ -11,11 +11,11 @@ public class DBConnection {
     private static Connection conn;
 
     public static Connection getConnection() {
-        if(conn == null) {
+        if (conn == null) {
             try {
                 Class.forName("com.mysql.jdbc.Driver");
-                conn = DriverManager.getConnection(URL,USER,PASSWORD);
-            }catch (Exception e) {
+                conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

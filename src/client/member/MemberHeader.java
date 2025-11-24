@@ -12,6 +12,7 @@ public class MemberHeader extends JPanel implements ActionListener {
     public MemberHeader() {
         initUI();
     }
+
     private void initUI() {
 
         setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -28,6 +29,7 @@ public class MemberHeader extends JPanel implements ActionListener {
         btnUpdate.addActionListener(this);
         btnDelete.addActionListener(this);// 나이ㅡ
     }
+
     @Override
     public void actionPerformed(ActionEvent e) {
 

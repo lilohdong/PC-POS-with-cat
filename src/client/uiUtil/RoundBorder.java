@@ -7,7 +7,8 @@ public class RoundBorder extends AbstractBorder {
     private int radius;
     private Color color;
     private final int thicknessTop, thicknessBottom, thicknessLeft, thicknessRight;
-    public RoundBorder(int radius, Color color,  int thicknessTop, int thicknessLeft, int thicknessBottom, int thicknessRight) {
+
+    public RoundBorder(int radius, Color color, int thicknessTop, int thicknessLeft, int thicknessBottom, int thicknessRight) {
         this.radius = radius;
         this.color = color;
         this.thicknessTop = thicknessTop;
@@ -15,14 +16,17 @@ public class RoundBorder extends AbstractBorder {
         this.thicknessLeft = thicknessLeft;
         this.thicknessRight = thicknessRight;
     }
+
     // Top Bottom, Left Right로 생성
     public RoundBorder(int radius, Color color, int thicknessTb, int thicknessLr) {
         this(radius, color, thicknessTb, thicknessLr, thicknessTb, thicknessLr);
     }
+
     // 1 thickness로 생성
     public RoundBorder(int radius, Color color, int thickness) {
-        this(radius,color,thickness,thickness,thickness,thickness);
+        this(radius, color, thickness, thickness, thickness, thickness);
     }
+
     @Override
     public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
         Graphics2D g2d = (Graphics2D) g.create();

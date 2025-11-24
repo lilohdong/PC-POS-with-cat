@@ -1,11 +1,15 @@
 package client.game.example;
-import java.awt.*;
+
+import util.Sizes;
+
 import javax.swing.*;
-import util.*;
-public class SideBar extends JPanel{
+import java.awt.*;
+
+public class SideBar extends JPanel {
     public SideBar() {
         initUI();
     }
+
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH, Sizes.SIDEBAR_HEIGHT));
 

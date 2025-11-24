@@ -1,11 +1,11 @@
 package client.sales.example;
 
+import client.game.example.SideBar;
 import client.sales.SalesMainPanel;
+import util.Sizes;
 
 import javax.swing.*;
 import java.awt.*;
-import client.game.example.SideBar;
-import util.Sizes;
 
 public class SalesExample extends JFrame {
     public SalesExample() {
@@ -20,10 +20,11 @@ public class SalesExample extends JFrame {
         SalesMainPanel stp = new SalesMainPanel();
         add(stp, BorderLayout.CENTER);
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-           SalesExample frame = new SalesExample();
-           frame.setVisible(true);
+            SalesExample frame = new SalesExample();
+            frame.setVisible(true);
         });
     }
 }

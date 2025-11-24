@@ -1,11 +1,13 @@
 package client.component;
+
+import util.AdminLoginCheck;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import util.*;
-
-public class AdminLoginFrame extends JFrame implements ActionListener{
+public class AdminLoginFrame extends JFrame implements ActionListener {
     private JTextField idField;
     private JPasswordField pwField;
 
@@ -77,7 +79,8 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
 
         add(mainPanel);
     }
-// Main Panel return method
+
+    // Main Panel return method
     private static JPanel getMainPanel() {
         JPanel mainPanel = new JPanel() {
             @Override
@@ -105,7 +108,7 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
     }
 
     public void actionPerformed(ActionEvent e) {
-        if(AdminLoginCheck.COUNT == 0) {
+        if (AdminLoginCheck.COUNT == 0) {
             JOptionPane.showMessageDialog(this,
                     "로그인 시도 횟수를 초과했습니다.\n프로그램을 종료합니다.",
                     "로그인 제한",
@@ -113,10 +116,10 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
             System.exit(0);
             return;
         }
-        if(AdminLoginCheck.check(idField.getText(), new String(pwField.getPassword()))) {
+        if (AdminLoginCheck.check(idField.getText(), new String(pwField.getPassword()))) {
             JOptionPane.showMessageDialog(this,
-                    "환영합니다 "+idField.getText()+"님",
-                    "환영합니다.",JOptionPane.INFORMATION_MESSAGE);
+                    "환영합니다 " + idField.getText() + "님",
+                    "환영합니다.", JOptionPane.INFORMATION_MESSAGE);
             new MainFrame();
             dispose();
         } else {
@@ -126,7 +129,6 @@ public class AdminLoginFrame extends JFrame implements ActionListener{
                     JOptionPane.WARNING_MESSAGE);
         }
     }
-
 
 
     public static void start() {

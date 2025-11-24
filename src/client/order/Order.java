@@ -1,7 +1,7 @@
 package client.order;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
-public class Order extends JPanel {    
-    
+public class Order extends JPanel {
+
 }

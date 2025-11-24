@@ -12,10 +12,11 @@ public class MemberList extends JFrame {
         add(member);
         setTitle("회원 관리");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200,832);
+        setSize(1200, 832);
         setVisible(true);
     }
-    public static void main(String[] args){
+
+    public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             new MemberList();
         });
