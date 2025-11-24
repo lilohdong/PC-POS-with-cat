@@ -52,7 +52,7 @@ public class MainGameStatistics extends JPanel {
         // 테이블 헤더 스타일
         JTableHeader header = table.getTableHeader();
         header.setFont(new Font("맑은 고딕", Font.BOLD, 12));
-        header.setBackground(new Color(240, 240, 240));
+        header.setBackground(Color.gray);
         header.setPreferredSize(new Dimension(0, 35));
 
         // 컬럼 너비 설정
