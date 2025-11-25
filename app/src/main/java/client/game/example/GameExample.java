@@ -1,6 +1,7 @@
 package client.game.example;
 
-import client.game.GameMainPanel;
+import client.component.SideBar;
+import client.game.*;
 
 import javax.swing.*;
 import java.awt.*;

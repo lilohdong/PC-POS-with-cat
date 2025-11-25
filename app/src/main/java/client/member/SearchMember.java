@@ -9,71 +9,74 @@ import java.util.Vector;
 
 public class SearchMember extends JPanel implements ActionListener {
 
-    private JComboBox<String> combo;
-    private String[] searchMethod = {"전체검색", "이름", "아이디"};
+    private final JComboBox<String> combo;
+    private final String[] searchMethod = {"전체검색", "이름", "아이디"};
 
     JTextField searchField;
     JButton searchBtn;
+    JLabel total;
+
+    Vector<String> columnNames;
+    Vector<Vector<String>> rows;
+    DefaultTableModel model;
+    JTable table;
+    JScrollPane scroll;
 
     public SearchMember() {
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+
+        setLayout(new BorderLayout());
+        JPanel searchPanel = new JPanel();
+        JPanel tablePanel = new JPanel();
+
+        //총 회원 수
+        total = new JLabel("총 회원 수 : ");
+
+        add(searchPanel, BorderLayout.NORTH);
+        add(tablePanel, BorderLayout.CENTER);
+        add(total, BorderLayout.SOUTH);
+
+
+        //회원 검색
+        searchPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 
         combo = new JComboBox<>(searchMethod);
         searchField = new JTextField(30);
         searchBtn = new JButton();
 
-
-        add(combo);
-        add(searchField);
-        add(searchBtn);
+        searchPanel.add(combo);
+        searchPanel.add(searchField);
+        searchPanel.add(searchBtn);
 
         searchBtn.addActionListener(this);
-    }
 
+        //회원 테이블
+        columnNames = new Vector<>();
+        columnNames.add("번호");
+        columnNames.add("연령대");
+        columnNames.add("이름");
+        columnNames.add("아이디");
+        columnNames.add("생년월일");
+        columnNames.add("성별");
+        columnNames.add("나이");
+        columnNames.add("잔여시간");
+        columnNames.add("휴대폰");
+
+        rows = new Vector<>();
+
+        tablePanel.setLayout(new BorderLayout());
+        model = new DefaultTableModel(rows, columnNames);
+        table = new JTable(model);
+        scroll = new JScrollPane(table);
+
+        tablePanel.add(scroll);
+        tablePanel.add(table);
+
+
+
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
 
-    }
-
-    public static class MTable extends JPanel implements ActionListener {
-
-        Vector<String> columnNames;
-        Vector<Vector<String>> rows;
-        DefaultTableModel model;
-        JTable table;
-        JScrollPane scroll;
-
-        public MTable() {
-
-            columnNames = new Vector<>();
-            columnNames.add("번호");
-            columnNames.add("연령대");
-            columnNames.add("이름");
-            columnNames.add("아이디");
-            columnNames.add("생년월일");
-            columnNames.add("성별");
-            columnNames.add("나이");
-            columnNames.add("잔여시간");
-            columnNames.add("휴대폰");
-
-            rows = new Vector<>();
-
-            setLayout(new BorderLayout());
-            model = new DefaultTableModel(rows, columnNames);
-            table = new JTable(model);
-            scroll = new JScrollPane(table);
-
-
-            add(scroll);
-            add(table);
-
-
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-
-        }
     }
 }
