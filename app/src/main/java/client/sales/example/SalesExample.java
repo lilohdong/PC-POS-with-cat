@@ -1,6 +1,6 @@
 package client.sales.example;
 
-import client.game.example.SideBar;
+import client.component.SideBar;
 import client.sales.SalesMainPanel;
 import util.Sizes;
 
