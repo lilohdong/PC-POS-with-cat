@@ -1,3 +1,5 @@
+package org.example;
+
 import client.component.AdminLoginFrame;
 
 public class Main {
