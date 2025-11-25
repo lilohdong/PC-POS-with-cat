@@ -1,11 +1,15 @@
 package client.sales;
 
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
 import util.Sizes;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class SalesTablePanel extends JPanel {
     private JTable mainTable;
@@ -15,11 +19,13 @@ public class SalesTablePanel extends JPanel {
             "주간",
             "연간"
     };
+    private final ImageIcon cal = new  ImageIcon("imgs/calendar.png");
+    private JButton calBtn;
     private final String[] column = {"매출번호", "아이디", "매출발생일", "매출발생시간", "상품", "매출액"};
     private DefaultTableModel tm;
 
     private JPanel dateAppearance;
-
+    private DatePicker datePicker;
     public SalesTablePanel() {
         initUI();
     }
@@ -43,6 +49,14 @@ public class SalesTablePanel extends JPanel {
         JScrollPane sp = new JScrollPane(mainTable);
         sp.setBorder(null);
         add(sp);
+        // datePicker부분
+        DatePickerSettings settings = new DatePickerSettings();
+        settings.setFormatForDatesCommonEra("yyyy-MM-dd"); // 날짜 형식 지정
+        settings.setAllowKeyboardEditing(false);
+        datePicker = new DatePicker(settings);
+        datePicker.addDateChangeListener(e -> {
+
+        });
     }
 
     private JPanel createMainHeaderPanel() {
@@ -53,11 +67,22 @@ public class SalesTablePanel extends JPanel {
         // 콤보박스
         selectD = new JComboBox<>(duration);
         selectD.setPreferredSize(new Dimension(248, 40));
+        calBtn = new JButton(cal);
+        calBtn.setPreferredSize(new Dimension(48, 48));
+        // calBtn 리스너 정의
+        calBtn.addActionListener(e -> {
 
+        });
 
         JLabel period = new JLabel("");
         jp.add(selectD);
         return jp;
     }
 
+    class calListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            datePicker.setVisible(true);
+        }
+    }
 }
