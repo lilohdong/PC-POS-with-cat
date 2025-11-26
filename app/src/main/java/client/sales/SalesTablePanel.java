@@ -2,6 +2,11 @@ package client.sales;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
+import dao.SalesDAO;
+import dto.SalesDTO;
+import java.util.List;
+
+import service.SalesTableService;
 import util.Sizes;
 
 import javax.swing.*;
@@ -34,7 +39,7 @@ public class SalesTablePanel extends JPanel {
     private LocalDate endDate;
 
     private JButton searchBtn;
-
+    SalesTableService sts = SalesTableService.getInstance();
     public SalesTablePanel() {
         initUI();
         updatePeriodDisplay(datePicker.getDate(), (String) selectD.getSelectedItem());
@@ -49,7 +54,7 @@ public class SalesTablePanel extends JPanel {
         settings.setAllowKeyboardEditing(false);
         datePicker = new DatePicker(settings);
         datePicker.setDateToToday();
-        // DatePicker 리스너 -> 서낵하면 updatePeriodDisplay
+        // DatePicker 리스너 -> 선택하면 updatePeriodDisplay
         datePicker.addDateChangeListener((e)->{
             LocalDate date = e.getNewDate();
             if(date != null) {
@@ -64,7 +69,7 @@ public class SalesTablePanel extends JPanel {
 
         tm = new DefaultTableModel(column,0);
         mainTable = new JTable(tm);
-
+        sts.initTable(tm);
         JTableHeader header = mainTable.getTableHeader();
         header.setPreferredSize(new Dimension(0, 35));
 
@@ -85,16 +90,20 @@ public class SalesTablePanel extends JPanel {
         selectD.setPreferredSize(new Dimension(248, 40));
 
         selectD.addActionListener(e -> {
-            if(e.getActionCommand().equals("주간") || e.getActionCommand().equals("월간")) {
-                startTime.setSelectedIndex(0);
+            String selectedDuration = (String) selectD.getSelectedItem();
+
+            if("주간".equals(selectedDuration) || "월간".equals(selectedDuration)) {
+                startTime.setSelectedIndex(0); // 00:00
                 endTime.setSelectedItem("24:00");
                 startTime.setEnabled(false);
                 endTime.setEnabled(false);
-            } else {
+            } else { // "일간"일 경우
                 startTime.setEnabled(true);
                 endTime.setEnabled(true);
             }
-            updatePeriodDisplay(datePicker.getDate(), (String) selectD.getSelectedItem());
+
+            // 기간 표시 업데이트
+            updatePeriodDisplay(datePicker.getDate(), selectedDuration);
         });
 
         calBtn = new JButton(cal);
@@ -112,6 +121,7 @@ public class SalesTablePanel extends JPanel {
 
         startTime = new JComboBox<>();
         endTime = new JComboBox<>();
+        // 00:00 ~ 24:00까지 전부 추가 (startTime이랑 endTime 전부)
         for (int i = 0; i <= 24; i++) {
             String time = String.format("%02d:00", i);
             startTime.addItem(time);
@@ -132,11 +142,6 @@ public class SalesTablePanel extends JPanel {
     }
 
 
-    /**
-     * 선택된 날짜와 기간 타입에 따라 시작일/종료일을 계산하고 라벨을 업데이트합니다.
-     * @param selectedDate DatePicker에서 선택된 단일 날짜
-     * @param durationType JComboBox에서 선택된 기간 타입 ("일간", "주간", "연간")
-     */
     private void updatePeriodDisplay(LocalDate selectedDate, String durationType) {
         if (selectedDate == null) {
             period.setText("날짜를 선택하세요");
@@ -153,9 +158,9 @@ public class SalesTablePanel extends JPanel {
                 period.setText(start.toString());
                 break;
             case "주간":
-                // 주의 시작일 (월요일)
+                // 월요일
                 start = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                // 주의 종료일 (일요일)
+                // 일요일
                 end = selectedDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
                 period.setText(start.toString() + " ~ " + end.toString());
                 break;
@@ -205,10 +210,28 @@ public class SalesTablePanel extends JPanel {
                         "경고", JOptionPane.WARNING_MESSAGE);
                 return;
             }
+            if ("24:00".equals(endTimeStr)) {
+                endTimeStr = "23:59:59"; // HH:mm:ss 형식으로 맞춤
+            }
 
-            // 4. 데이터 조회 로직 호출 (TODO: 실제 서비스 계층 메서드)
+            SalesDAO salesDAO = SalesDAO.getInstance();
+            try {
+                // start.toString()과 end.toString()은 yyyy-mm-dd 형식입니다.
+                List<SalesDTO> salesList = salesDAO.getSalesList(
+                        start.toString(),
+                        end.toString(),
+                        startTimeStr,
+                        endTimeStr
+                );
 
+                sts.updateTable(salesList,tm);
 
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(SalesTablePanel.this,
+                        "매출 조회 중 오류 발생: " + ex.getMessage(),
+                        "오류", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }
