@@ -25,5 +25,12 @@ public class MainUI extends JPanel {
         Order orderMainPanel = new Order();
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
 
+        add(gameMainPanel, "GAME");
+        add(orderMainPanel, "ORDER");
+        add(salesMainPanel, "SALES");
+        add(memberMainPanel, "MEMBER");
+    }
+    public void showUI(String title) {
+        cl.show(this,title);
     }
 }
