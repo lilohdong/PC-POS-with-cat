@@ -7,20 +7,26 @@ public class GameMainPanel extends JPanel {
     public GameMainPanel() {
         initUI();
     }
-
+    private GameHeaderPanel headerPanel;
+    private PopularGameRankingPanel rankingPanel;
+    private MainGameStatistics mainStats;
     private void initUI() {
         setSize(1016, 832);
         setLayout(new BorderLayout());
         // 헤더 패널
-        GameHeaderPanel headerPanel = new GameHeaderPanel();
+        headerPanel = new GameHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
 
         // 인기게임 순위 패널
-        PopularGameRankingPanel rankingPanel = new PopularGameRankingPanel();
+        rankingPanel = new PopularGameRankingPanel();
         add(rankingPanel, BorderLayout.WEST);
 
         // 메인 게임 통계 패널
-        MainGameStatistics mainStats = new MainGameStatistics();
+        mainStats = new MainGameStatistics();
         add(mainStats, BorderLayout.CENTER);
+    }
+    public void refresh() {
+        mainStats.refresh();
+
     }
 }

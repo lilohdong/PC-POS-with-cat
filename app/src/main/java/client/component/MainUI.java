@@ -11,7 +11,7 @@ import java.awt.*;
 
 public class MainUI extends JPanel {
     private CardLayout cl;
-
+    private GameMainPanel gameMainPanel;
     public MainUI() {
         initUI();
     }
@@ -20,7 +20,7 @@ public class MainUI extends JPanel {
         cl = new CardLayout();
         setLayout(cl);
 
-        GameMainPanel gameMainPanel = new GameMainPanel();
+        gameMainPanel = new GameMainPanel();
         Member memberMainPanel = new Member();
         Order orderMainPanel = new Order();
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
@@ -32,5 +32,6 @@ public class MainUI extends JPanel {
     }
     public void showUI(String title) {
         cl.show(this,title);
+        gameMainPanel.refresh();
     }
 }

@@ -22,7 +22,7 @@ public class MainGameStatistics extends JPanel {
             "2023년",
             "2022년"
     };
-
+    JLabel dateLabel;
     public MainGameStatistics() {
         initUI();
     }
@@ -37,7 +37,7 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBackground(new Color(220, 230, 240));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-        JLabel dateLabel = new JLabel("현재 시간 : " + LocalTime.now());
+        dateLabel = new JLabel("현재 시간 : " + LocalTime.now());
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 
         headerPanel.add(dateLabel);
@@ -87,10 +87,8 @@ public class MainGameStatistics extends JPanel {
         }
     }
 
-    public void refreshPanel() {
-        removeAll();
-        initUI();
-        revalidate();
-        repaint();
+    public void refresh() {
+        dateLabel.setText("현재 시간 : " +LocalTime.now().toString());
+        initData();
     }
 }

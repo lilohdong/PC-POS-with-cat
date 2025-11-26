@@ -19,9 +19,20 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
 
         SideBar sb = new SideBar();
-        add(sb, BorderLayout.WEST);
-
         MainUI mui = new MainUI();
+
+        sb.setNavListener(e-> {
+            String clickedBtn =e.getActionCommand();
+            switch (clickedBtn) {
+                //case "매장관리" -> mui.showUI("");
+                case "매출관리" -> mui.showUI("SALES");
+                case "게임통계" -> mui.showUI("GAME");
+                case "상품판매" -> mui.showUI("ORDER");
+                case "회원관리" -> mui.showUI("MEMBER");
+            }
+        });
+
+        add(sb, BorderLayout.WEST);
         add(mui, BorderLayout.CENTER);
     }
 }

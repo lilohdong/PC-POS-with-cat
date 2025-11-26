@@ -1,17 +1,18 @@
 package client.component;
 
-import service.NaviListener;
+import service.NowAdminListener;
+import service.NowAdminService;
 import util.Sizes;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Array;
-import java.util.ArrayList;
+import java.awt.event.ActionListener;
 
-public class SideBar extends JPanel {
+public class SideBar extends JPanel implements NowAdminListener {
     public SideBar() {
         initUI();
-
+        NowAdminService.getInstance().addListener(this);
+        updateAccess(NowAdminService.getInstance().isAdminMode());
     }
 
     private JButton manageBtn;
@@ -22,40 +23,104 @@ public class SideBar extends JPanel {
     private JButton salesBtn;
     private JButton staffBtn;
     private JButton gameBtn;
-
     private JButton chmodBtn;
-    private BoxLayout box;
+
+    private final Color admin = new Color(170,209, 231);
+    private final Color noAdmin = new Color(255, 102, 102);
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH, Sizes.SIDEBAR_HEIGHT));
         setBackground(Color.white);
-        setBorder(BorderFactory.createLineBorder(Color.black, 1));
-
-        box = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(box);
+        setBorder(BorderFactory.createLineBorder(Color.black, 1, true));
+        setLayout(new BorderLayout());
 
         chmodBtn = new JButton("관리자 모드 변경");
         chmodBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
         chmodBtn.setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH,64));
-        chmodBtn.setMaximumSize(new Dimension(Sizes.SIDEBAR_WIDTH,64));
-        add(chmodBtn);
+        chmodBtn.setBackground(admin);
+        chmodBtn.setMinimumSize(new Dimension(Sizes.SIDEBAR_WIDTH,64));
+        chmodBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE,64));
+        chmodBtn.addActionListener(e -> {
+            if(!NowAdminService.getInstance().isAdminMode()){
+                showPasswordInputDialog();
+            } else {
+                disableAdmin();
+            }
+        });
+        add(chmodBtn, BorderLayout.NORTH);
 
-        add(Box.createVerticalStrut(17));
+        JPanel btnSets = new JPanel();
 
-        initReal();
+        BoxLayout box = new BoxLayout(btnSets, BoxLayout.Y_AXIS);
+        btnSets.setLayout(box);
+        btnSets.setBackground(Color.white);
+
+        initReal(btnSets);
+        add(btnSets, BorderLayout.CENTER);
     }
+    // 관리자 인증 매커니즘
+    private void showPasswordInputDialog() {
+        JPasswordField pf = new JPasswordField();
+        int okCxl = JOptionPane.showConfirmDialog(
+                this,
+                pf,
+                "관리자 비밀번호 입력",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (okCxl == JOptionPane.OK_OPTION) {
+            String password = new String(pf.getPassword());
+            boolean success = NowAdminService.getInstance().authenticate(password);
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "관리자 모드가 활성화되었습니다.");
+            } else {
+                JOptionPane.showMessageDialog(this, "비밀번호가 일치하지 않습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    private void updateAccess(boolean isAdminMode) {
+        salesBtn.setEnabled(isAdminMode);
+        staffBtn.setEnabled(isAdminMode);
+
+        String modeText = isAdminMode ? "관리자 모드" : "관리자 모드 변경";
+        chmodBtn.setText(modeText);
+        if(isAdminMode) {
+            chmodBtn.setBackground(noAdmin);
+        } else {
+            chmodBtn.setBackground(admin);
+        }
+    }
+
+    @Override
+    public void onAdminModeChanged(Boolean isAdminMode) {
+        updateAccess(isAdminMode);
+    }
+
+    private void disableAdmin(){
+        NowAdminService.getInstance().disableAdminMode();
+        JOptionPane.showMessageDialog(this, "관리자 모드가 해제되었습니다.");
+        updateAccess(false);
+    }
+    // 관리자 모드 변경 루틴 끝
 
     private JButton initBtn(String name) {
         JButton jBtn = new JButton(name);
         jBtn.setBackground(Color.white);
         jBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-        jBtn.setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH,63));
-        jBtn.setMaximumSize(new Dimension(200,63));
+        jBtn.setPreferredSize(new Dimension(200,63));
+        jBtn.setMinimumSize(new Dimension(200,63));
         return jBtn;
     }
-    private void initReal() {
+    private void initReal(JPanel contentPanel) {
+        contentPanel.add(Box.createVerticalStrut(Sizes.BOX_STRUT)); //간격 17
+
         JPanel[] p = new JPanel[8];
         for (int i = 0; i < p.length; i++) {
             p[i] = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            p[i].setBackground(Color.white);
+            p[i].setMinimumSize(new Dimension(200,63));
+            p[i].setBorder(BorderFactory.createLineBorder(Color.black, 0, true));
         }
 
         manageBtn = initBtn("매장관리");
@@ -77,8 +142,21 @@ public class SideBar extends JPanel {
         p[7].add(gameBtn);
 
         for(int i = 0; i < p.length; i++){
-            add(p[i]);
-            add(Box.createVerticalStrut(Sizes.BOX_STRUT));
+            contentPanel.add(p[i]);
+            contentPanel.add(Box.createVerticalStrut(Sizes.BOX_STRUT));
         }
+        contentPanel.add(Box.createVerticalGlue());
     }
+    public void setNavListener(ActionListener listener) {
+        manageBtn.addActionListener(listener);
+        orderBtn.addActionListener(listener);
+        stockBtn.addActionListener(listener);
+        memberBtn.addActionListener(listener);
+        handOverBtn.addActionListener(listener);
+        salesBtn.addActionListener(listener);
+        staffBtn.addActionListener(listener);
+        gameBtn.addActionListener(listener);
+    }
+
+
 }
