@@ -22,6 +22,11 @@ public class SalesExample extends JFrame {
     }
 
     public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
+        } catch (Exception ex) {
+            System.err.println("Failed to initialize LaF");
+        }
         SwingUtilities.invokeLater(() -> {
             SalesExample frame = new SalesExample();
             frame.setVisible(true);
