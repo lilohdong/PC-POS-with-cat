@@ -1,12 +1,9 @@
 package client.member;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
+import javax.swing.table.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.Vector;
 import util.Sizes;
 
@@ -78,6 +75,7 @@ public class SearchMember extends JPanel implements ActionListener {
         tablePanel.setLayout(new BorderLayout());
         table = new JTable(model);
         scroll = new JScrollPane(table);
+        tablePanel.add(scroll);
 
 
         // 마지막 컬럼 가변길이 설정
@@ -107,24 +105,16 @@ public class SearchMember extends JPanel implements ActionListener {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRender);
         }
 
-        tablePanel.add(scroll);
-        addDummyData();
-
-        updateTotal();
+        // 첫 화면: 전체 데이터 로딩
+        loadTable("", "전체검색");
 
     }
-    //더미 데이터
-    private void addDummyData() {
-        Vector<String> dummydata = new Vector<>();
-        dummydata.add("초등학생");
-        dummydata.add("오동준");
-        dummydata.add("dhehdwns");
-        dummydata.add("2003-09-02");
-        dummydata.add("남");
-        dummydata.add("23");
-        dummydata.add("15:07");
-        dummydata.add("010-1234-124");
-        model.addRow(dummydata);
+
+    public void loadTable(String keyword, String type) { //type 기준 , keyword 검색창 문자열
+
+        //-----------------------------------------------//
+        // 테이블 데이터 가져오기 만들 예정, DB 생성 후 //
+
     }
 
     // 총 회원수 갱신
@@ -135,10 +125,10 @@ public class SearchMember extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == searchBtn) {
-            // 더미 데이터 ( 나중에 DB 연결 할 자리)
-            addDummyData();
+            String keyword = searchField.getText().trim();
+            String type = combo.getSelectedItem().toString();
 
-            updateTotal();
+            loadTable(keyword, type);
 
         }
 
