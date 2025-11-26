@@ -1,5 +1,7 @@
 package client.member;
 
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -14,7 +16,7 @@ public class MemberHeader extends JPanel implements ActionListener {
     }
 
     private void initUI() {
-
+        setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.MEMBER_HEADER_HEIGHT ));
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
         btnJoin = new JButton("가입");
