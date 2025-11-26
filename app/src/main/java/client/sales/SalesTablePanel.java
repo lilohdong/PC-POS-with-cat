@@ -9,6 +9,7 @@ import util.Sizes;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -25,7 +26,10 @@ public class SalesTablePanel extends JPanel {
 
     private JPanel dateAppearance;
     private DatePicker datePicker;
+    private JComboBox<String> startTime;
+    private JComboBox<String> endTime;
     private JLabel period; // 날짜 표시용 라벨
+
 
     public SalesTablePanel() {
         initUI();
@@ -41,30 +45,27 @@ public class SalesTablePanel extends JPanel {
         settings.setAllowKeyboardEditing(false);
         datePicker = new DatePicker(settings);
         datePicker.setDateToToday();
-
-        // ★ 중요: 처음에는 DatePicker 자체를 숨김 (버튼 누르면 나오게)
-        datePicker.setVisible(false);
-
-        // 날짜 선택 시 이벤트 (선택 후 다시 숨기거나, 라벨에 표시)
-        datePicker.addDateChangeListener(new DateChangeListener() {
-            @Override
-            public void dateChanged(DateChangeEvent event) {
-                LocalDate date = event.getNewDate();
+        // datePicker 리스너 설정
+        datePicker.addDateChangeListener((e)->{
+                LocalDate date = e.getNewDate();
                 if(date != null) {
-                    period.setText(date.toString()); // 라벨에 선택된 날짜 표시
-                    datePicker.setVisible(false); // 선택 후 숨기기
+                    period.setText(date.toString());
+                    datePicker.setVisible(false);
                 }
-            }
         });
 
         // 레전드 패널 생성
         dateAppearance = createMainHeaderPanel();
         add(dateAppearance, BorderLayout.NORTH);
 
-        // ... (메인 테이블 부분 코드는 그대로) ...
-        tm = new DefaultTableModel(column, 0);
+        tm = new DefaultTableModel(column,0);
         mainTable = new JTable(tm);
-        // (중략: 테이블 설정 부분)
+
+        JTableHeader header = mainTable.getTableHeader();
+        header.setPreferredSize(new Dimension(0, 35));
+
+        TableColumnModel tcm = header.getColumnModel();
+        tcm.setColumnSelectionAllowed(false);
         JScrollPane sp = new JScrollPane(mainTable);
         sp.setBorder(null);
         add(sp);
@@ -80,18 +81,28 @@ public class SalesTablePanel extends JPanel {
         selectD.setPreferredSize(new Dimension(248, 40));
 
         calBtn = new JButton(cal);
-        calBtn.setPreferredSize(new Dimension(60, 40));
+        calBtn.setPreferredSize(new Dimension(24, 24));
         calBtn.addActionListener(new calListener());
-
         period = new JLabel("날짜를 선택하세요");
 
         jp.add(selectD);
         jp.add(calBtn);
-
-        // ★★★ [핵심 수정] datePicker를 패널에 반드시 추가해야 합니다! ★★★
         jp.add(datePicker);
 
-        jp.add(period);
+        startTime = new JComboBox<>();
+        endTime = new JComboBox<>();
+        for (int i = 0; i <= 24; i++) {
+            // 분은 항상 00으로 고정
+            String time = String.format("%02d:00", i);
+            startTime.addItem(time);
+            endTime.addItem(time);
+        }
+        startTime.setMaximumRowCount(6);
+        endTime.setMaximumRowCount(6);
+        jp.add(startTime);
+        jp.add(endTime);
+
+        jp.add(period, FlowLayout.CENTER);
         return jp;
     }
 
