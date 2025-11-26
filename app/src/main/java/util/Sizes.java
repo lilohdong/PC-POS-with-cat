@@ -11,6 +11,7 @@ public class Sizes {
     // 사이드바 사이즈
     public static final int SIDEBAR_WIDTH = 256;
     public static final int SIDEBAR_HEIGHT = 832;
+    public static final int BOX_STRUT = 17;
     // Game 관련 사이즈 - 동준
     public static final int GAME_POPULAR_WIDTH = 269;
     // Sales 관련 사이즈 - 동준
