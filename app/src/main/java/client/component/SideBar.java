@@ -1,5 +1,6 @@
 package client.component;
 
+import service.NaviListener;
 import util.Sizes;
 
 import javax.swing.*;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 public class SideBar extends JPanel {
     public SideBar() {
         initUI();
+
     }
 
     private JButton manageBtn;
