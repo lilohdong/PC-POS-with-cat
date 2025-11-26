@@ -2,7 +2,7 @@ package client.order.view;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.List;
 import util.*;
 
 
@@ -19,9 +19,19 @@ public class OrderList extends JPanel {
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, 675));
         
         listAreaPanel = new JPanel();
-        listAreaPanel.setLayout(new BoxLayout(listAreaPanel, ABORT));
+        listAreaPanel.setLayout(new BoxLayout(listAreaPanel, BoxLayout.Y_AXIS));
         add(new JScrollPane(listAreaPanel), BorderLayout.CENTER);
     }
 
-    
+    //OrderData라는 객체를 담을 수 있는 
+    /*public void displayOrder(List<OrderData> cookingList, List<OrderData> doneList) {
+        listAreaPanel.removeAll();
+
+        List<OrderData> targetList;
+        if (currentMode == COOKING_MODE) {
+            targetList = cookingList;            
+        } else {
+            targetList = doneList;
+        }
+    }*/
 }
