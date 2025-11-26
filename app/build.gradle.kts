@@ -26,7 +26,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jdatepicker/jdatepicker
     implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
     implementation("com.formdev:flatlaf:3.5.1")
-// 최신 버전으로 변경
+    implementation("mysql:mysql-connector-java:8.0.33") // 커넥터 종속성 추가
+
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
