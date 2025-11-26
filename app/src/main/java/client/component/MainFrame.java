@@ -9,11 +9,15 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         initUI();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setTitle("POS PLACE");
         setVisible(true);
     }
 
     private void initUI() {
         setSize(new Dimension(Sizes.FRAME_WIDTH,Sizes.FRAME_HEIGHT));
+        setResizable(false);
+        setLocationRelativeTo(null);
+
         SideBar sb = new SideBar();
         add(sb, BorderLayout.WEST);
 

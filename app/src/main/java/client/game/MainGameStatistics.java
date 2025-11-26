@@ -1,6 +1,6 @@
 package client.game;
 
-import util.GameStatisticsService;
+import service.GameStatisticsService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
