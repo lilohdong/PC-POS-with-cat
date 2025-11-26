@@ -1,6 +1,11 @@
 package client.order;
 
 import javax.swing.*;
+
+import client.order.view.OrderHeader;
+import client.order.view.OrderList;
+import client.order.view.OrderState;
+
 import java.awt.*;
 import util.*;
 

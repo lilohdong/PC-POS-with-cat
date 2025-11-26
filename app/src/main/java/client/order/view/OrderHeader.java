@@ -1,4 +1,4 @@
-package client.order;
+package client.order.view;
 
 import javax.swing.*;
 import java.awt.*;
