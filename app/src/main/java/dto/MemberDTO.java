@@ -1,4 +1,4 @@
-package db;
+package dto;
 
 public class MemberDTO {
     private final String id;

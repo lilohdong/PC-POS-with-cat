@@ -1,4 +1,4 @@
-package client.sales;
+package dto;
 
 public class SalesDTO {
     private String salesId;
@@ -7,7 +7,7 @@ public class SalesDTO {
     private String salesTime;
     private String product;
     private int price;
-
+    public SalesDTO() {}
     public SalesDTO(String salesId,String memberId, String salesDate,String salesTime,String product,int price) {
         this.salesId=salesId;
         this.memberId=memberId;
