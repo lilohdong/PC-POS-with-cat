@@ -8,16 +8,16 @@ import java.awt.*;
 public class MainFrame extends JFrame {
     public MainFrame() {
         initUI();
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
     }
 
     private void initUI() {
-        setPreferredSize(new Dimension(Sizes.FRAME_WIDTH,Sizes.FRAME_HEIGHT));
+        setSize(new Dimension(Sizes.FRAME_WIDTH,Sizes.FRAME_HEIGHT));
         SideBar sb = new SideBar();
         add(sb, BorderLayout.WEST);
 
         MainUI mui = new MainUI();
         add(mui, BorderLayout.CENTER);
-
     }
 }
