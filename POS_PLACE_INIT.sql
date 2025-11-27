@@ -11,12 +11,23 @@ create table member(
                        remain_time int default 0,
                        phone VARCHAR(20) UNIQUE
 );
-create table product(
-                        p_id varchar(5) primary key,
-                        p_name varchar(30) not null,
-                        price int default 0
+create table product_category(
+    c_id int primary key,
+    c_name varchar(20) not null
 );
-
+create table product(
+    p_id varchar(5) primary key,
+    p_name varchar(30) not null,
+    stock int default 0,
+    price int default 0,
+    category VARCHAR(20) not null,
+    foreign key(category) references product_category(c_id) on update cascade
+);
+create table stock_in(
+    receive_id int auto_increment primary key,
+    p_id varchar(5) not null,
+    contity int default 1
+);
 create table sales(
                       sales_id varchar(5) primary key,
                       member_id varchar(30),
