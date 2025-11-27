@@ -162,14 +162,14 @@ public class SalesTablePanel extends JPanel {
                 start = selectedDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
                 // 일요일
                 end = selectedDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-                period.setText(start.toString() + " ~ " + end.toString());
+                period.setText(start + " ~ " + end);
                 break;
             case "월간":
                 // 월 1일
                 start = selectedDate.with(TemporalAdjusters.firstDayOfMonth());
                 // 월 30일
                 end = selectedDate.with(TemporalAdjusters.lastDayOfMonth());
-                period.setText(start.toString() + " ~ " + end.toString());
+                period.setText(start + " ~ " + end);
                 break;
             default:
                 // 기본값: 일간
