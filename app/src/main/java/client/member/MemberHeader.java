@@ -39,9 +39,9 @@ public class MemberHeader extends JPanel implements ActionListener {
         // 현재 패널을 포함한 상위 JFrame을 찾아 Dialog의 부모로 사용
         JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-//        if (src == btnJoin) {
-//            new JoinDialog(parent).setVisible(true);
-//        }
+        if (src == btnJoin) {
+            new JoinForm();
+        }
 //        else if (src == btnUpdate) {
 //            new UpdateDialog(parent).setVisible(true);
 //        }
