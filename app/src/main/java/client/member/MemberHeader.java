@@ -40,7 +40,7 @@ public class MemberHeader extends JPanel implements ActionListener {
         JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
 
         if (src == btnJoin) {
-            new JoinForm();
+            new JoinDialog(parent);
         }
 //        else if (src == btnUpdate) {
 //            new UpdateDialog(parent).setVisible(true);
