@@ -1,6 +1,7 @@
 package client.component;
 
 import util.AdminLoginCheck;
+import util.NotEqualAdminException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -116,15 +117,16 @@ public class AdminLoginFrame extends JFrame implements ActionListener {
             System.exit(0);
             return;
         }
-        if (AdminLoginCheck.check(idField.getText(), new String(pwField.getPassword()))) {
+        try {
+            AdminLoginCheck.check(idField.getText(), new String(pwField.getPassword()));
             JOptionPane.showMessageDialog(this,
                     "환영합니다 " + idField.getText() + "님",
                     "환영합니다.", JOptionPane.INFORMATION_MESSAGE);
             new MainFrame();
             dispose();
-        } else {
+        }catch (NotEqualAdminException ex) {
             JOptionPane.showMessageDialog(this,
-                    "아이디 또는 비밀번호가 일치하지 않습니다.\n남은 시도 횟수: " + AdminLoginCheck.COUNT,
+                    ex.getMessage(),
                     "로그인 실패",
                     JOptionPane.WARNING_MESSAGE);
         }

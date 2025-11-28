@@ -5,12 +5,10 @@ public class AdminLoginCheck {
     private static final String ADMIN_PW = "1234";
     public static int COUNT = 5;
 
-    public static boolean check(String id, String pw) {
-        if (id.equals(ADMIN_ID) && pw.equals(ADMIN_PW)) {
-            return true;
-        } else {
+    public static void check(String id, String pw) throws NotEqualAdminException{
+         if(!(ADMIN_ID.equals(id) && ADMIN_PW.equals(pw))) {
             COUNT--;
-            return false;
+            throw new NotEqualAdminException("아이디 또는 비밀번호가 일치하지 않습니다.\n남은 시도 횟수: " + AdminLoginCheck.COUNT);
         }
     }
 }
