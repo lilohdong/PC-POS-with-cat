@@ -6,9 +6,12 @@ public class SalesDTO {
     private String salesDate;
     private String salesTime;
     private String product;
+    private int quantity;
     private int price;
+
     public SalesDTO() {}
-    public SalesDTO(String salesId,String memberId, String salesDate,String salesTime,String product,int price) {
+
+    public SalesDTO(String salesId, String memberId, String salesDate, String salesTime, String product, int quantity, int price) {
         this.salesId=salesId;
         this.memberId=memberId;
         this.salesDate=salesDate;
@@ -55,7 +58,13 @@ public class SalesDTO {
     public void setPrice(int price) {
         this.price = price;
     }
+    public int getQuantity() {
+        return quantity;
+    }
 
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
     public String getSalesId() {
         return salesId;
     }

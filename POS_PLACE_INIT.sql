@@ -4,8 +4,8 @@ use POS_PLACE;
 
 -- 기본: 회원 테이블
 create table member(
-    m_no int primary key auto_increment,
-    m_id VARCHAR(30) unique not null,
+    -- 멤버 no 뺐습니다
+    m_id VARCHAR(30) unique not null PRIMARY KEY,
     passwd varchar(30) not null,
     name VARCHAR(10) NOT NULL,
     birth DATE not null,
@@ -36,7 +36,9 @@ create table category(
 );
 
 create table menu(
-	m_id varchar(5) primary key,
+    -- 메뉴 아이디 구분 힘들어서 바꿈
+    -- 멤버 아이디 -> m_id, 메뉴 아이디 -> menu_id
+	menu_id varchar(5) primary key,
 	m_name varchar(20) not null,
     m_price int not null,
     m_description text,
@@ -50,25 +52,27 @@ create table menu(
 
 create table orders(
 	o_id varchar(5) primary key,
+    m_id varchar(30), -- 필요에 의한 추가, 누가 주문했는지 알아야 함
     o_time datetime default current_timestamp,
     seat_num int not null,
     complete_time datetime default null,
     o_status enum('PREPARING','COMPLETED','CANCELED','REFUNDED') default 'PREPARING',
 	requestment text,
-    pay_method enum('CARD','CASH') default 'CARD'
+    pay_method enum('CARD','CASH') default 'CARD',
+    foreign key(m_id) references member(m_id) on update cascade on delete set null
 );
 
 create table order_menu(
 	order_menu_id varchar(5) primary key,
     o_id varchar(5) not null,
-    m_id varchar(5) not null,
+    menu_id varchar(5) not null,
     quantity int not null,
     
     unit_price int not null, -- 이 부분은 trigger를 통해 menu.price 가져오기
     total_price int generated always as (unit_price * quantity) stored,
     
     foreign key (o_id) references orders(o_id),
-    foreign key (m_id) references menu(m_id)
+    foreign key (menu_id) references menu(menu_id)
 );
 
 create table refund(
@@ -117,7 +121,7 @@ create table menu_ingredient (
     i_id varchar(5) not null,
     required_quantity int not null,
 
-    foreign key (m_id) references menu(m_id),
+    foreign key (m_id) references menu(menu_id),
     foreign key (i_id) references ingredient(i_id)
 );
 
@@ -139,8 +143,7 @@ create table play_log(
     end_time datetime
 );
 
-
-create view sales_search as
-select s.sales_id sales_id, s.member_id member_id, s.sales_date sales_date, s.sales_time sales_time,p.p_name p_name, s.price price
-from sales s, product p
-where s.product_id = p.p_id;
+create view sales_view as
+select o.o_id sales_id, o.m_id member_id, o.o_time as o_time, m.m_name as m_name, om.quantity as quantity, om.total_price as total_price
+from orders o, menu m, order_menu om
+where o.o_id = om.o_id and m.menu_id = om.menu_id and o.o_status = 'COMPLETED';

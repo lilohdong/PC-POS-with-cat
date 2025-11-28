@@ -4,9 +4,12 @@ import dao.SalesDAO;
 import dto.SalesDTO;
 
 import javax.swing.table.DefaultTableModel;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class SalesTableService {
+    // 싱글톤
     private static SalesTableService instance;
     public static SalesTableService getInstance() {
         if (instance == null) {
@@ -14,14 +17,13 @@ public class SalesTableService {
         }
         return instance;
     }
+
     public void updateTable(List<SalesDTO> salesList, DefaultTableModel tm) {
         tm.setRowCount(0);
         if (salesList == null || salesList.isEmpty()) {
-            // 데이터가 없는 경우, 빈 테이블만 남깁니다.
             return;
         }
         for (SalesDTO dto : salesList) {
-            // DTO의 필드 순서대로 Object 배열 생성
             Object[] rowData = {
                     dto.getSalesId(),
                     dto.getMemberId(),
@@ -54,5 +56,14 @@ public class SalesTableService {
             };
             tm.addRow(rowData);
         }
+    }
+
+    public String calculateTotalSales(DefaultTableModel tm) {
+        int sum = 0;
+        for(int i = 0; i < tm.getRowCount(); i++) {
+            sum += Integer.parseInt((String) tm.getValueAt(i, 6));
+        }
+        NumberFormat numberFormat = NumberFormat.getInstance(Locale.KOREA);
+        return "기간 매출액 : "+numberFormat.format(sum);
     }
 }

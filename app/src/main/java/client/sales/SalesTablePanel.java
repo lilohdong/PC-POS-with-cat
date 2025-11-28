@@ -21,12 +21,11 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
 public class SalesTablePanel extends JPanel {
-    private JTable mainTable;
     private JComboBox<String> selectD;
     private String[] duration = { "일간", "주간", "월간" };
     private final ImageIcon cal = new ImageIcon(getClass().getResource("/imgs/calendar.png"));
     private JButton calBtn;
-    private final String[] column = {"매출번호", "아이디", "매출발생일", "매출발생시간", "상품", "매출액"};
+    private final String[] column = {"매출번호", "아이디", "매출발생일", "매출발생시간", "상품","수량","매출액"};
     private DefaultTableModel tm;
 
     private JPanel dateAppearance;
@@ -39,6 +38,8 @@ public class SalesTablePanel extends JPanel {
     private LocalDate endDate;
 
     private JButton searchBtn;
+
+    private JLabel allSales;
     SalesTableService sts = SalesTableService.getInstance();
     public SalesTablePanel() {
         initUI();
@@ -68,7 +69,7 @@ public class SalesTablePanel extends JPanel {
         add(dateAppearance, BorderLayout.NORTH);
 
         tm = new DefaultTableModel(column,0);
-        mainTable = new JTable(tm);
+        JTable mainTable = new JTable(tm);
         sts.initTable(tm);
         JTableHeader header = mainTable.getTableHeader();
         header.setPreferredSize(new Dimension(0, 35));
@@ -78,6 +79,12 @@ public class SalesTablePanel extends JPanel {
         JScrollPane sp = new JScrollPane(mainTable);
         sp.setBorder(null);
         add(sp);
+
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        allSales = new JLabel(); // 한 줄 안에 바로
+        allSales.setText(SalesTableService.getInstance().calculateTotalSales(tm));
+        bottomPanel.add(allSales);
+        bottomPanel.setMinimumSize(new Dimension(Sizes.PANEL_WIDTH,100));
     }
 
     private JPanel createMainHeaderPanel() {
@@ -98,8 +105,10 @@ public class SalesTablePanel extends JPanel {
                 startTime.setEnabled(false);
                 endTime.setEnabled(false);
             } else { // "일간"일 경우
+                datePicker.setDateToToday(); // 오늘로 설정
                 startTime.setEnabled(true);
                 endTime.setEnabled(true);
+                endTime.setSelectedItem("24:00"); // 00 ~ 24 초기화
             }
 
             // 기간 표시 업데이트
@@ -129,7 +138,7 @@ public class SalesTablePanel extends JPanel {
         }
         startTime.setMaximumRowCount(6);
         endTime.setMaximumRowCount(6);
-
+        endTime.setSelectedItem("24:00");
         jp.add(startTime);
         jp.add(endTime);
 
@@ -225,7 +234,7 @@ public class SalesTablePanel extends JPanel {
                 );
 
                 sts.updateTable(salesList,tm);
-
+                allSales.setText(SalesTableService.getInstance().calculateTotalSales(tm));
             } catch (Exception ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(SalesTablePanel.this,
