@@ -42,9 +42,9 @@ public class MemberHeader extends JPanel implements ActionListener {
         if (src == btnJoin) {
             new JoinDialog(parent);
         }
-//        else if (src == btnUpdate) {
-//            new UpdateDialog(parent).setVisible(true);
-//        }
+        else if (src == btnUpdate) {
+            new UpdateDialog(parent);
+        }
 //        else if (src == btnDelete) {
 //            new DeleteConfirmDialog(parent).setVisible(true);
 //        }
