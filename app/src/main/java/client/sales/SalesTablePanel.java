@@ -85,6 +85,7 @@ public class SalesTablePanel extends JPanel {
         allSales.setText(SalesTableService.getInstance().calculateTotalSales(tm));
         bottomPanel.add(allSales);
         bottomPanel.setMinimumSize(new Dimension(Sizes.PANEL_WIDTH,100));
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private JPanel createMainHeaderPanel() {
@@ -225,7 +226,7 @@ public class SalesTablePanel extends JPanel {
 
             SalesDAO salesDAO = SalesDAO.getInstance();
             try {
-                // start.toString()과 end.toString()은 yyyy-mm-dd 형식입니다.
+                // start.toString()과 end.toString()은 yyyy-mm-dd 형식
                 List<SalesDTO> salesList = salesDAO.getSalesList(
                         start.toString(),
                         end.toString(),

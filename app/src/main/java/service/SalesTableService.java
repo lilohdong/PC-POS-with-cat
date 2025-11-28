@@ -30,6 +30,7 @@ public class SalesTableService {
                     dto.getSalesDate(),
                     dto.getSalesTime(),
                     dto.getProduct(), // setProduct(rs.getString("p_name"))로 설정된 값
+                    dto.getQuantity(),
                     dto.getPrice()
             };
             // 모델에 행 추가
@@ -52,6 +53,7 @@ public class SalesTableService {
                     dto.getSalesDate(),
                     dto.getSalesTime(),
                     dto.getProduct(),
+                    dto.getQuantity(),
                     dto.getPrice()
             };
             tm.addRow(rowData);
@@ -61,7 +63,7 @@ public class SalesTableService {
     public String calculateTotalSales(DefaultTableModel tm) {
         int sum = 0;
         for(int i = 0; i < tm.getRowCount(); i++) {
-            sum += Integer.parseInt((String) tm.getValueAt(i, 6));
+            sum += (Integer)tm.getValueAt(i, 6);
         }
         NumberFormat numberFormat = NumberFormat.getInstance(Locale.KOREA);
         return "기간 매출액 : "+numberFormat.format(sum);

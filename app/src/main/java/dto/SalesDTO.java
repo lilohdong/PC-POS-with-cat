@@ -17,6 +17,7 @@ public class SalesDTO {
         this.salesDate=salesDate;
         this.salesTime=salesTime;
         this.product=product;
+        this.quantity=quantity;
         this.price=price;
     }
     public String getMemberId() {
