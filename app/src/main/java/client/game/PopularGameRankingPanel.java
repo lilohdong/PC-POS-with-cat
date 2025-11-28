@@ -88,4 +88,8 @@ public class PopularGameRankingPanel extends JPanel {
 
         return panel;
     }
+
+    private void initData() {
+
+    }
 }
