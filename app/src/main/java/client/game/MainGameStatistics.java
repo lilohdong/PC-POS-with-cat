@@ -1,6 +1,5 @@
 package client.game;
 
-import dto.GameStatisticDTO;
 import service.GameStatisticsService;
 
 import javax.swing.*;
@@ -9,8 +8,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.time.LocalTime;
-import java.util.Vector;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class MainGameStatistics extends JPanel {
     private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
@@ -36,8 +35,7 @@ public class MainGameStatistics extends JPanel {
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         headerPanel.setBackground(new Color(220, 230, 240));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
-
-        dateLabel = new JLabel("현재 시간 : " + LocalTime.now());
+        dateLabel = new JLabel("현재 시간 : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm")));
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
 
         headerPanel.add(dateLabel);
