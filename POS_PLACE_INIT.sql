@@ -14,7 +14,13 @@ create table member(
     phone VARCHAR(20) UNIQUE,
     join_date datetime not null default current_timestamp
 );
-
+create table seat (
+    seat_no int primary key, -- 좌석 번호
+    m_id VARCHAR(30) unique, -- 현재 사용자 (null이면 빈 좌석)
+    is_used boolean default false, -- 사용 중 여부
+    login_time datetime default null, -- 로그인 시간
+    foreign key(m_id) references member(m_id) on update cascade on delete set null
+);
 
 /*
 조민규: 주문화면, 재고관리 화면 관련 DB 테이블들
@@ -135,15 +141,93 @@ create table game(
 ); -- 가능하다면 pc방 게임 정보를 불러올 수 있으면 good
 
 create table play_log(
-    log_id varchar(5) primary key,
-    m_id varchar(5) not null,
-    g_id varchar(5) not null,
-    seat_no int not null,
-    start_time datetime not null,
-    end_time datetime
+            log_id varchar(5) primary key,
+            m_id varchar(30) not null,
+            g_id varchar(5) not null,
+            seat_no int not null,
+            start_time datetime not null,
+            end_time datetime,
+            foreign key(m_id) references member(m_id),
+            foreign key(g_id) references game(g_id)
 );
-
+-- sales에 사용할 뷰
 create view sales_view as
 select o.o_id sales_id, o.m_id member_id, o.o_time as o_time, m.m_name as m_name, om.quantity as quantity, om.total_price as total_price
 from orders o, menu m, order_menu om
 where o.o_id = om.o_id and m.menu_id = om.menu_id and o.o_status = 'COMPLETED';
+-- GameStatics에 사용할 뷰
+create view popular_game_view as
+with today_play_time as (
+    -- 1. 오늘 종료된 게임들의 총 플레이 시간 (분 단위)
+    select
+        g_id,
+        timestampdiff(minute, start_time, coalesce(end_time, current_timestamp())) as play_minutes
+    from play_log
+    where date(start_time) = current_date()
+),
+     game_total_time as (
+         -- 2. 각 게임별 총 플레이 시간
+         select
+             g.g_id,
+             g.title as game_name,
+             sum(tpt.play_minutes) as total_minutes
+         from game g
+                  join today_play_time tpt on g.g_id = tpt.g_id
+         group by g.g_id, g.title
+     ),
+     total_daily_minutes as (
+         -- 3. 오늘 전체 게임의 총 플레이 시간
+         select sum(total_minutes) as overall_total from game_total_time
+     )
+select
+    rank() over (order by gtt.total_minutes desc) as ranking, -- 순위
+    gtt.game_name,
+    -- 점유율 계산 (총 플레이 시간 / 전체 시간 * 100)
+    round((gtt.total_minutes / (select overall_total from total_daily_minutes)) * 100, 2) as share_percent
+from game_total_time gtt
+where (select overall_total from total_daily_minutes) > 0;
+
+create view statistics_view as
+with current_playing as (
+    -- 1. 현재 사용자들이 플레이 중인 게임 목록 (seat 테이블 기준)
+    select
+        s.m_id,
+        g.g_id,
+        g.title as game_name
+    from seat s
+             join play_log pl on s.m_id = pl.m_id -- 현재 로그인한 회원의 최근 플레이 기록
+             join game g on pl.g_id = g.g_id
+    where s.is_used = true -- 사용 중인 좌석
+      and pl.end_time is null -- 아직 종료되지 않은 플레이 기록
+      and date(pl.start_time) = current_date() -- 오늘 시작된 기록
+    group by s.m_id, g.g_id, g.title
+),
+     game_users_count as (
+         -- 2. 게임별 현재 이용자 수
+         select
+             game_name,
+             count(m_id) as current_users
+         from current_playing
+         group by game_name
+     ),
+     today_total_time as (
+         -- 3. 오늘 각 게임의 총 사용 시간 (play_log 기준)
+         select
+             g.title as game_name,
+             -- 초 단위로 합산
+             sum(timestampdiff(second, pl.start_time, coalesce(pl.end_time, current_timestamp()))) as total_seconds
+         from play_log pl
+                  join game g on pl.g_id = g.g_id
+         where date(pl.start_time) = current_date()
+         group by g.title
+     )
+select
+    -- 현재 이용자 수를 기준으로 순위 매김 (동일 인원 시, 총 사용 시간 긴 게임이 상위)
+    rank() over (order by guc.current_users desc, ttt.total_seconds desc) as ranking,
+    guc.game_name,
+    -- 총 사용 시간을 H:M:S 포맷으로 변환 (DAO에서 변환해야 하지만, 뷰에서 문자열로 준비)
+    sec_to_time(ttt.total_seconds) as total_time_formatted,
+    guc.current_users as current_users
+from game_users_count guc
+         join today_total_time ttt on guc.game_name = ttt.game_name
+order by ranking;

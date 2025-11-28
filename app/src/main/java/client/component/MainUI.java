@@ -32,6 +32,5 @@ public class MainUI extends JPanel {
     }
     public void showUI(String title) {
         cl.show(this,title);
-        gameMainPanel.refresh();
     }
 }

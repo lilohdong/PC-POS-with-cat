@@ -3,9 +3,9 @@ package dto;
 public class PopularGameDTO {
     private int rank;
     private String gameName;
-    private float share; // 점유율
+    private double share; // 점유율
     public PopularGameDTO(){}
-    public PopularGameDTO(int rank, String gameName, float share) {
+    public PopularGameDTO(int rank, String gameName, double share) {
         this.rank = rank;
         this.gameName = gameName;
         this.share = share;
@@ -26,11 +26,11 @@ public class PopularGameDTO {
         this.gameName = gameName;
     }
 
-    public float getShare() {
+    public double getShare() {
         return share;
     }
 
-    public void setShare(float share) {
+    public void setShare(double share) {
         this.share = share;
     }
 }

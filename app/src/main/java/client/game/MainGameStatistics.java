@@ -1,5 +1,6 @@
 package client.game;
 
+import dto.GameStatisticDTO;
 import service.GameStatisticsService;
 
 import javax.swing.*;
@@ -15,7 +16,6 @@ public class MainGameStatistics extends JPanel {
     private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
     private DefaultTableModel tm;
 
-    private Vector<Vector<String>> datas;
     private final String[] years = {
             "2025년",
             "2024년",
@@ -45,7 +45,6 @@ public class MainGameStatistics extends JPanel {
 
         // 테이블 생성
         tm = new DefaultTableModel(columnNames, 0);
-        initData();
 
         JTable table = new JTable(tm);
         table.setColumnSelectionAllowed(false);
@@ -72,23 +71,12 @@ public class MainGameStatistics extends JPanel {
         columnModel.getColumn(0).setCellRenderer(centerRenderer);
         columnModel.getColumn(2).setCellRenderer(centerRenderer);
         columnModel.getColumn(3).setCellRenderer(centerRenderer);
-
+        // 테이블 이닛
+        GameStatisticsService.getInstance().initStatisticsData(tm);
         // 스크롤 패널에 테이블 추가
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    private void initData() {
-        GameStatisticsService gss = new GameStatisticsService();
-        datas = gss.loadData();
-        for (Vector<String> data : datas) {
-            tm.addRow(data);
-        }
-    }
-
-    public void refresh() {
-        dateLabel.setText("현재 시간 : " +LocalTime.now().toString());
-        initData();
-    }
 }

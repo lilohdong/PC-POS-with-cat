@@ -1,150 +1,137 @@
--- DB 사용
-use POS_PLACE;
+USE POS_PLACE;
 
----
--- 1. category 테이블 더미 데이터 (5개)
----
-insert into category (c_id, c_name) values
-                                        ('C001', '음료'),
-                                        ('C002', '라면'),
-                                        ('C003', '스낵'),
-                                        ('C004', '식사'),
-                                        ('C005', '주류');
+-- 1. 게임 데이터 (10개)
+INSERT INTO game (g_id, title, publisher) VALUES
+                                              ('G001', 'League of Legends', 'Riot Games'),
+                                              ('G002', 'FC Online', 'Nexon'),
+                                              ('G003', 'Valorant', 'Riot Games'),
+                                              ('G004', 'PUBG: 배틀그라운드', '크래프톤'),
+                                              ('G005', 'Overwatch 2', 'Blizzard'),
+                                              ('G006', '서든어택', 'Nexon'),
+                                              ('G007', '로스트아크', 'Smilegate'),
+                                              ('G008', '메이플스토리', 'Nexon'),
+                                              ('G009', 'StarCraft', 'Blizzard'),
+                                              ('G010', '던전앤파이터', 'Nexon');
 
----
--- 2. member 테이블 더미 데이터 (5개)
----
-insert into member (m_id, passwd, name, birth, sex, remain_time, phone, join_date) values
-                                                                                       ('user001', 'pass1234', '김철수', '1995-05-15', 'M', 120, '010-1111-2222', '2024-01-01 10:00:00'),
-                                                                                       ('user002', 'pass5678', '이영희', '2000-11-20', 'F', 60, '010-3333-4444', '2024-01-15 15:30:00'),
-                                                                                       ('user003', 'pass9012', '박민규', '1998-03-10', 'M', 300, '010-5555-6666', '2024-02-01 08:00:00'),
-                                                                                       ('user004', 'pass3456', '최지수', '2003-08-25', 'F', 0, '010-7777-8888', '2024-02-20 20:10:00'),
-                                                                                       ('user005', 'password', '정우성', '1985-01-01', 'M', 450, '010-9999-0000', '2024-03-05 12:45:00');
+-- 2. 카테고리 (4개)
+INSERT INTO category VALUES
+                         ('C001', '라면류'), ('C002', '밥류'), ('C003', '음료'), ('C004', '과자');
 
----
--- 3. menu 테이블 더미 데이터 (10개)
----
-insert into menu (menu_id, m_name, m_price, m_description, c_id) values
-                                                                     ('M001', '콜라', 1500, '시원한 탄산음료', 'C001'),
-                                                                     ('M002', '아이스 아메리카노', 2500, '시원한 아이스커피', 'C001'),
-                                                                     ('M003', '신라면', 3500, '국민 라면', 'C002'),
-                                                                     ('M004', '짜파게티', 4000, '짜장 라면', 'C002'),
-                                                                     ('M005', '포카칩', 1800, '오리지널 감자칩', 'C003'),
-                                                                     ('M006', '새우깡', 1500, '짭짤한 스낵', 'C003'),
-                                                                     ('M007', '제육덮밥', 7000, '매콤한 제육볶음과 밥', 'C004'),
-                                                                     ('M008', '김치볶음밥', 6500, '매콤달콤한 김치볶음밥', 'C004'),
-                                                                     ('M009', '사이다', 1500, '청량한 맛', 'C001'),
-                                                                     ('M010', '떡볶이', 5000, '매콤달콤한 쌀 떡볶이', 'C004');
+-- 3. 메뉴 (10개)
+INSERT INTO menu (menu_id, m_name, m_price, c_id, m_description) VALUES
+                                                                     ('M001', '신라면', 4000, 'C001', '매콤한 기본 라면'),
+                                                                     ('M002', '짜파게티', 4500, 'C001', '계란 후라이 추가 가능'),
+                                                                     ('M003', '참치마요덮밥', 6500, 'C002', '참치 듬뿍'),
+                                                                     ('M004', '제육덮밥', 7000, 'C002', '든든한 한끼'),
+                                                                     ('M005', '아이스아메리카노', 2500, 'C003', '카페인 충전'),
+                                                                     ('M006', '콜라(캔)', 1500, 'C003', '시원한 탄산'),
+                                                                     ('M007', '사이다(캔)', 1500, 'C003', '청량한 맛'),
+                                                                     ('M008', '웰치스', 1500, 'C003', '포도맛 탄산'),
+                                                                     ('M009', '포카칩', 2000, 'C004', '감자 과자'),
+                                                                     ('M010', '홈런볼', 2000, 'C004', '초코 과자');
 
----
--- 4. orders 테이블 더미 데이터 (7개)
----
-insert into orders (o_id, m_id, o_time, seat_num, o_status, requestment, pay_method) values
-                                                                                         ('O0001', 'user001', '2025-11-28 10:30:00', 5, 'COMPLETED', '맵게 해주세요', 'CARD'),
-                                                                                         ('O0002', 'user002', '2025-11-28 11:00:00', 12, 'COMPLETED', null, 'CASH'),
-                                                                                         ('O0003', 'user003', '2025-11-28 12:00:00', 3, 'PREPARING', '음료는 얼음 많이', 'CARD'),
-                                                                                         ('O0004', 'user004', '2025-11-28 13:15:00', 8, 'COMPLETED', null, 'CARD'),
-                                                                                         ('O0005', 'user001', '2025-11-28 14:00:00', 5, 'CANCELED', '잘못 주문함', 'CARD'),
-                                                                                         ('O0006', null, '2025-11-28 15:00:00', 10, 'COMPLETED', '일회용품 제외', 'CASH'),
-                                                                                         ('O0007', 'user005', '2025-11-28 16:30:00', 1, 'REFUNDED', '메뉴 변경', 'CARD');
+-- 4. 재료 및 재고 (기본 세팅)
+INSERT INTO ingredient (i_id, i_name, total_quantity) VALUES
+                                                          ('I001', '라면사리', 100), ('I002', '단무지', 50), ('I003', '콜라캔', 100);
 
--- COMPLETED 주문에 대해 complete_time 설정
-update orders set complete_time = '2025-11-28 10:35:00' where o_id = 'O0001';
-update orders set complete_time = '2025-11-28 11:05:00' where o_id = 'O0002';
-update orders set complete_time = '2025-11-28 13:25:00' where o_id = 'O0004';
-update orders set complete_time = '2025-11-28 15:10:00' where o_id = 'O0006';
+INSERT INTO stock_info (stock_info_id, i_id, unit_name, unit_quantity) VALUES
+                                                                           ('S001', 'I001', '박스(30개)', 30), ('S002', 'I003', '박스(24개)', 24);
 
----
--- 5. order_menu 테이블 더미 데이터 (10개)
--- unit_price는 menu.m_price 값을 임의로 사용
----
-insert into order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) values
-                                                                                ('OM001', 'O0001', 'M007', 1, 7000), -- 제육덮밥
-                                                                                ('OM002', 'O0001', 'M001', 2, 1500), -- 콜라
-                                                                                ('OM003', 'O0002', 'M003', 1, 3500), -- 신라면
-                                                                                ('OM004', 'O0002', 'M009', 1, 1500), -- 사이다
-                                                                                ('OM005', 'O0003', 'M002', 3, 2500), -- 아아
-                                                                                ('OM006', 'O0004', 'M008', 1, 6500), -- 김볶밥
-                                                                                ('OM007', 'O0004', 'M006', 1, 1500), -- 새우깡
-                                                                                ('OM008', 'O0005', 'M004', 1, 4000), -- 짜파게티 (CANCELED)
-                                                                                ('OM009', 'O0006', 'M010', 2, 5000), -- 떡볶이
-                                                                                ('OM010', 'O0007', 'M005', 1, 1800); -- 포카칩 (REFUNDED)
+INSERT INTO stock_in (stock_in_id, i_id, stock_info_id, in_quantity, unit_quantity) VALUES
+    ('SI001', 'I001', 'S001', 5, 30); -- 라면 150개 입고
 
----
--- 6. refund 테이블 더미 데이터 (1개)
----
-insert into refund (r_id, o_id, r_time, r_amount) values
-    ('R0001', 'O0007', '2025-11-28 16:40:00', 1800); -- O0007 포카칩 환불
+-- 5. 회원 (20명 생성)
+INSERT INTO member (m_id, passwd, name, birth, sex, phone, remain_time) VALUES
+                                                                            ('user01', '1234', '김철수', '2000-01-01', '남', '010-1111-0001', 12000),
+                                                                            ('user02', '1234', '이영희', '1998-05-05', '여', '010-1111-0002', 5000),
+                                                                            ('user03', '1234', '박지성', '2002-03-10', '남', '010-1111-0003', 300),
+                                                                            ('user04', '1234', '손흥민', '1995-07-08', '남', '010-1111-0004', 60000),
+                                                                            ('user05', '1234', '김연아', '1990-09-05', '여', '010-1111-0005', 0),
+                                                                            ('user06', '1234', '페이커', '1996-05-07', '남', '010-1111-0006', 99999),
+                                                                            ('user07', '1234', '쵸비', '2001-03-03', '남', '010-1111-0007', 4000),
+                                                                            ('user08', '1234', '쇼메이커', '2000-07-22', '남', '010-1111-0008', 3500),
+                                                                            ('user09', '1234', '데프트', '1996-10-23', '남', '010-1111-0009', 2000),
+                                                                            ('user10', '1234', '케리아', '2002-10-14', '남', '010-1111-0010', 8000),
+                                                                            ('test01', '1234', '테스터1', '2000-01-01', '남', '010-2222-0001', 3000),
+                                                                            ('test02', '1234', '테스터2', '2000-01-01', '여', '010-2222-0002', 3000),
+                                                                            ('test03', '1234', '테스터3', '2000-01-01', '남', '010-2222-0003', 3000),
+                                                                            ('test04', '1234', '테스터4', '2000-01-01', '여', '010-2222-0004', 3000),
+                                                                            ('test05', '1234', '테스터5', '2000-01-01', '남', '010-2222-0005', 3000),
+                                                                            ('guest1', '1234', '비회원1', '1900-01-01', '무', NULL, 0),
+                                                                            ('guest2', '1234', '비회원2', '1900-01-01', '무', NULL, 0),
+                                                                            ('admin', '1234', '관리자', '1990-01-01', '남', '010-0000-0000', 999999),
+                                                                            ('zombie', '1234', '잠수부', '2000-01-01', '남', '010-9999-9999', 10),
+                                                                            ('newbie', '1234', '뉴비', '2010-01-01', '여', '010-8888-8888', 60);
 
----
--- 7. ingredient 테이블 더미 데이터 (5개)
----
-insert into ingredient (i_id, i_name, total_quantity, is_out) values
-                                                                  ('I0001', '콜라 원액', 50, false),
-                                                                  ('I0002', '라면 사리', 20, false),
-                                                                  ('I0003', '쌀', 1000, false),
-                                                                  ('I0004', '돼지고기', 50, false),
-                                                                  ('I0005', '커피 원두', 80, false);
+-- 6. 좌석 (50개 생성)
+-- 일단 빈 좌석 생성
+DELIMITER $$
+DROP PROCEDURE IF EXISTS CreateSeats$$
+CREATE PROCEDURE CreateSeats()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 50 DO
+            INSERT INTO seat (seat_no, m_id, is_used, login_time) VALUES (i, NULL, false, NULL);
+            SET i = i + 1;
+        END WHILE;
+END$$
+DELIMITER ;
+CALL CreateSeats();
 
----
--- 8. stock_info 테이블 더미 데이터 (5개)
----
-insert into stock_info (stock_info_id, i_id, unit_name, unit_quantity) values
-                                                                           ('SI001', 'I0001', '박스(10L)', 50),     -- 콜라 1박스는 50단위 (잔)
-                                                                           ('SI002', 'I0002', '봉지(5개입)', 5),     -- 라면 1봉지 5개입
-                                                                           ('SI003', 'I0003', '포대(20kg)', 100),   -- 쌀 1포대는 1000단위 (10g)
-                                                                           ('SI004', 'I0004', '팩(1kg)', 10),      -- 돼지고기 1팩 10단위 (100g)
-                                                                           ('SI005', 'I0005', '봉투(500g)', 10);    -- 원두 1봉투 10단위 (1잔 분량)
+-- -----------------------------------------------------------
+-- [중요] 실시간 통계 테스트를 위한 "현재 접속 중인 상황" 연출
+-- -----------------------------------------------------------
 
----
--- 9. stock_in 테이블 더미 데이터 (6개)
--- total_added는 trigger 없이 계산하여 넣음
----
-insert into stock_in (stock_in_id, i_id, stock_info_id, in_quantity, unit_quantity, in_time) values
-                                                                                                 ('IN001', 'I0001', 'SI001', 1, 50, '2025-10-01 09:00:00'), -- 콜라 1박스 (50개)
-                                                                                                 ('IN002', 'I0002', 'SI002', 4, 5, '2025-10-15 10:30:00'), -- 라면 4봉지 (20개)
-                                                                                                 ('IN003', 'I0003', 'SI003', 1, 1000, '2025-11-01 11:00:00'), -- 쌀 1포대 (1000개)
-                                                                                                 ('IN004', 'I0004', 'SI004', 5, 10, '2025-11-10 12:00:00'), -- 돼지고기 5팩 (50개)
-                                                                                                 ('IN005', 'I0005', 'SI005', 8, 10, '2025-11-20 13:00:00'), -- 원두 8봉투 (80개)
-                                                                                                 ('IN006', 'I0001', 'SI001', 2, 50, '2025-11-25 15:00:00'); -- 콜라 2박스 (100개)
+-- 좌석 1~5번에 회원을 앉힙니다.
+UPDATE seat SET m_id = 'user01', is_used = true, login_time = DATE_SUB(NOW(), INTERVAL 120 MINUTE) WHERE seat_no = 1;
+UPDATE seat SET m_id = 'user02', is_used = true, login_time = DATE_SUB(NOW(), INTERVAL 45 MINUTE) WHERE seat_no = 2;
+UPDATE seat SET m_id = 'user06', is_used = true, login_time = DATE_SUB(NOW(), INTERVAL 200 MINUTE) WHERE seat_no = 3;
+UPDATE seat SET m_id = 'user10', is_used = true, login_time = DATE_SUB(NOW(), INTERVAL 10 MINUTE) WHERE seat_no = 4;
+UPDATE seat SET m_id = 'test01', is_used = true, login_time = DATE_SUB(NOW(), INTERVAL 5 MINUTE) WHERE seat_no = 5;
 
--- ingredient.total_quantity 업데이트 (실제 DB에서는 트리거/프로시저로 관리)
-update ingredient set total_quantity = 50 + 100 where i_id = 'I0001'; -- 150
-update ingredient set total_quantity = 20 where i_id = 'I0002'; -- 20
-update ingredient set total_quantity = 1000 where i_id = 'I0003'; -- 1000
-update ingredient set total_quantity = 50 where i_id = 'I0004'; -- 50
-update ingredient set total_quantity = 80 where i_id = 'I0005'; -- 80
+-- 접속 중인 회원들의 "끝나지 않은(end_time IS NULL)" Play Log를 생성합니다. (그래야 statistics_view에 잡힘)
+INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time) VALUES
+                                                                             ('LNOW1', 'user01', 'G001', 1, DATE_SUB(NOW(), INTERVAL 110 MINUTE), NULL), -- 롤 110분째 플레이 중
+                                                                             ('LNOW2', 'user02', 'G004', 2, DATE_SUB(NOW(), INTERVAL 40 MINUTE), NULL),  -- 배그 40분째 플레이 중
+                                                                             ('LNOW3', 'user06', 'G001', 3, DATE_SUB(NOW(), INTERVAL 190 MINUTE), NULL), -- 롤 190분째 플레이 중 (롤 현재 2명)
+                                                                             ('LNOW4', 'user10', 'G003', 4, DATE_SUB(NOW(), INTERVAL 5 MINUTE), NULL),   -- 발로란트 5분째 플레이 중
+                                                                             ('LNOW5', 'test01', 'G002', 5, DATE_SUB(NOW(), INTERVAL 3 MINUTE), NULL);   -- 피파 3분째 플레이 중
 
----
--- 10. menu_ingredient 테이블 더미 데이터 (5개)
----
-insert into menu_ingredient (menu_ingredient_id, m_id, i_id, required_quantity) values
-                                                                                    ('MI001', 'M001', 'I0001', 1), -- 콜라 1잔에 콜라 원액 1단위
-                                                                                    ('MI002', 'M002', 'I0005', 1), -- 아아 1잔에 원두 1단위
-                                                                                    ('MI003', 'M003', 'I0002', 1), -- 신라면 1개에 라면 사리 1단위
-                                                                                    ('MI004', 'M007', 'I0004', 5), -- 제육덮밥 1개에 돼지고기 5단위 (500g 가정)
-                                                                                    ('MI005', 'M007', 'I0003', 10); -- 제육덮밥 1개에 쌀 10단위 (100g 가정)
+-- -----------------------------------------------------------
+-- [중요] 인기 차트(Sales, Popular View)를 위한 "과거 기록" 연출
+-- -----------------------------------------------------------
 
----
--- 11. game 테이블 더미 데이터 (3개)
----
-insert into game (g_id, title, publisher) values
-                                              ('G0001', '리그 오브 레전드', '라이엇 게임즈'),
-                                              ('G0002', '배틀그라운드', '크래프톤'),
-                                              ('G0003', '피파 온라인 4', '넥슨');
+-- 오늘 이미 종료된 게임 기록들 (popular_game_view용)
+INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time) VALUES
+                                                                             ('L001', 'user03', 'G001', 10, '2025-01-01 10:00:00', '2025-01-01 12:00:00'), -- 롤 2시간
+                                                                             ('L002', 'user04', 'G001', 11, '2025-01-01 10:00:00', '2025-01-01 13:00:00'), -- 롤 3시간
+                                                                             ('L003', 'user05', 'G002', 12, '2025-01-01 09:00:00', '2025-01-01 10:00:00'), -- 피파 1시간
+                                                                             ('L004', 'user07', 'G003', 13, '2025-01-01 11:00:00', '2025-01-01 12:30:00'), -- 발로란트 1.5시간
+                                                                             ('L005', 'user08', 'G001', 14, '2025-01-01 08:00:00', '2025-01-01 12:00:00'), -- 롤 4시간 (롤 압도적 1위 예상)
+                                                                             ('L006', 'user09', 'G004', 15, '2025-01-01 14:00:00', '2025-01-01 16:00:00'), -- 배그 2시간
+                                                                             ('L007', 'test02', 'G005', 20, '2025-01-01 15:00:00', '2025-01-01 16:00:00'), -- 오버워치 1시간
+                                                                             ('L008', 'test03', 'G006', 21, '2025-01-01 12:00:00', '2025-01-01 13:00:00'), -- 서든 1시간
+                                                                             ('L009', 'test04', 'G008', 22, '2025-01-01 10:00:00', '2025-01-01 15:00:00'), -- 메이플 5시간
+                                                                             ('L010', 'test05', 'G001', 23, '2025-01-01 18:00:00', '2025-01-01 19:00:00'), -- 롤 1시간 추가
+-- 어제 기록 (오늘 통계에는 안 잡혀야 정상)
+                                                                             ('L011', 'user01', 'G001', 1, DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 23 HOUR));
 
----
--- 12. play_log 테이블 더미 데이터 (5개)
--- m_id는 member 테이블의 m_id와 일치해야 하지만, 테이블 스키마에 m_id는 varchar(30)이지만, play_log의 m_id는 varchar(5)로 되어 있어 데이터 유효성을 위해 m_id가 짧은 member를 추가하겠습니다.
----
--- 새로운 임시 멤버 추가 (m_id 길이를 맞추기 위해)
-insert into member (m_id, passwd, name, birth, sex, remain_time, phone, join_date) values
-                                                                                       ('test1', '1234', '임시1', '2000-01-01', 'M', 10, '010-1234-0001', '2024-11-28 09:00:00'),
-                                                                                       ('test2', '1234', '임시2', '2000-01-02', 'F', 20, '010-1234-0002', '2024-11-28 09:00:00');
+-- 8. 주문 기록 (Sales View 및 매출 통계용)
+-- 완료된 주문들
+INSERT INTO orders (o_id, m_id, o_time, seat_num, complete_time, o_status, pay_method) VALUES
+                                                                                           ('O001', 'user01', NOW(), 1, NOW(), 'COMPLETED', 'CARD'),
+                                                                                           ('O002', 'user02', NOW(), 2, NOW(), 'COMPLETED', 'CASH'),
+                                                                                           ('O003', 'user06', NOW(), 3, NOW(), 'COMPLETED', 'CARD');
 
-insert into play_log (log_id, m_id, g_id, seat_no, start_time, end_time) values
-                                                                             ('L0001', 'test1', 'G0001', 5, '2025-11-28 10:00:00', '2025-11-28 11:30:00'),
-                                                                             ('L0002', 'test2', 'G0002', 12, '2025-11-28 10:30:00', '2025-11-28 12:00:00'),
-                                                                             ('L0003', 'test1', 'G0003', 5, '2025-11-28 14:00:00', '2025-11-28 15:00:00'),
-                                                                             ('L0004', 'test2', 'G0001', 12, '2025-11-28 15:30:00', null), -- 현재 플레이 중
-                                                                             ('L0005', 'test1', 'G0002', 5, '2025-11-28 18:00:00', '2025-11-28 18:45:00');
+INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) VALUES
+                                                                                ('OM01', 'O001', 'M001', 1, 4000), -- 신라면
+                                                                                ('OM02', 'O001', 'M006', 1, 1500), -- 콜라
+                                                                                ('OM03', 'O002', 'M003', 1, 6500), -- 참치마요
+                                                                                ('OM04', 'O003', 'M005', 2, 2500); -- 아아 2잔
+
+-- 현재 준비중인 주문 (주방 화면 테스트용)
+INSERT INTO orders (o_id, m_id, o_time, seat_num, o_status, requestment) VALUES
+    ('O004', 'user10', NOW(), 4, 'PREPARING', '단무지 많이 주세요');
+
+INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) VALUES
+    ('OM05', 'O004', 'M002', 1, 4500); -- 짜파게티

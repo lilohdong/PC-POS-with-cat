@@ -1,28 +1,23 @@
 package client.game;
 
+import dao.GameDAO;
+import dto.PopularGameDTO;
 import util.Sizes;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class PopularGameRankingPanel extends JPanel {
 
-    private String[][] gameData = {
-            {"1", "League of Legend", "35%"},
-            {"2", "FC 온라인", "10.96%"},
-            {"3", "Valolant", "9.67%"},
-            {"4", "배틀그라운드", "9.21%"},
-            {"5", "오버워치", "4.18%"},
-            {"6", "서든어택", "4.11%"},
-            {"7", "로블록스", "4.05%"},
-            {"8", "던전앤파이터", "2.89%"},
-            {"9", "메이플스토리", "2.29%"},
-            {"10", "스타크래프트", "1.89%"}
-    };
+    private JPanel listPanel;
 
     public PopularGameRankingPanel() {
         initUI();
+        initData(); // UI 생성 후 데이터 로드
     }
 
     private void initUI() {
@@ -39,8 +34,8 @@ public class PopularGameRankingPanel extends JPanel {
         JLabel titleLabel = new JLabel("인기게임 순위");
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         headerPanel.add(titleLabel, BorderLayout.NORTH);
-
-        JLabel dateLabel = new JLabel("기준 : 2025.11.07");
+        // 현재 시간 기준으로 날짜 잡음 (formatter)
+        JLabel dateLabel = new JLabel("기준 : "+ LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
         dateLabel.setForeground(Color.GRAY);
         headerPanel.add(dateLabel, BorderLayout.CENTER);
@@ -56,24 +51,23 @@ public class PopularGameRankingPanel extends JPanel {
         headerPanel.add(columnHeader, BorderLayout.SOUTH);
 
         add(headerPanel, BorderLayout.NORTH);
-
-        // 게임 리스트
-        JPanel listPanel = new JPanel();
+        // 리스트 영역
+        listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
         listPanel.setBackground(Color.WHITE);
 
-        for (String[] game : gameData) {
-            JPanel gamePanel = createGameItem(game[0], game[1], game[2]);
-            listPanel.add(gamePanel);
-            listPanel.add(Box.createVerticalStrut(20)); // 간격
-        }
-        add(listPanel, BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(listPanel);
+        scrollPane.setBorder(null);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     // 게임 순위별로 한개씩
     private JPanel createGameItem(String rank, String name, String share) {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setMaximumSize(new Dimension(269, 40));
+        // 길이를 MAX_VALUE로 잡아서 꽉차게
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        panel.setPreferredSize(new Dimension(0, 40));
+
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
@@ -90,6 +84,29 @@ public class PopularGameRankingPanel extends JPanel {
     }
 
     private void initData() {
+        // 기존 내용 초기화 (새로고침 시 유용)
+        listPanel.removeAll();
+        List<PopularGameDTO> games = GameDAO.getInstance().getAllPopularGames();
 
+        if (games.isEmpty()) {
+            JLabel emptyLabel = new JLabel("데이터 집계 중...");
+            emptyLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            listPanel.add(Box.createVerticalStrut(20));
+            listPanel.add(emptyLabel);
+        } else {
+            for (PopularGameDTO game : games) {
+                // % 단위로 포멧
+                String rankStr = String.valueOf(game.getRank());
+                String shareStr = String.format("%.2f%%", game.getShare());
+
+                JPanel gamePanel = createGameItem(rankStr, game.getGameName(), shareStr);
+                listPanel.add(gamePanel);
+                // 간격 추가
+                listPanel.add(Box.createVerticalStrut(10));
+            }
+        }
+        // UI 갱신
+        listPanel.revalidate();
+        listPanel.repaint();
     }
 }

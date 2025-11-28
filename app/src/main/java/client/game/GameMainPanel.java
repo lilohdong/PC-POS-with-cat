@@ -25,8 +25,5 @@ public class GameMainPanel extends JPanel {
         mainStats = new MainGameStatistics();
         add(mainStats, BorderLayout.CENTER);
     }
-    public void refresh() {
-        mainStats.refresh();
 
-    }
 }
