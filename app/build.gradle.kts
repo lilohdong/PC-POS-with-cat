@@ -25,7 +25,8 @@ dependencies {
     implementation(libs.guava)
     // https://mvnrepository.com/artifact/org.jdatepicker/jdatepicker
     implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
-    implementation("com.formdev:flatlaf:3.5.1")
+    implementation("com.formdev:flatlaf:3.6.2")
+    implementation("com.formdev:flatlaf-intellij-themes:3.6.2")
     implementation("mysql:mysql-connector-java:8.0.33") // 커넥터 종속성 추가
 
 }

@@ -12,8 +12,7 @@ public class GameHeaderPanel extends JPanel {
 
     private void initUI() {
         setPreferredSize(new Dimension(1016, 74));
-        setBackground(Color.WHITE);
-        setBorder(new MatteBorder(2, 2, 2, 0, Color.BLACK));
+        setBorder(new MatteBorder(1, 0, 1, 0, Color.BLACK));
         setLayout(new FlowLayout(FlowLayout.LEFT));
 
         JLabel titleLabel = new JLabel("게임 통계", JLabel.CENTER);
