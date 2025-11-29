@@ -11,7 +11,11 @@ public class MemberHeader extends JPanel implements ActionListener {
 
     private JButton btnJoin, btnUpdate, btnDelete;
 
-    public MemberHeader() {
+    private SearchMember searchMember;
+
+    //SearchMember 받아오기
+    public MemberHeader(SearchMember searchMember) {
+        this.searchMember = searchMember;
         initUI();
     }
 
@@ -45,8 +49,15 @@ public class MemberHeader extends JPanel implements ActionListener {
         else if (src == btnUpdate) {
             new UpdateDialog(parent);
         }
-//        else if (src == btnDelete) {
-//            new DeleteConfirmDialog(parent).setVisible(true);
-//        }
+        else if (src == btnDelete) {
+            int row = searchMember.getSelectedRow(); // SearchMember에게 선택된 줄 번호 물어보기
+
+            if (row == -1) { // 선택 안 했으면 경고
+                JOptionPane.showMessageDialog(parent, "삭제할 회원을 선택해주세요.");
+                return;
+            }
+
+            new DeleteDialog(parent, searchMember, row); // DeleteDialog 호출 (searchMember와 줄 번호를 넘겨줌)
+        }
     }
 }
