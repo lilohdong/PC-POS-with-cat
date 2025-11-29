@@ -1,5 +1,7 @@
 package client.game;
 
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -11,7 +13,7 @@ public class GameMainPanel extends JPanel {
     private PopularGameRankingPanel rankingPanel;
     private MainGameStatistics mainStats;
     private void initUI() {
-        setSize(1016, 832);
+        setSize(Sizes.PANEL_WIDTH, Sizes.PANEL_HEIGHT);
         setLayout(new BorderLayout());
         // 헤더 패널
         headerPanel = new GameHeaderPanel();

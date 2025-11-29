@@ -11,16 +11,11 @@ import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+
 public class MainGameStatistics extends JPanel {
     private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
     private DefaultTableModel tm;
 
-    private final String[] years = {
-            "2025년",
-            "2024년",
-            "2023년",
-            "2022년"
-    };
     JLabel dateLabel;
     public MainGameStatistics() {
         initUI();
@@ -33,10 +28,14 @@ public class MainGameStatistics extends JPanel {
 
         // 헤더 패널
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        headerPanel.setBackground(new Color(220, 230, 240));
+        headerPanel.setBackground(new Color(234, 191, 255));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
-        dateLabel = new JLabel("현재 시간 : " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm")));
+        LocalDateTime dateTime = LocalDateTime.now();
+
+        String formattedDateTime = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        dateLabel = new JLabel("현재 시간 : " + formattedDateTime);
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        dateLabel.setForeground(Color.BLACK);
 
         headerPanel.add(dateLabel);
         add(headerPanel, BorderLayout.NORTH);

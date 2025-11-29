@@ -122,11 +122,24 @@ public class SearchMember extends JPanel implements ActionListener {
         total.setText("총 회원 수 : " + model.getRowCount());
     }
 
+    // 선택된 행 번호 반환
+    public int getSelectedRow() {
+        return table.getSelectedRow();
+    }
+
+    // 회원 삭제 시 줄 삭제 후 갱신
+    public void removeRow(int row) {
+        model.removeRow(row);
+        updateTotal();
+    }
+
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == searchBtn) {
             String keyword = searchField.getText().trim();
             String type = combo.getSelectedItem().toString();
+
 
             loadTable(keyword, type);
 
