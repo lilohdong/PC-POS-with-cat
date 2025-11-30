@@ -29,7 +29,6 @@ public class Order extends JPanel {
 
         //최상단 헤더 패널
         OrderHeader header = new OrderHeader();
-        header.setBackground(Color.WHITE);
         add(header, BorderLayout.NORTH);
         
         //상태 패널(조리중/조리완료)
