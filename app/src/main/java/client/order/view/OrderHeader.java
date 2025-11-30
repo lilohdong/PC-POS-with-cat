@@ -1,5 +1,7 @@
 package client.order.view;
 
+import client.order.ordermake.OrderMakeFrame;
+
 import javax.swing.*;
 import java.awt.*;
 import util.*;
@@ -25,5 +27,9 @@ public class OrderHeader extends JPanel{
         
         add(title, BorderLayout.WEST);
         add(orderBtn, BorderLayout.EAST);
+
+        orderBtn.addActionListener(e -> {
+            new OrderMakeFrame();
+        });
     }
 }
