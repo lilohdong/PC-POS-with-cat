@@ -20,26 +20,22 @@ class JoinDialog extends JDialog {
     public JoinDialog(JFrame parents) {
         super(parents, "회원가입", true);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.WHITE);
 
         // 상단 타이틀 (회원가입)
         JLabel titleLabel = new JLabel("회원가입", SwingConstants.CENTER); // 가운데 정렬
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
         titleLabel.setBorder(new EmptyBorder(20, 0, 10, 0)); // 위아래 여백
         titleLabel.setOpaque(true); // 불투명
-        titleLabel.setBackground(Color.WHITE);
         add(titleLabel, BorderLayout.NORTH);
 
         // 메인 패널
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS)); // 세로로 쌓기
-        mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(new EmptyBorder(10, 30, 10, 30)); // 양옆 여백
 
 
         // 아이디
         JPanel idGroupPanel = new JPanel(new BorderLayout(5, 0));
-        idGroupPanel.setBackground(Color.WHITE);
         tid = new JTextField();
         JButton checkIdBtn = new JButton("중복확인");
         checkIdBtn.setBackground(new Color(240, 240, 240));
@@ -62,7 +58,6 @@ class JoinDialog extends JDialog {
 
         // 생년월일
         JPanel birthPanel = new JPanel(new GridLayout(1, 3, 5, 0));
-        birthPanel.setBackground(Color.WHITE);
         yearCombo = new JComboBox<>();
         monthCombo = new JComboBox<>();
         dayCombo = new JComboBox<>();
@@ -72,10 +67,6 @@ class JoinDialog extends JDialog {
         for(int i = currentYear; i >= 1900; i--) yearCombo.addItem(i + "년");
         for(int i = 1; i <= 12; i++) monthCombo.addItem(i + "월");
         for(int i = 1; i <= 31; i++) dayCombo.addItem(i + "일");
-
-        yearCombo.setBackground(Color.WHITE);
-        monthCombo.setBackground(Color.WHITE);
-        dayCombo.setBackground(Color.WHITE);
 
         birthPanel.add(yearCombo);
         birthPanel.add(monthCombo);
@@ -92,13 +83,10 @@ class JoinDialog extends JDialog {
 
         // 성별
         JPanel genderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        genderPanel.setBackground(Color.WHITE);
         ButtonGroup genderGroup = new ButtonGroup();
         male = new JRadioButton("남");
         female = new JRadioButton("여");
 
-        male.setBackground(Color.WHITE);
-        female.setBackground(Color.WHITE);
 
         genderGroup.add(male);
         genderGroup.add(female);
@@ -110,16 +98,12 @@ class JoinDialog extends JDialog {
         // 약관 동의
         JPanel termsPanel = new JPanel();
         termsPanel.setLayout(new BoxLayout(termsPanel, BoxLayout.Y_AXIS));
-        termsPanel.setBackground(Color.WHITE);
         termsPanel.setAlignmentX(Component.LEFT_ALIGNMENT); //왼쪽 정렬
 
         checkAll = new JCheckBox("전체 동의");
         checkTerm1 = new JCheckBox("[필수] 이용 약관");
         checkTerm2 = new JCheckBox("[필수] 개인정보 수집");
 
-        checkAll.setBackground(Color.WHITE);
-        checkTerm1.setBackground(Color.WHITE);
-        checkTerm2.setBackground(Color.WHITE);
 
         // 전체 동의
         checkAll.addActionListener(e -> {
@@ -151,13 +135,11 @@ class JoinDialog extends JDialog {
 
         // 하단 버튼
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         JButton submitBtn = new JButton("회원가입 완료");
         submitBtn.setPreferredSize(new Dimension(250, 40));
         submitBtn.setBackground(new Color(65, 105, 225));
-        submitBtn.setForeground(Color.WHITE);
         submitBtn.setFont(new Font("맑은 고딕", Font.BOLD, 16));
 
         buttonPanel.add(submitBtn);
@@ -271,7 +253,6 @@ class JoinDialog extends JDialog {
     // 라벨 + 컴포넌트 추가
     private void addLabelAndComponent(JPanel parent, String labelText, Component comp) {
         JPanel panel = new JPanel(new BorderLayout(0, 5));
-        panel.setBackground(Color.WHITE);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // 높이 고정
         panel.setBorder(new EmptyBorder(0, 0, 10, 0)); // 하단 여백
 
@@ -286,7 +267,6 @@ class JoinDialog extends JDialog {
     // 라벨 + 컴포넌트 + 메시지라벨 추가 (아이디)
     private void addLabelComponentAndMsg(JPanel parent, String labelText, Component comp, JLabel msgLabel) {
         JPanel panel = new JPanel(new BorderLayout(0, 5));
-        panel.setBackground(Color.WHITE);
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
         panel.setBorder(new EmptyBorder(0, 0, 10, 0));
 
@@ -294,7 +274,6 @@ class JoinDialog extends JDialog {
         label.setFont(new Font("맑은 고딕", Font.BOLD, 12));
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBackground(Color.WHITE);
         centerPanel.add(comp, BorderLayout.CENTER);
         centerPanel.add(msgLabel, BorderLayout.SOUTH); // 입력창 바로 아래 메시지
 

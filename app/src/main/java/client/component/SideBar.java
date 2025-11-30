@@ -25,7 +25,7 @@ public class SideBar extends JPanel implements NowAdminListener {
     public JButton staffBtn;
     public JButton gameBtn;
     private JButton chmodBtn;
-
+    protected JButton darkModeBtn;
     private final Color admin = new Color(170,209, 231);
     private final Color noAdmin = new Color(255, 102, 102);
     private void initUI() {
@@ -59,6 +59,12 @@ public class SideBar extends JPanel implements NowAdminListener {
 
         initReal(btnSets);
         add(btnSets, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        darkModeBtn = new JButton("Dark Mode");
+
+        bottom.add(darkModeBtn);
+        add(bottom, BorderLayout.SOUTH);
     }
     // 관리자 인증 매커니즘
     private void showPasswordInputDialog() {
@@ -110,8 +116,8 @@ public class SideBar extends JPanel implements NowAdminListener {
     private JButton initBtn(String name) {
         JButton jBtn = new JButton(name);
         jBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-        jBtn.setPreferredSize(new Dimension(200,63));
-        jBtn.setMinimumSize(new Dimension(200,63));
+        jBtn.setPreferredSize(new Dimension(200,60));
+        jBtn.setMinimumSize(new Dimension(200,60));
         jBtn.setBackground(new Color(146, 160, 250));
         jBtn.setFont(new SideBarBtnFont());
         jBtn.setForeground(Color.black);

@@ -1,5 +1,7 @@
 package client.component;
 
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
 import util.Sizes;
 
 import javax.swing.*;
@@ -32,7 +34,25 @@ public class MainFrame extends JFrame {
                 case "▣ 회원관리" -> mui.showUI("MEMBER");
             }
         });
-
+        // 다크모드 변경 버튼 람다 리스너
+        sb.darkModeBtn.addActionListener(e-> {
+            if(e.getActionCommand().equals("DarkMode")) {
+                try {
+                    UIManager.setLookAndFeel(new FlatArcDarkIJTheme());
+                    sb.darkModeBtn.setText("LightMode");
+                } catch (Exception ex) {
+                    System.out.println("Dark Mode 변환 실패");
+                }
+            } else {
+                try {
+                    UIManager.setLookAndFeel(new FlatIntelliJLaf());
+                    sb.darkModeBtn.setText("DarkMode");
+                } catch (Exception ex) {
+                    System.out.println("Light Mode 변환 실패");
+                }
+            }
+            SwingUtilities.updateComponentTreeUI(this);
+        });
         add(sb, BorderLayout.WEST);
         add(mui, BorderLayout.CENTER);
     }

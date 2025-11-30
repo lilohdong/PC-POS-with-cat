@@ -22,7 +22,6 @@ public class UpdateDialog extends JDialog {
     public UpdateDialog(JFrame parents) {
         super(parents, "회원정보 수정", true);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.WHITE);
 
         // 상단 타이틀
         JLabel titleLabel = new JLabel("회원정보 수정", SwingConstants.CENTER);
