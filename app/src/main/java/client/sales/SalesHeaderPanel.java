@@ -13,7 +13,6 @@ public class SalesHeaderPanel extends JPanel {
 
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.SALES_HEADER_HEIGHT));
-        setBackground(Color.WHITE);
         setBorder(new MatteBorder(0, 0, 2, 0, Color.BLACK));
         setLayout(new FlowLayout(FlowLayout.LEFT));
 

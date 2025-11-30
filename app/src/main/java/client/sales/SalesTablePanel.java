@@ -25,7 +25,7 @@ public class SalesTablePanel extends JPanel {
     private String[] duration = { "일간", "주간", "월간" };
     private final ImageIcon cal = new ImageIcon(getClass().getResource("/imgs/calendar.png"));
     private JButton calBtn;
-    private final String[] column = {"매출번호", "아이디", "매출발생일", "매출발생시간", "상품","수량","매출액"};
+    private final String[] column = {"주문번호", "아이디", "매출발생일", "매출발생시간", "상품","수량","매출액"};
     private DefaultTableModel tm;
 
     private JPanel dateAppearance;
@@ -91,11 +91,10 @@ public class SalesTablePanel extends JPanel {
     private JPanel createMainHeaderPanel() {
         JPanel jp = new JPanel();
         jp.setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, 40));
-        jp.setBackground(Color.white);
         jp.setLayout(new FlowLayout(FlowLayout.LEFT));
 
         selectD = new JComboBox<>(duration);
-        selectD.setPreferredSize(new Dimension(248, 40));
+        selectD.setPreferredSize(new Dimension(248, 35));
 
         selectD.addActionListener(e -> {
             String selectedDuration = (String) selectD.getSelectedItem();
