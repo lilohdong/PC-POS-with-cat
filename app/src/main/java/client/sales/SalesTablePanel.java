@@ -70,6 +70,7 @@ public class SalesTablePanel extends JPanel {
 
         tm = new DefaultTableModel(column,0);
         JTable mainTable = new JTable(tm);
+        mainTable.setFillsViewportHeight(true);
         sts.initTable(tm);
         JTableHeader header = mainTable.getTableHeader();
         header.setPreferredSize(new Dimension(0, 35));

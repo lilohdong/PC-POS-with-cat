@@ -2,6 +2,9 @@ package client.component;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme;
 import util.Sizes;
 
 import javax.swing.*;
@@ -38,13 +41,15 @@ public class MainFrame extends JFrame {
         sb.darkModeBtn.addActionListener(e-> {
             if(e.getActionCommand().equals("DarkMode")) {
                 try {
-                    UIManager.setLookAndFeel(new FlatArcDarkIJTheme());
+                    // 다크모드로 전환
+                    UIManager.setLookAndFeel(new FlatDarkFlatIJTheme());
                     sb.darkModeBtn.setText("LightMode");
                 } catch (Exception ex) {
                     System.out.println("Dark Mode 변환 실패");
                 }
             } else {
                 try {
+                    //라이트모드 다시 전환
                     UIManager.setLookAndFeel(new FlatIntelliJLaf());
                     sb.darkModeBtn.setText("DarkMode");
                 } catch (Exception ex) {

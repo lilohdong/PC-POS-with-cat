@@ -4,6 +4,7 @@ import client.component.AdminLoginFrame;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class Main {
     public static void main(String[] args) {
