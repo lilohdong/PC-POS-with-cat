@@ -17,6 +17,7 @@ import util.*;
 하단: OrderList
 */
 public class Order extends JPanel {
+
     public Order(){
         initUI();
     }
