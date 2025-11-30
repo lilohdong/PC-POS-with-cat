@@ -118,6 +118,11 @@ public class SalesTablePanel extends JPanel {
 
         calBtn = new JButton(cal);
         calBtn.setPreferredSize(new Dimension(24, 24));
+        // 동그래지는거 해결하는 코드
+        calBtn.setBorder(BorderFactory.createEmptyBorder());
+        calBtn.setContentAreaFilled(false);
+        calBtn.setFocusPainted(false);
+        // 동그래지는거 해결하는 코드
         calBtn.addActionListener(new CalListener());
 
         period = new JLabel("날짜를 선택하세요");
