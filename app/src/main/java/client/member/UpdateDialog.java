@@ -12,7 +12,7 @@ public class UpdateDialog extends JDialog {
     private JTextField tid, tname, tphone;
     private JPasswordField tpassword;
     private JRadioButton male, female;
-    // 연령대(학력) 라디오 버튼
+    // 연령대 버튼
     private JRadioButton ele, mid, high, adult;
     private JComboBox<String> yearCombo, monthCombo, dayCombo;
 
@@ -22,7 +22,6 @@ public class UpdateDialog extends JDialog {
     public UpdateDialog(JFrame parents) {
         super(parents, "회원정보 수정", true);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(Color.WHITE);
 
         // 상단 타이틀
         JLabel titleLabel = new JLabel("회원정보 수정", SwingConstants.CENTER);

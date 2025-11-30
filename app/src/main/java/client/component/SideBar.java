@@ -1,5 +1,6 @@
 package client.component;
 
+import font.SideBarBtnFont;
 import service.NowAdminListener;
 import service.NowAdminService;
 import util.Sizes;
@@ -15,16 +16,16 @@ public class SideBar extends JPanel implements NowAdminListener {
         updateAccess(NowAdminService.getInstance().isAdminMode());
     }
 
-    private JButton manageBtn;
-    private JButton orderBtn;
-    private JButton stockBtn;
-    private JButton memberBtn;
-    private JButton handOverBtn;
-    private JButton salesBtn;
-    private JButton staffBtn;
-    private JButton gameBtn;
+    public JButton manageBtn;
+    public JButton orderBtn;
+    public JButton stockBtn;
+    public JButton memberBtn;
+    public JButton handOverBtn;
+    public JButton salesBtn;
+    public JButton staffBtn;
+    public JButton gameBtn;
     private JButton chmodBtn;
-
+    protected JButton darkModeBtn;
     private final Color admin = new Color(170,209, 231);
     private final Color noAdmin = new Color(255, 102, 102);
     private void initUI() {
@@ -32,13 +33,16 @@ public class SideBar extends JPanel implements NowAdminListener {
         setBackground(Color.white);
         setBorder(BorderFactory.createLineBorder(Color.black, 1, true));
         setLayout(new BorderLayout());
-
+        // 관리자 모드 변경 버튼
         chmodBtn = new JButton("관리자 모드 변경");
         chmodBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
         chmodBtn.setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH,64));
         chmodBtn.setBackground(admin);
         chmodBtn.setMinimumSize(new Dimension(Sizes.SIDEBAR_WIDTH,64));
         chmodBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE,64));
+        chmodBtn.setFont(new SideBarBtnFont());
+        chmodBtn.setForeground(Color.black);
+        // 관리자 모드 변경 리스너
         chmodBtn.addActionListener(e -> {
             if(!NowAdminService.getInstance().isAdminMode()){
                 showPasswordInputDialog();
@@ -52,10 +56,15 @@ public class SideBar extends JPanel implements NowAdminListener {
 
         BoxLayout box = new BoxLayout(btnSets, BoxLayout.Y_AXIS);
         btnSets.setLayout(box);
-        btnSets.setBackground(Color.white);
 
         initReal(btnSets);
         add(btnSets, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        darkModeBtn = new JButton("Dark Mode");
+
+        bottom.add(darkModeBtn);
+        add(bottom, BorderLayout.SOUTH);
     }
     // 관리자 인증 매커니즘
     private void showPasswordInputDialog() {
@@ -106,10 +115,13 @@ public class SideBar extends JPanel implements NowAdminListener {
 
     private JButton initBtn(String name) {
         JButton jBtn = new JButton(name);
-        jBtn.setBackground(Color.white);
         jBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
-        jBtn.setPreferredSize(new Dimension(200,63));
-        jBtn.setMinimumSize(new Dimension(200,63));
+        jBtn.setPreferredSize(new Dimension(200,60));
+        jBtn.setMinimumSize(new Dimension(200,60));
+        jBtn.setBackground(new Color(146, 160, 250));
+        jBtn.setFont(new SideBarBtnFont());
+        jBtn.setForeground(Color.black);
+
         return jBtn;
     }
     private void initReal(JPanel contentPanel) {
@@ -118,19 +130,19 @@ public class SideBar extends JPanel implements NowAdminListener {
         JPanel[] p = new JPanel[8];
         for (int i = 0; i < p.length; i++) {
             p[i] = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            p[i].setBackground(Color.white);
             p[i].setMinimumSize(new Dimension(200,63));
+            p[i].setBackground(null);
             p[i].setBorder(BorderFactory.createLineBorder(Color.black, 0, true));
         }
 
-        manageBtn = initBtn("매장관리");
-        orderBtn = initBtn("상품판매");
-        stockBtn = initBtn("재고관리");
-        memberBtn = initBtn("회원관리");
-        handOverBtn = initBtn("인수인계");
-        salesBtn = initBtn("매출관리");
-        staffBtn = initBtn("직원관리");
-        gameBtn = initBtn("게임통계");
+        manageBtn = initBtn("◎ 매장관리");
+        orderBtn = initBtn("♣ 상품판매");
+        stockBtn = initBtn("▒ 재고관리");
+        memberBtn = initBtn("▣ 회원관리");
+        handOverBtn = initBtn("§ 인수인계");
+        salesBtn = initBtn("★ 매출관리");
+        staffBtn = initBtn("★ 직원관리");
+        gameBtn = initBtn("ⓖ 게임통계");
 
         p[0].add(manageBtn);
         p[1].add(orderBtn);
@@ -141,8 +153,8 @@ public class SideBar extends JPanel implements NowAdminListener {
         p[6].add(staffBtn);
         p[7].add(gameBtn);
 
-        for(int i = 0; i < p.length; i++){
-            contentPanel.add(p[i]);
+        for (JPanel jPanel : p) {
+            contentPanel.add(jPanel);
             contentPanel.add(Box.createVerticalStrut(Sizes.BOX_STRUT));
         }
         contentPanel.add(Box.createVerticalGlue());

@@ -9,8 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class AdminLoginFrame extends JFrame implements ActionListener {
-    private JTextField idField;
-    private JPasswordField pwField;
+    private final JTextField idField;
+    private final JPasswordField pwField;
 
     public AdminLoginFrame() {
         setTitle("POS PLACE");
@@ -31,7 +31,6 @@ public class AdminLoginFrame extends JFrame implements ActionListener {
         JPanel idPanel = new JPanel();
         idPanel.setLayout(new BorderLayout());
         idPanel.setBounds(430, 285, 300, 40);
-        idPanel.setBackground(Color.WHITE);
         idPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
         JLabel idLabel = new JLabel(" ID : ");
@@ -48,7 +47,6 @@ public class AdminLoginFrame extends JFrame implements ActionListener {
         JPanel pwPanel = new JPanel();
         pwPanel.setLayout(new BorderLayout());
         pwPanel.setBounds(430, 345, 300, 40);
-        pwPanel.setBackground(Color.WHITE);
         pwPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
 
         JLabel pwLabel = new JLabel(" PW : ");
@@ -66,7 +64,7 @@ public class AdminLoginFrame extends JFrame implements ActionListener {
         goButton.setBounds(520, 405, 120, 35);
         goButton.setFont(new Font("Serif", Font.BOLD, 18));
         goButton.setBackground(new Color(173, 216, 230));
-        goButton.setForeground(Color.BLACK);
+        goButton.setBackground(new Color(197, 111, 255));
         goButton.setFocusPainted(false);
         goButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         goButton.setCursor(new Cursor(Cursor.HAND_CURSOR));

@@ -1,5 +1,7 @@
 package client.component;
 
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
 import util.Sizes;
 
 import javax.swing.*;
@@ -25,13 +27,32 @@ public class MainFrame extends JFrame {
             String clickedBtn =e.getActionCommand();
             switch (clickedBtn) {
                 //case "매장관리" -> mui.showUI("");
-                case "매출관리" -> mui.showUI("SALES");
-                case "게임통계" -> mui.showUI("GAME");
-                case "상품판매" -> mui.showUI("ORDER");
-                case "회원관리" -> mui.showUI("MEMBER");
+                // 이거 문자열 바꾸면 다시 리팩터링 해줘야함 SideBar에서도
+                case "★ 매출관리" -> mui.showUI("SALES");
+                case "ⓖ 게임통계" -> mui.showUI("GAME");
+                case "♣ 상품판매" -> mui.showUI("ORDER");
+                case "▣ 회원관리" -> mui.showUI("MEMBER");
             }
         });
-
+        // 다크모드 변경 버튼 람다 리스너
+        sb.darkModeBtn.addActionListener(e-> {
+            if(e.getActionCommand().equals("DarkMode")) {
+                try {
+                    UIManager.setLookAndFeel(new FlatArcDarkIJTheme());
+                    sb.darkModeBtn.setText("LightMode");
+                } catch (Exception ex) {
+                    System.out.println("Dark Mode 변환 실패");
+                }
+            } else {
+                try {
+                    UIManager.setLookAndFeel(new FlatIntelliJLaf());
+                    sb.darkModeBtn.setText("DarkMode");
+                } catch (Exception ex) {
+                    System.out.println("Light Mode 변환 실패");
+                }
+            }
+            SwingUtilities.updateComponentTreeUI(this);
+        });
         add(sb, BorderLayout.WEST);
         add(mui, BorderLayout.CENTER);
     }
