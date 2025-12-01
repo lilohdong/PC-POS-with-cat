@@ -1,5 +1,6 @@
 package client.component;
 
+import client.store.StorePanel;
 import client.game.GameMainPanel;
 import client.member.Member;
 import client.order.Order;
@@ -20,11 +21,13 @@ public class MainUI extends JPanel {
         cl = new CardLayout();
         setLayout(cl);
 
+        StorePanel storePanel = new StorePanel();
         gameMainPanel = new GameMainPanel();
         Member memberMainPanel = new Member();
         Order orderMainPanel = new Order();
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
 
+        add(storePanel, "STORE");
         add(gameMainPanel, "GAME");
         add(orderMainPanel, "ORDER");
         add(salesMainPanel, "SALES");

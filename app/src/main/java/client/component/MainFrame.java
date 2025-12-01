@@ -29,8 +29,7 @@ public class MainFrame extends JFrame {
         sb.setNavListener(e-> {
             String clickedBtn =e.getActionCommand();
             switch (clickedBtn) {
-                //case "매장관리" -> mui.showUI("");
-                // 이거 문자열 바꾸면 다시 리팩터링 해줘야함 SideBar에서도
+                case "매장관리" -> mui.showUI("STORE");
                 case "★ 매출관리" -> mui.showUI("SALES");
                 case "ⓖ 게임통계" -> mui.showUI("GAME");
                 case "♣ 상품판매" -> mui.showUI("ORDER");
