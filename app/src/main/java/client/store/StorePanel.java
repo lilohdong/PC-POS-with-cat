@@ -1,6 +1,7 @@
 package client.store;
 
 import util.Sizes;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;

@@ -1,10 +1,7 @@
 package client.component;
 
 import com.formdev.flatlaf.FlatIntelliJLaf;
-import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme;
-import com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme;
 import util.Sizes;
 
 import javax.swing.*;

@@ -4,13 +4,13 @@ import dao.GameDAO;
 import dto.PopularGameDTO;
 import font.ClearGodic;
 import util.Sizes;
-import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class PopularGameRankingPanel extends JPanel {
 

@@ -1,13 +1,12 @@
 package client.order;
 
-import javax.swing.*;
-
 import client.order.view.OrderHeader;
 import client.order.view.OrderList;
 import client.order.view.OrderState;
+import util.Sizes;
 
+import javax.swing.*;
 import java.awt.*;
-import util.*;
 
 /*
 주문 화면 전체를 구성하는 패널 클래스

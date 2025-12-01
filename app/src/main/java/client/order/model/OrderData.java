@@ -1,6 +1,6 @@
 package client.order.model;
 
-import java.time.*;
+import java.time.LocalDateTime;
 
 /*
 주문 정보 저장하는 데이터 모델 클래스(DB연동 필요)
