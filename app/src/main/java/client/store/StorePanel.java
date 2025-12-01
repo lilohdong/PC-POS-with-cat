@@ -11,17 +11,21 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.sql.*;
+
+import db.DBConnection;
+import dao.SeatDAO;
+import dto.SeatDTO;
 
 public class StorePanel extends JPanel {
     private static final int GRID_ROWS = 8;
     private static final int GRID_COLS = 10;
     private static final Color COLOR_AVAILABLE = new Color(200, 200, 200);
+    private static final Color COLOR_UNAVAILABLE = new Color(150, 150, 150);
     private static final Color COLOR_CHILD_USER = new Color(180, 180, 255);
     private static final Color COLOR_ADULT_USER = new Color(255, 180, 180);
     private static final Color COLOR_SELECTED = new Color(255, 255, 150);
-    private static final Color COLOR_NOTICE = new Color(150, 255, 150);
-    private static final Color COLOR_MAINTENANCE = new Color(150, 150, 150);
-    private static final Color COLOR_PREMIUM = new Color(255, 215, 0);
 
     private JPanel seatGridPanel;
     private Map<String, SeatPanel> seats;
@@ -29,7 +33,6 @@ public class StorePanel extends JPanel {
     private JLabel totalSeatsLabel;
     private JLabel availableSeatsLabel;
     private JLabel occupiedSeatsLabel;
-    private JLabel revenueLabel;
     private SeatPanel selectedSeat;
     private Timer updateTimer;
 
@@ -73,25 +76,20 @@ public class StorePanel extends JPanel {
         totalSeatsLabel = new JLabel("전체: 80석");
         availableSeatsLabel = new JLabel("이용가능: 0석");
         occupiedSeatsLabel = new JLabel("사용중: 0석");
-        revenueLabel = new JLabel("일일매출: ₩0");
 
         totalSeatsLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
         availableSeatsLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
         occupiedSeatsLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        revenueLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
 
         totalSeatsLabel.setForeground(Color.BLACK);
         availableSeatsLabel.setForeground(new Color(0, 150, 0));
         occupiedSeatsLabel.setForeground(new Color(200, 0, 0));
-        revenueLabel.setForeground(new Color(0, 0, 200));
 
         statsPanel.add(totalSeatsLabel);
         statsPanel.add(new JSeparator(JSeparator.VERTICAL));
         statsPanel.add(availableSeatsLabel);
         statsPanel.add(new JSeparator(JSeparator.VERTICAL));
         statsPanel.add(occupiedSeatsLabel);
-        statsPanel.add(new JSeparator(JSeparator.VERTICAL));
-        statsPanel.add(revenueLabel);
 
         headerPanel.add(statsPanel, BorderLayout.CENTER);
 
@@ -100,8 +98,7 @@ public class StorePanel extends JPanel {
         legendPanel.add(createLegendItem("이용가능", COLOR_AVAILABLE));
         legendPanel.add(createLegendItem("미성년자", COLOR_CHILD_USER));
         legendPanel.add(createLegendItem("성인", COLOR_ADULT_USER));
-        legendPanel.add(createLegendItem("프리미엄", COLOR_PREMIUM));
-        legendPanel.add(createLegendItem("점검중", COLOR_MAINTENANCE));
+        legendPanel.add(createLegendItem("점검중", COLOR_UNAVAILABLE));
         legendPanel.add(createLegendItem("선택됨", COLOR_SELECTED));
 
         headerPanel.add(legendPanel, BorderLayout.SOUTH);
@@ -110,19 +107,6 @@ public class StorePanel extends JPanel {
         // 중앙 좌석 배치 패널
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-        // 공지사항 영역
-        JPanel noticeArea = new JPanel();
-        noticeArea.setBackground(COLOR_NOTICE);
-        noticeArea.setPreferredSize(new Dimension(0, 40));
-        noticeArea.setBorder(BorderFactory.createLineBorder(new Color(0, 150, 0), 2));
-
-        JLabel noticeLabel = new JLabel("📢 공지: 오늘 저녁 8시부터 10시까지 이벤트! 2시간 이용시 1시간 무료 추가!");
-        noticeLabel.setFont(new Font("맑은 고딕", Font.BOLD, 13));
-        noticeLabel.setForeground(new Color(0, 100, 0));
-        noticeArea.add(noticeLabel);
-
-        centerPanel.add(noticeArea, BorderLayout.NORTH);
 
         // 좌석 그리드 패널
         seatGridPanel = new JPanel(new GridLayout(GRID_ROWS, GRID_COLS, 3, 3));
@@ -159,21 +143,21 @@ public class StorePanel extends JPanel {
         JButton endButton = createButton("사용 종료", new Color(255, 150, 150));
         JButton moveButton = createButton("자리 이동", new Color(150, 200, 150));
         JButton chargeButton = createButton("시간 충전", new Color(255, 200, 100));
-        JButton maintenanceButton = createButton("좌석 점검", new Color(200, 200, 200));
+        JButton availableButton = createButton("좌석 점검", new Color(200, 200, 200));
         JButton refreshButton = createButton("새로고침", new Color(180, 180, 180));
 
         startButton.addActionListener(e -> startUsingSeat());
         endButton.addActionListener(e -> endUsingSeat());
         moveButton.addActionListener(e -> moveSeat());
         chargeButton.addActionListener(e -> chargeTime());
-        maintenanceButton.addActionListener(e -> toggleMaintenance());
+        availableButton.addActionListener(e -> toggleAvailable());
         refreshButton.addActionListener(e -> refreshSeats());
 
         buttonPanel.add(startButton);
         buttonPanel.add(endButton);
         buttonPanel.add(moveButton);
         buttonPanel.add(chargeButton);
-        buttonPanel.add(maintenanceButton);
+        buttonPanel.add(availableButton);
         buttonPanel.add(refreshButton);
 
         bottomPanel.add(buttonPanel, BorderLayout.EAST);
@@ -226,30 +210,21 @@ public class StorePanel extends JPanel {
         seatGridPanel.removeAll();
         seats.clear();
 
-        for (int row = 0; row < GRID_ROWS; row++) {
-            for (int col = 0; col < GRID_COLS; col++) {
-                int seatNumber = row * GRID_COLS + col + 1;
-                SeatPanel seat = new SeatPanel(seatNumber, row, col);
+        List<SeatDTO> seatList = SeatDAO.getInstance().getAllSeats();
 
-                // 초기 상태 설정 (데모 데이터)
-                if (Math.random() < 0.3) {
-                    if (Math.random() < 0.5) {
-                        seat.setStatus(SeatStatus.OCCUPIED_CHILD);
-                        seat.setUserInfo("학생", generateRandomTime());
-                    } else {
-                        seat.setStatus(SeatStatus.OCCUPIED_ADULT);
-                        seat.setUserInfo("일반", generateRandomTime());
-                    }
-                } else if (Math.random() < 0.05) {
-                    seat.setStatus(SeatStatus.MAINTENANCE);
-                } else if (col == 0 || col == GRID_COLS - 1) {
-                    seat.setStatus(SeatStatus.PREMIUM);
-                }
+        for (SeatDTO dto : seatList) {
+            SeatPanel panel = new SeatPanel(dto.getSeatNo(), 0, 0);
 
-                String key = seatNumber + "";
-                seats.put(key, seat);
-                seatGridPanel.add(seat);
+            if (!dto.isUsed()) {
+                panel.setStatus(SeatStatus.AVAILABLE);
+            } else {
+                // 사용 중
+                panel.setStatus(SeatStatus.OCCUPIED_ADULT);  // 기본값 (미성년 정보 DB에 없다면)
+                panel.setUserInfo(dto.getMemberId(), convertTime(dto.getStartTime()));
             }
+
+            seats.put(String.valueOf(dto.getSeatNo()), panel);
+            seatGridPanel.add(panel);
         }
 
         seatGridPanel.revalidate();
@@ -272,7 +247,7 @@ public class StorePanel extends JPanel {
             total++;
             SeatStatus status = seat.getStatus();
 
-            if (status == SeatStatus.AVAILABLE || status == SeatStatus.PREMIUM) {
+            if (status == SeatStatus.AVAILABLE) {
                 available++;
             } else if (status == SeatStatus.OCCUPIED_CHILD ||
                     status == SeatStatus.OCCUPIED_ADULT) {
@@ -284,7 +259,6 @@ public class StorePanel extends JPanel {
         totalSeatsLabel.setText("전체: " + total + "석");
         availableSeatsLabel.setText("이용가능: " + available + "석");
         occupiedSeatsLabel.setText("사용중: " + occupied + "석");
-        revenueLabel.setText(String.format("일일매출: ₩%,d", revenue * 30));
     }
 
     private void startTimer() {
@@ -299,109 +273,68 @@ public class StorePanel extends JPanel {
         updateTimer.start();
     }
 
-    private void startUsingSeat() {
-        if (selectedSeat != null &&
-                (selectedSeat.getStatus() == SeatStatus.AVAILABLE ||
-                        selectedSeat.getStatus() == SeatStatus.PREMIUM)) {
-
-            JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this),
-                    "좌석 사용 시작", true);
-            dialog.setLayout(new BorderLayout());
-            dialog.setSize(400, 300);
-            dialog.setLocationRelativeTo(this);
-
-            JPanel panel = new JPanel(new GridBagLayout());
-            GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 5, 5, 5);
-            gbc.fill = GridBagConstraints.HORIZONTAL;
-
-            // 사용자 유형
-            gbc.gridx = 0; gbc.gridy = 0;
-            panel.add(new JLabel("사용자 유형:"), gbc);
-
-            gbc.gridx = 1;
-            JComboBox<String> userTypeCombo = new JComboBox<>(new String[]{"성인", "미성년자"});
-            panel.add(userTypeCombo, gbc);
-
-            // 이용 시간
-            gbc.gridx = 0; gbc.gridy = 1;
-            panel.add(new JLabel("이용 시간:"), gbc);
-
-            gbc.gridx = 1;
-            JComboBox<String> timeCombo = new JComboBox<>(new String[]{
-                    "1시간", "2시간", "3시간", "5시간", "10시간", "무제한"
-            });
-            panel.add(timeCombo, gbc);
-
-            // 회원 ID
-            gbc.gridx = 0; gbc.gridy = 2;
-            panel.add(new JLabel("회원 ID:"), gbc);
-
-            gbc.gridx = 1;
-            JTextField memberIdField = new JTextField(20);
-            panel.add(memberIdField, gbc);
-
-            dialog.add(panel, BorderLayout.CENTER);
-
-            // 버튼 패널
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-            JButton confirmButton = new JButton("확인");
-            JButton cancelButton = new JButton("취소");
-
-            confirmButton.addActionListener(e -> {
-                String userType = (String)userTypeCombo.getSelectedItem();
-                if ("미성년자".equals(userType)) {
-                    selectedSeat.setStatus(SeatStatus.OCCUPIED_CHILD);
-                    selectedSeat.setUserInfo("학생", "00:00");
-                } else {
-                    selectedSeat.setStatus(SeatStatus.OCCUPIED_ADULT);
-                    selectedSeat.setUserInfo("일반", "00:00");
-                }
-
-                statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() +
-                        "번 사용 시작 - " + userType);
-                selectedSeat.setSelected(false);
-                selectedSeat = null;
-                updateStatistics();
-                dialog.dispose();
-            });
-
-            cancelButton.addActionListener(e -> dialog.dispose());
-
-            buttonPanel.add(confirmButton);
-            buttonPanel.add(cancelButton);
-            dialog.add(buttonPanel, BorderLayout.SOUTH);
-
-            dialog.setVisible(true);
-        }
+    private String convertTime(String dateTime) {
+        if (dateTime == null) return "";
+        return dateTime.substring(11, 16); // "YYYY-MM-DD HH:MM:SS" → "HH:MM"
     }
 
-    private void endUsingSeat() {
-        if (selectedSeat != null &&
-                (selectedSeat.getStatus() == SeatStatus.OCCUPIED_CHILD ||
-                        selectedSeat.getStatus() == SeatStatus.OCCUPIED_ADULT)) {
-
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "좌석 " + selectedSeat.getSeatNumber() + "번 사용을 종료하시겠습니까?\n" +
-                            "사용 시간: " + selectedSeat.getTimeLabel(),
-                    "사용 종료",
-                    JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                // 요금 계산 표시
-                JOptionPane.showMessageDialog(this,
-                        "이용 요금: ₩" + calculateFee(selectedSeat.getTimeLabel()),
-                        "정산",
-                        JOptionPane.INFORMATION_MESSAGE);
-
-                selectedSeat.setStatus(SeatStatus.AVAILABLE);
-                selectedSeat.setUserInfo("", "");
-                statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() + "번 사용 종료");
-                selectedSeat.setSelected(false);
-                selectedSeat = null;
-                updateStatistics();
-            }
+    private void startUsingSeat() {
+        if (selectedSeat == null) {
+            JOptionPane.showMessageDialog(this, "좌석을 선택하세요.");
+            return;
         }
+
+        // --- 회원 ID 입력받기 ---
+        String memberId = JOptionPane.showInputDialog(
+                this,
+                "회원 ID를 입력하세요",
+                "좌석 사용 시작",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (memberId == null || memberId.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "회원 ID를 입력해야 합니다.");
+            return;
+        }
+
+        int seatNo = selectedSeat.getSeatNumber();
+
+        String sql = "UPDATE seat SET is_used = 1, m_id = ?, start_time = NOW(), end_time = NULL WHERE seat_no = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, memberId);
+            pstmt.setInt(2, seatNo);
+            pstmt.executeUpdate();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        setupSeats();
+        updateStatistics();
+    }
+
+
+    private void endUsingSeat() {
+        if (selectedSeat == null) return;
+        int seatNo = selectedSeat.getSeatNumber();
+
+        String sql = "UPDATE seat SET is_used = 0, end_time = NOW(), m_id = NULL WHERE seat_no = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, seatNo);
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        setupSeats();
+        updateStatistics();
     }
 
     private int calculateFee(String time) {
@@ -443,13 +376,13 @@ public class StorePanel extends JPanel {
         }
     }
 
-    private void toggleMaintenance() {
+    private void toggleAvailable() {
         if (selectedSeat != null) {
-            if (selectedSeat.getStatus() == SeatStatus.MAINTENANCE) {
+            if (selectedSeat.getStatus() == SeatStatus.UNAVAILABLE) {
                 selectedSeat.setStatus(SeatStatus.AVAILABLE);
                 statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() + "번 점검 완료");
             } else if (selectedSeat.getStatus() == SeatStatus.AVAILABLE) {
-                selectedSeat.setStatus(SeatStatus.MAINTENANCE);
+                selectedSeat.setStatus(SeatStatus.UNAVAILABLE);
                 statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() + "번 점검 중");
             }
             selectedSeat.setSelected(false);
@@ -615,14 +548,9 @@ public class StorePanel extends JPanel {
                     case OCCUPIED_ADULT:
                         setBackground(COLOR_ADULT_USER);
                         break;
-                    case PREMIUM:
-                        setBackground(COLOR_PREMIUM);
-                        statusLabel.setText("프리미엄");
-                        timeLabel.setText("");
-                        break;
-                    case MAINTENANCE:
-                        setBackground(COLOR_MAINTENANCE);
-                        statusLabel.setText("점검중");
+                    case UNAVAILABLE:
+                        setBackground(COLOR_UNAVAILABLE);
+                        statusLabel.setText("이용불가");
                         timeLabel.setText("");
                         break;
                 }
@@ -632,6 +560,6 @@ public class StorePanel extends JPanel {
 
     // 좌석 상태 열거형
     enum SeatStatus {
-        AVAILABLE, OCCUPIED_CHILD, OCCUPIED_ADULT, PREMIUM, MAINTENANCE
+        AVAILABLE, UNAVAILABLE, OCCUPIED_CHILD, OCCUPIED_ADULT
     }
 }

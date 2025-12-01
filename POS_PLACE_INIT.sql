@@ -35,10 +35,11 @@ CREATE TABLE handover (
 
 
 create table seat (
-    seat_no int primary key, -- 좌석 번호
-    m_id VARCHAR(30) unique, -- 현재 사용자 (null이면 빈 좌석)
-    is_used boolean default false, -- 사용 중 여부
-    login_time datetime default null, -- 로그인 시간
+    seat_no int primary key,
+    is_used boolean default false,
+    m_id VARCHAR(30) unique,
+    login_time datetime default null,
+    end_time datetime default null,
     foreign key(m_id) references member(m_id) on update cascade on delete set null
 );
 

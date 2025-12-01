@@ -71,7 +71,7 @@ CREATE PROCEDURE CreateSeats()
 BEGIN
     DECLARE i INT DEFAULT 1;
     WHILE i <= 50 DO
-            INSERT INTO seat (seat_no, m_id, is_used, login_time) VALUES (i, NULL, false, NULL);
+            INSERT INTO seat (seat_no, m_id, is_used, login_time, end_time) VALUES (i, NULL, false, NULL, NULL);
             SET i = i + 1;
         END WHILE;
 END$$
