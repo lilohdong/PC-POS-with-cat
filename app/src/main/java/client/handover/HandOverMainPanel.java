@@ -4,261 +4,220 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class HandOverMainPanel extends JPanel {
 
     private HandOverFrame parent;
+    private String giverName; // 받아온 인계자 이름
+    private String receiverName;
 
-    public HandOverMainPanel(HandOverFrame parent) {
+    private JTextField pcSalesField, productSalesField, cashDepositField, totalSalesField;
+    private JTextField cashSafeField, realCashField, diffField;
+
+    public HandOverMainPanel(HandOverFrame parent, String giverName) {
         this.parent = parent;
+        this.giverName = giverName;
+        this.receiverName = receiverName;
+
         setLayout(new BorderLayout());
-        setBackground(new Color(245, 245, 245)); // 전체 배경 연한 회색
-        setBorder(new EmptyBorder(20, 30, 20, 30)); // 전체 여백
+        setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        // 1. 상단 타이틀 ("인수 / 인계")
+        // 상단 타이틀
         add(createTopPanel(), BorderLayout.NORTH);
-
-        // 2. 중앙 내용 (좌측 폼, 우측 폼)
+        // 중앙 내용
         add(createCenterPanel(), BorderLayout.CENTER);
-
-        // 3. 하단 버튼 (닫기, 완료)
+        // 하단 버튼
         add(createBottomPanel(), BorderLayout.SOUTH);
+
     }
 
-    // --- 1. 상단 타이틀 영역 ---
+
+    // UI 구성
     private JPanel createTopPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        panel.setBackground(new Color(245, 245, 245));
-        panel.setBorder(new EmptyBorder(0, 0, 20, 0)); // 아래 내용과 간격
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        JLabel titleLabel = new JLabel("  인수 / 인계  ");
-        titleLabel.setOpaque(true); // 배경색 적용을 위해 필요
-        titleLabel.setBackground(new Color(50, 100, 255)); // 파란색
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        titleLabel.setPreferredSize(new Dimension(100, 30));
-
-        // 둥근 느낌은 단순 라벨로는 어려워서 일단 네모난 형태로 깔끔하게 처리
-        panel.add(titleLabel);
-        return panel;
+        JLabel topLabel = new JLabel("  인수 / 인계  ");
+        topLabel.setOpaque(true);
+        topLabel.setBackground(new Color(50, 100, 255));
+        topLabel.setForeground(Color.WHITE);
+        topLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        topLabel.setPreferredSize(new Dimension(100, 30));
+        topPanel.add(topLabel);
+        return topPanel;
     }
 
-    // --- 2. 중앙 메인 폼 영역 ---
     private JPanel createCenterPanel() {
-        // 좌우 2칸으로 나눔 (간격 40px)
-        JPanel panel = new JPanel(new GridLayout(1, 2, 40, 0));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new LineBorder(Color.LIGHT_GRAY, 1)); // 전체 테두리
+        JPanel centerPanel = new JPanel(new GridLayout(1, 2, 40, 0));
+        centerPanel.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
 
-        // 내부 여백
-        JPanel paddingPanel = new JPanel(new GridLayout(1, 2, 40, 0));
-        paddingPanel.setBackground(Color.WHITE);
-        paddingPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+        // 내부 패딩
+        JPanel content = new JPanel(new GridLayout(1, 2, 40, 0));
+        content.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // 왼쪽 컬럼, 오른쪽 컬럼 생성
-        paddingPanel.add(createLeftColumn());
-        paddingPanel.add(createRightColumn());
+        content.add(createLeftColumn());
+        content.add(createRightColumn());
 
-        // 테두리 패널 안에 내용 패널 넣기 (구조상 깔끔하게 하기 위함)
-        panel.add(paddingPanel);
+        centerPanel.add(content);
+        return centerPanel;
+    }
 
-        // GridLayout 특성상 꽉 차게 늘어나므로, BorderLayout 안에 넣어서 위쪽 정렬처럼 보이게 함
+    private JPanel createLeftColumn() {
+        JPanel leftPanel = new JPanel();
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS)); // 세로 정렬
+        leftPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 왼쪽 정렬
+
+        // 인계자/인수자
+        leftPanel.add(createInputRow("인계자", giverName)); // 로그인에서 받아온 이름 사용
+        leftPanel.add(Box.createVerticalStrut(10));
+        leftPanel.add(createInputRow("인수자", receiverName )); //
+
+        leftPanel.add(Box.createVerticalStrut(30));
+
+        // 매출
+        leftPanel.add(createHeader("매출"));
+        pcSalesField = new JTextField();
+        productSalesField = new JTextField();
+        cashDepositField = new JTextField();
+
+        leftPanel.add(createFieldRow("PC 사용료", pcSalesField));
+        leftPanel.add(createFieldRow("상품 판매액", productSalesField));
+        leftPanel.add(createFieldRow("현금 입금액", cashDepositField));
+
+        leftPanel.add(Box.createVerticalStrut(30));
+
+        // 출금
+        leftPanel.add(createHeader("출금"));
+        leftPanel.add(createFieldRow("현금 출금", new JTextField("0원")));
+        leftPanel.add(createFieldRow("환불 금액", new JTextField("0원")));
+
+        leftPanel.add(Box.createVerticalStrut(30));
+
+        // 합계
+        totalSalesField = new JTextField();
+        totalSalesField.setFont(new Font("맑은 고딕", Font.BOLD, 16));
+        totalSalesField.setForeground(new Color(50, 100, 255)); // 파란색 강조
+        leftPanel.add(createFieldRow("매출 합계", totalSalesField));
+
+        leftPanel.add(Box.createVerticalGlue()); // 남는 공간 채움
+        return leftPanel;
+    }
+
+    private JPanel createRightColumn() {
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // 금고
+        rightPanel.add(createHeader("금고 금액 현황"));
+        cashSafeField = new JTextField();
+        realCashField = new JTextField();
+        diffField = new JTextField();
+        diffField.setForeground(Color.RED); // 차액 빨간색
+
+        rightPanel.add(createFieldRow("금고 금액", cashSafeField));
+        rightPanel.add(createFieldRow("실제 금고 금액", realCashField));
+        rightPanel.add(Box.createVerticalStrut(10));
+        rightPanel.add(createFieldRow("업무 차액", diffField));
+
+        rightPanel.add(Box.createVerticalStrut(30));
+
+        // 인출/인계
+        rightPanel.add(createHeader("인출 / 인계 금액"));
+        rightPanel.add(createFieldRow("인출 금액", new JTextField("0 원")));
+        rightPanel.add(createFieldRow("인계 금액", new JTextField("0 원")));
+
+        rightPanel.add(Box.createVerticalStrut(30));
+
+        // 시간 확인
+        rightPanel.add(createHeader("근무 시간 확인"));
+        // 현재 시간 포맷팅
+        String nowTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        rightPanel.add(createLabelRow("이전 인수 시간", "2025-12-01 09:00")); // DB에서 가져와야 함
+        rightPanel.add(createLabelRow("관리자 근무 시간", "09:00 ~ " + nowTime));
+
+        rightPanel.add(Box.createVerticalGlue());
+        return rightPanel;
+    }
+
+    private JPanel createBottomPanel() {
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
+
+        JButton close = new JButton("닫기 (C)");
+        close.setPreferredSize(new Dimension(100, 40));
+        close.addActionListener(e -> System.exit(0));
+
+        JButton done = new JButton("완료");
+        done.setPreferredSize(new Dimension(100, 40));
+        done.setBackground(new Color(50, 100, 255));
+
+        bottomPanel.add(close, BorderLayout.WEST);
+        bottomPanel.add(done, BorderLayout.EAST);
+        return bottomPanel;
+    }
+
+    // 섹션 제목 (굵은 글씨, 왼쪽 정렬)
+    private JLabel createHeader(String text) {
+
+        JLabel headerPanel = new JLabel(text);
+        headerPanel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 왼쪽 정렬
+
+        return headerPanel;
+    }
+
+    // 라벨 + 텍스트필드
+    private JPanel createFieldRow(String title, JTextField field) {
+        JPanel rowPanel = new JPanel(new BorderLayout());
+        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35)); // 높이 제한
+        rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 박스 전체 왼쪽 정렬
+
+        JLabel rowLable= new JLabel(title);
+        rowLable.setPreferredSize(new Dimension(100, 30));
+        rowLable.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+
+        field.setEditable(false); // 수정 불가
+        field.setHorizontalAlignment(JTextField.RIGHT); // 숫자는 우측 정렬
+        field.setBorder(BorderFactory.createMatteBorder(0,0,1,0, Color.LIGHT_GRAY)); // 밑줄만
+
+        rowPanel.add(rowLable, BorderLayout.WEST);
+        rowPanel.add(field, BorderLayout.CENTER);
+
+        // 간격 띄우기용 패널
         JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.add(panel, BorderLayout.CENTER);
+        wrapper.add(rowPanel, BorderLayout.CENTER);
+        wrapper.setBorder(new EmptyBorder(0,0,5,0)); // 아래로 5px 간격
+        wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         return wrapper;
     }
 
-    // [왼쪽 컬럼] 인계자/인수자, 매출, 출금, 합계
-    private JPanel createLeftColumn() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // 위에서 아래로 쌓기
-        panel.setBackground(Color.WHITE);
-
-        // 1. 인계자/인수자 정보
-        panel.add(createRow("인계자", "오동준", false));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(createRow("인수자", "조춘규", false));
-
-        panel.add(Box.createVerticalStrut(30)); // 섹션 간격
-
-        // 2. 매출 정보
-        panel.add(createSectionTitle("매출"));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(createRow("PC 사용료", "100,000원", true));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createRow("상품 판매액", "58,000원", true));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createRow("현금 입금액", "20,000원", true));
-
-        panel.add(Box.createVerticalStrut(30));
-
-        // 3. 출금 정보
-        panel.add(createSectionTitle("출금"));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(createRow("현금 출금", "0원", true));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createRow("환불 금액", "0원", true));
-
-        panel.add(Box.createVerticalStrut(30));
-
-        // 4. 매출 합계 (강조)
-        JPanel totalPanel = createRow("매출 합계", "178,000원", false);
-        // 폰트 강조를 위해 컴포넌트 찾아서 스타일 변경
-        Component[] comps = totalPanel.getComponents();
-        for(Component c : comps) {
-            c.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        }
-        panel.add(totalPanel);
-
-        // 남는 공간 밀어내기
-        panel.add(Box.createVerticalGlue());
-
-        return panel;
+    // 단순 텍스트 표시용
+    private JPanel createInputRow(String title, String value) {
+        JTextField tf = new JTextField(value);
+        tf.setBorder(new LineBorder(Color.LIGHT_GRAY)); // 박스 테두리
+        tf.setHorizontalAlignment(JTextField.CENTER);
+        return createFieldRow(title, tf);
     }
 
-    // [오른쪽 컬럼] 금고 현황, 인출/인계, 근무 시간
-    private JPanel createRightColumn() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
+    // 시간 표시용
+    private JPanel createLabelRow(String title, String value) {
+        JPanel p = new JPanel(new BorderLayout());
 
-        // 1. 금고 금액 현황
-        panel.add(createSectionTitle("금고 금액 현황"));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(createRow("금고 금액", "1,000,000 원", true));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createRow("실제 금고 금액", "1,000,000 원", true));
-        panel.add(Box.createVerticalStrut(10));
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // 업무 차액 (빨간 글씨)
-        JPanel diffPanel = createRow("업무 차액", "+ 0 원", false);
-        Component[] diffComps = diffPanel.getComponents();
-        // 텍스트 필드(또는 라벨)를 찾아 빨간색으로 변경
-        if(diffComps.length > 0 && diffComps[0] instanceof JPanel) { // 구조상 JPanel 안에 있음
-            // 단순화를 위해 createRow 구조를 아래에서 자세히 봐야함.
-            // 여기서는 간단히 구현했으므로 넘어가거나 별도 처리.
-            // *아래 createRow 메서드에서 빨간색 처리 기능을 추가하는게 깔끔함*
-        }
-        // 임시로 빨간 텍스트 라벨 하나 추가하는 식으로 표현
-        JLabel diffLabel = new JLabel("+ 0 원");
-        diffLabel.setForeground(Color.RED);
-        diffLabel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        JLabel t = new JLabel(title);
+        t.setPreferredSize(new Dimension(120, 20));
+        t.setForeground(Color.GRAY);
 
-        JPanel diffRow = new JPanel(new BorderLayout());
-        diffRow.setBackground(Color.WHITE);
-        diffRow.add(new JLabel("업무 차액"), BorderLayout.WEST);
-        diffRow.add(diffLabel, BorderLayout.EAST);
-        panel.add(diffRow);
+        JLabel v = new JLabel(value);
+        v.setHorizontalAlignment(JLabel.RIGHT);
 
-
-        panel.add(Box.createVerticalStrut(30));
-
-        // 2. 인출 / 인계 금액
-        panel.add(createSectionTitle("인출 / 인계 금액"));
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(createRow("인출 금액", "0 원", true));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createRow("인계 금액", "0 원", true));
-
-        panel.add(Box.createVerticalStrut(30));
-
-        // 3. 근무 시간 확인
-        panel.add(createSectionTitle("근무 시간 확인"));
-        panel.add(Box.createVerticalStrut(10));
-
-        // 시간은 텍스트 필드보다 라벨이 어울림
-        panel.add(createTextRow("이전 인수 시간", "2025-11-08 오전 08:54"));
-        panel.add(Box.createVerticalStrut(5));
-        panel.add(createTextRow("관리자 근무 시간", "2025-11-08 08:54 ~ 12:46"));
-
-        panel.add(Box.createVerticalGlue());
-
-        return panel;
-    }
-
-    // --- 3. 하단 버튼 영역 ---
-    private JPanel createBottomPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(245, 245, 245));
-        panel.setBorder(new EmptyBorder(20, 0, 0, 0));
-
-        JButton btnClose = new JButton("닫기 (C)");
-        btnClose.setPreferredSize(new Dimension(100, 40));
-        btnClose.setBackground(Color.WHITE);
-
-        JButton btnDone = new JButton("완료");
-        btnDone.setPreferredSize(new Dimension(100, 40));
-        btnDone.setBackground(new Color(50, 100, 255));
-        btnDone.setForeground(Color.WHITE);
-
-        // 닫기 버튼 이벤트
-        btnClose.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0); // 프로그램 종료 (임시)
-            }
-        });
-
-        panel.add(btnClose, BorderLayout.WEST);
-        panel.add(btnDone, BorderLayout.EAST);
-
-        return panel;
-    }
-
-    // --- 유틸리티 메서드 (중복 코드 제거용) ---
-
-    // 섹션 제목 (굵은 글씨)
-    private JLabel createSectionTitle(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        return label;
-    }
-
-    // 라벨 + 입력창 한 줄 만들기 (isBox: 입력상자 테두리 여부)
-    private JPanel createRow(String labelText, String valueText, boolean isBox) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30)); // 높이 고정
-
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
-        label.setPreferredSize(new Dimension(100, 30)); // 라벨 너비 고정
-
-        JTextField field = new JTextField(valueText);
-        field.setHorizontalAlignment(JTextField.RIGHT); // 우측 정렬
-        field.setEditable(false); // 일단 보기 전용
-        field.setBackground(Color.WHITE);
-
-        if (!isBox) {
-            field.setBorder(null); // 테두리 없음
-        }
-
-        panel.add(label, BorderLayout.WEST);
-        panel.add(field, BorderLayout.CENTER);
-
-        return panel;
-    }
-
-    // 라벨 + 텍스트 한 줄 (입력창 아님, 근무시간용)
-    private JPanel createTextRow(String labelText, String valueText) {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20)); // 높이 얇게
-
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("맑은 고딕", Font.PLAIN, 11));
-        label.setForeground(Color.GRAY);
-
-        JLabel value = new JLabel(valueText);
-        value.setFont(new Font("맑은 고딕", Font.PLAIN, 11));
-        value.setHorizontalAlignment(SwingConstants.RIGHT); // 우측 정렬
-
-        panel.add(label, BorderLayout.WEST);
-        panel.add(value, BorderLayout.CENTER);
-
-        return panel;
+        p.add(t, BorderLayout.WEST);
+        p.add(v, BorderLayout.CENTER);
+        return p;
     }
 }
