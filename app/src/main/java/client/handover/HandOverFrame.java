@@ -7,7 +7,7 @@ public class HandOverFrame extends JFrame {
     public HandOverFrame() {
 
         setTitle("인수인계");
-        setSize(500,380);
+        setSize(1200, 832);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
