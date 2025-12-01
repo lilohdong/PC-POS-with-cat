@@ -256,6 +256,7 @@ public class StorePanel extends JPanel {
             }
         }
 
+
         totalSeatsLabel.setText("전체: " + total + "석");
         availableSeatsLabel.setText("이용가능: " + available + "석");
         occupiedSeatsLabel.setText("사용중: " + occupied + "석");
