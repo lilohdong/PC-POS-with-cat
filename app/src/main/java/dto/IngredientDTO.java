@@ -1,6 +1,6 @@
 package dto;
 
-public class StockDTO {
+public class IngredientDTO {
     private String id;
     private String name;
     private String category;
@@ -9,9 +9,9 @@ public class StockDTO {
     private int minQuantity;
     private String location;
 
-    public StockDTO() {}
+    public IngredientDTO() {}
 
-    public StockDTO(String id, String name, String category, int unitPrice,
+    public IngredientDTO(String id, String name, String category, int unitPrice,
                          int totalQuantity, int minQuantity, String location) {
         this.id = id;
         this.name = name;

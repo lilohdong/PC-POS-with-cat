@@ -7,11 +7,11 @@ public class MemberDTO {
     private String mId;
     private String passwd;
     private String name;
-    private Date birth;      // java.sql.Date 사용
+    private Date birth;
     private String sex;
     private int remainTime;
     private String phone;
-    private Timestamp joinDate; // java.sql.Timestamp 사용
+    private Timestamp joinDate;
 
     public MemberDTO() {}
 
@@ -24,8 +24,6 @@ public class MemberDTO {
         this.remainTime = remainTime;
         this.phone = phone;
     }
-
-    // Getters and Setters
     public String getmId() { return mId; }
     public void setmId(String mId) { this.mId = mId; }
 

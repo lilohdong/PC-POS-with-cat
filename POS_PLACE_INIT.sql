@@ -139,7 +139,7 @@ create table stock_info(
 );
 
 create table stock_in(
-    stock_in_id varchar(5) primary key,
+    in_id varchar(5) primary key,
     i_id varchar(5) not null,
     stock_info_id varchar(5) not null,
     in_quantity int not null,
