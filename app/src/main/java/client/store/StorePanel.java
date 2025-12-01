@@ -98,7 +98,7 @@ public class StorePanel extends JPanel {
         legendPanel.add(createLegendItem("이용가능", COLOR_AVAILABLE));
         legendPanel.add(createLegendItem("미성년자", COLOR_CHILD_USER));
         legendPanel.add(createLegendItem("성인", COLOR_ADULT_USER));
-        legendPanel.add(createLegendItem("점검중", COLOR_UNAVAILABLE));
+        legendPanel.add(createLegendItem("이용불가", COLOR_UNAVAILABLE));
         legendPanel.add(createLegendItem("선택됨", COLOR_SELECTED));
 
         headerPanel.add(legendPanel, BorderLayout.SOUTH);
@@ -143,7 +143,7 @@ public class StorePanel extends JPanel {
         JButton endButton = createButton("사용 종료", new Color(255, 150, 150));
         JButton moveButton = createButton("자리 이동", new Color(150, 200, 150));
         JButton chargeButton = createButton("시간 충전", new Color(255, 200, 100));
-        JButton availableButton = createButton("좌석 점검", new Color(200, 200, 200));
+        JButton availableButton = createButton("이용 불가", new Color(200, 200, 200));
         JButton refreshButton = createButton("새로고침", new Color(180, 180, 180));
 
         startButton.addActionListener(e -> startUsingSeat());
