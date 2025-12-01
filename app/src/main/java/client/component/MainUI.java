@@ -4,6 +4,7 @@ import client.game.GameMainPanel;
 import client.member.Member;
 import client.order.Order;
 import client.sales.SalesMainPanel;
+import client.store.StorePanel;
 import util.Sizes;
 
 import javax.swing.*;
@@ -24,7 +25,8 @@ public class MainUI extends JPanel {
         Member memberMainPanel = new Member();
         Order orderMainPanel = new Order();
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
-
+        StorePanel storeMainPanel = new StorePanel();
+        add(storeMainPanel, "STORE");
         add(gameMainPanel, "GAME");
         add(orderMainPanel, "ORDER");
         add(salesMainPanel, "SALES");
