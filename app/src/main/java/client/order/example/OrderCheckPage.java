@@ -2,10 +2,10 @@ package client.order.example;
 
 import client.component.SideBar;
 import client.order.Order;
+import util.Sizes;
 
 import javax.swing.*;
 import java.awt.*;
-import util.*;
 
 public class OrderCheckPage extends JFrame {
     private OrderCheckPage() {

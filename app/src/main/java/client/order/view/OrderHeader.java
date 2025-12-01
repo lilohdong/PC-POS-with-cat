@@ -1,10 +1,10 @@
 package client.order.view;
 
 import client.order.ordermake.OrderMakeFrame;
+import util.Sizes;
 
 import javax.swing.*;
 import java.awt.*;
-import util.*;
 
 /*
 상품판매 페이지: 주문 화면의 최상단 패널

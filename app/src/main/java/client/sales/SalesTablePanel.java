@@ -4,8 +4,6 @@ import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import dao.SalesDAO;
 import dto.SalesDTO;
-import java.util.List;
-
 import service.SalesTableService;
 import util.Sizes;
 
@@ -19,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
 
 public class SalesTablePanel extends JPanel {
     private JComboBox<String> selectD;

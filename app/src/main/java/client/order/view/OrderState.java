@@ -1,10 +1,10 @@
 package client.order.view;
 
+import client.order.controller.OrderController;
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
-import util.*;
-
-import client.order.controller.OrderController;
 
 /*
 조리 상태 변경하는 패널

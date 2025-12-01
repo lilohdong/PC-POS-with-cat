@@ -1,8 +1,9 @@
 package client.stock.view;
 
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
-import util.*;
 
 public class StockHeader extends JPanel {
     public StockHeader(){

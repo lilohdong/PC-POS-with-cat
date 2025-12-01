@@ -1,9 +1,13 @@
 package client.stock;
 
+import client.stock.view.StockBottom;
+import client.stock.view.StockHeader;
+import client.stock.view.StockList;
+import client.stock.view.StockSearch;
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
-import client.stock.view.*;
-import util.*;
 
 public class stock extends JPanel{
 

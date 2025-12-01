@@ -14,6 +14,26 @@ create table member(
     phone VARCHAR(20) UNIQUE,
     join_date datetime not null default current_timestamp
 );
+
+-- 인수인계 테이블
+CREATE TABLE handover (
+    ho_id INT AUTO_INCREMENT PRIMARY KEY,      -- 인수인계 고유 번호
+    giver_id VARCHAR(30) NOT NULL,             -- 인계자 (주는 사람) ID
+    receiver_id VARCHAR(30) NOT NULL,          -- 인수자 (받는 사람) ID
+
+    start_time DATETIME NOT NULL,              -- 정산 시작 시간
+    end_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 정산 종료 시간 (현재 인수인계 시점)
+
+    total_sales INT DEFAULT 0,                 -- 해당 기간 동안의 총 매출액
+    cash_sales INT DEFAULT 0,                  -- 현금 매출
+    card_sales INT DEFAULT 0,                  -- 카드 매출
+
+    cash_reserve INT DEFAULT 0,                -- 현재 금고에 있는 현금 시재 (준비금 + 현금매출 - 지출)
+
+    memo VARCHAR(200)                          -- 특이사항 메모
+);
+
+
 create table seat (
     seat_no int primary key, -- 좌석 번호
     m_id VARCHAR(30) unique, -- 현재 사용자 (null이면 빈 좌석)

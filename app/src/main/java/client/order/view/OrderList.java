@@ -1,12 +1,12 @@
 package client.order.view;
 
-import javax.swing.*;
-import java.awt.*;
-import util.*;
-import java.util.List;
-
 import client.order.controller.OrderController;
 import client.order.model.OrderData;
+import util.Sizes;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.List;
 
 /*
 주문 목록을 표시하는 패널

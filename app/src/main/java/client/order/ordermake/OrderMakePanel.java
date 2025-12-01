@@ -1,8 +1,9 @@
 package client.order.ordermake;
 
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
-import util.*;
 
 public class OrderMakePanel extends JPanel{
     

@@ -1,0 +1,111 @@
+package dao;
+
+import db.DBConnection;
+import dto.MemberDTO;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MemberDAO {
+    // 싱글톤 패턴 적용
+    private static MemberDAO instance;
+    public static MemberDAO getInstance(){
+        if(instance == null){
+            instance = new MemberDAO();
+        }
+        return instance;
+    }
+    private MemberDAO() {}
+
+    // 회원 전체 조회 (JTable 출력용)
+    public List<MemberDTO> getAllMembers() {
+        List<MemberDTO> list = new ArrayList<>();
+        String sql = "SELECT * FROM member ORDER BY join_date DESC"; // 가입일 역순 정렬 예시
+
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()){
+
+            while(rs.next()){
+                MemberDTO dto = new MemberDTO();
+                dto.setmId(rs.getString("m_id"));
+                dto.setPasswd(rs.getString("passwd"));
+                dto.setName(rs.getString("name"));
+                dto.setBirth(rs.getDate("birth"));
+                dto.setSex(rs.getString("sex"));
+                dto.setRemainTime(rs.getInt("remain_time"));
+                dto.setPhone(rs.getString("phone"));
+                dto.setJoinDate(rs.getTimestamp("join_date"));
+                list.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 회원 가입 (INSERT)
+    public boolean insertMember(MemberDTO dto) {
+        String sql = "INSERT INTO member (m_id, passwd, name, birth, sex, remain_time, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, dto.getmId());
+            ps.setString(2, dto.getPasswd());
+            ps.setString(3, dto.getName());
+            ps.setDate(4, dto.getBirth());
+            ps.setString(5, dto.getSex());
+            ps.setInt(6, dto.getRemainTime());
+            ps.setString(7, dto.getPhone());
+            // join_date는 default current_timestamp이므로 생략 가능
+
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // 회원 정보 수정 (UPDATE) - ID 기준으로 나머지 정보 수정
+    public boolean updateMember(MemberDTO dto) {
+        String sql = "UPDATE member SET passwd=?, name=?, birth=?, sex=?, remain_time=?, phone=? WHERE m_id=?";
+
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, dto.getPasswd());
+            ps.setString(2, dto.getName());
+            ps.setDate(3, dto.getBirth());
+            ps.setString(4, dto.getSex());
+            ps.setInt(5, dto.getRemainTime());
+            ps.setString(6, dto.getPhone());
+            ps.setString(7, dto.getmId()); // WHERE 조건
+
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //  회원 삭제 (DELETE)
+    public boolean deleteMember(String mId) {
+        String sql = "DELETE FROM member WHERE m_id=?";
+
+        try(Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, mId);
+
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+}
