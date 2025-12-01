@@ -34,7 +34,6 @@ public class StorePanel extends JPanel {
 
     public StorePanel() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.PANEL_HEIGHT));
 
         initializeComponents();
@@ -47,11 +46,9 @@ public class StorePanel extends JPanel {
         // 상단 헤더 패널
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        headerPanel.setBackground(Color.WHITE);
 
         // 제목 및 시간
         JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.setBackground(Color.WHITE);
 
         JLabel titleLabel = new JLabel("◎ PC방 좌석 관리", JLabel.LEFT);
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
@@ -70,7 +67,6 @@ public class StorePanel extends JPanel {
 
         // 통계 정보 패널
         JPanel statsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        statsPanel.setBackground(Color.WHITE);
         statsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 
         totalSeatsLabel = new JLabel("전체: 80석");
@@ -100,7 +96,6 @@ public class StorePanel extends JPanel {
 
         // 범례 패널
         JPanel legendPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
-        legendPanel.setBackground(Color.WHITE);
         legendPanel.add(createLegendItem("이용가능", COLOR_AVAILABLE));
         legendPanel.add(createLegendItem("미성년자", COLOR_CHILD_USER));
         legendPanel.add(createLegendItem("성인", COLOR_ADULT_USER));
@@ -114,7 +109,6 @@ public class StorePanel extends JPanel {
         // 중앙 좌석 배치 패널
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        centerPanel.setBackground(Color.WHITE);
 
         // 공지사항 영역
         JPanel noticeArea = new JPanel();
@@ -131,7 +125,6 @@ public class StorePanel extends JPanel {
 
         // 좌석 그리드 패널
         seatGridPanel = new JPanel(new GridLayout(GRID_ROWS, GRID_COLS, 3, 3));
-        seatGridPanel.setBackground(new Color(240, 240, 240));
         seatGridPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)
@@ -149,11 +142,9 @@ public class StorePanel extends JPanel {
         // 하단 컨트롤 패널
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        bottomPanel.setBackground(Color.WHITE);
 
         // 상태 표시
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        statusPanel.setBackground(Color.WHITE);
         statusLabel = new JLabel("좌석을 선택하세요");
         statusLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
         statusPanel.add(statusLabel);
@@ -162,7 +153,6 @@ public class StorePanel extends JPanel {
 
         // 버튼 패널
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
-        buttonPanel.setBackground(Color.WHITE);
 
         JButton startButton = createButton("사용 시작", new Color(146, 160, 250));
         JButton endButton = createButton("사용 종료", new Color(255, 150, 150));
@@ -217,7 +207,6 @@ public class StorePanel extends JPanel {
 
     private JPanel createLegendItem(String text, Color color) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 0));
-        panel.setBackground(Color.WHITE);
 
         JPanel colorBox = new JPanel();
         colorBox.setBackground(color);
@@ -491,7 +480,7 @@ public class StorePanel extends JPanel {
             this.col = col;
             this.status = SeatStatus.AVAILABLE;
             this.selected = false;
-
+            setForeground(Color.BLACK);
             setLayout(new BorderLayout());
             setBorder(new LineBorder(Color.GRAY, 1));
             setPreferredSize(new Dimension(80, 65));
