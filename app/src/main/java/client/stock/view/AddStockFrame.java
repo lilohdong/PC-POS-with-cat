@@ -7,7 +7,7 @@ import java.awt.*;
 public class AddStockFrame extends JFrame{
     public AddStockFrame(){
         setTitle("입고 등록");
-        setSize(350, 200);
+        setSize(700, 300);
         setLocationRelativeTo(null); //화면 중앙에 나타내는 명령어
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
