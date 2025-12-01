@@ -34,6 +34,7 @@ public class MainFrame extends JFrame {
                 case "ⓖ 게임통계" -> mui.showUI("GAME");
                 case "♣ 상품판매" -> mui.showUI("ORDER");
                 case "▣ 회원관리" -> mui.showUI("MEMBER");
+                case "▒ 재고관리" -> mui.showUI("STOCK");
             }
         });
         // 다크모드 변경 버튼 람다 리스너

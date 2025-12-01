@@ -59,7 +59,7 @@ public class SalesTableService {
             tm.addRow(rowData);
         }
     }
-
+    // 기간 매출액 계산 메소드
     public String calculateTotalSales(DefaultTableModel tm) {
         int sum = 0;
         for(int i = 0; i < tm.getRowCount(); i++) {
