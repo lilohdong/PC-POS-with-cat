@@ -177,7 +177,7 @@ create table game(
 ); -- 가능하다면 pc방 게임 정보를 불러올 수 있으면 good
 
 create table play_log(
-            log_id varchar(5) primary key,
+            log_id varchar(10) primary key,
             m_id varchar(30) not null,
             g_id varchar(5) not null,
             seat_no int not null,
@@ -223,47 +223,34 @@ select
 from game_total_time gtt
 where (select overall_total from total_daily_minutes) > 0;
 
-create view statistics_view as
-with current_playing as (
-    -- 1. 현재 사용자들이 플레이 중인 게임 목록 (seat 테이블 기준)
-    select
-        s.m_id,
-        g.g_id,
-        g.title as game_name
-    from seat s
-             join play_log pl on s.m_id = pl.m_id -- 현재 로그인한 회원의 최근 플레이 기록
-             join game g on pl.g_id = g.g_id
-    where s.is_used = true -- 사용 중인 좌석
-      and pl.end_time is null -- 아직 종료되지 않은 플레이 기록
-      and date(pl.start_time) = current_date() -- 오늘 시작된 기록
-    group by s.m_id, g.g_id, g.title
+CREATE OR REPLACE VIEW statistics_view AS
+WITH current_playing AS (
+    -- 1. 현재 진행 중인 게임 (end_time이 NULL인 기록)
+    SELECT
+        g.title AS game_name,
+        COUNT(pl.m_id) AS current_users
+    FROM play_log pl
+             JOIN game g ON pl.g_id = g.g_id
+    WHERE pl.end_time IS NULL -- 현재 플레이 중
+      AND DATE(pl.start_time) = CURRENT_DATE()
+    GROUP BY g.title
 ),
-     game_users_count as (
-         -- 2. 게임별 현재 이용자 수
-         select
-             game_name,
-             count(m_id) as current_users
-         from current_playing
-         group by game_name
-     ),
-     today_total_time as (
-         -- 3. 오늘 각 게임의 총 사용 시간 (play_log 기준)
-         select
-             g.title as game_name,
-             -- 초 단위로 합산
-             sum(timestampdiff(second, pl.start_time, coalesce(pl.end_time, current_timestamp()))) as total_seconds
-         from play_log pl
-                  join game g on pl.g_id = g.g_id
-         where date(pl.start_time) = current_date()
-         group by g.title
+     today_total_time AS (
+         -- 2. 오늘 하루 총 플레이 시간 (진행 중 + 종료된 것 모두 포함)
+         SELECT
+             g.title AS game_name,
+             SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP()))) AS total_seconds
+         FROM play_log pl
+                  JOIN game g ON pl.g_id = g.g_id
+         WHERE DATE(pl.start_time) = CURRENT_DATE()
+         GROUP BY g.title
      )
-select
-    -- 현재 이용자 수를 기준으로 순위 매김 (동일 인원 시, 총 사용 시간 긴 게임이 상위)
-    rank() over (order by guc.current_users desc, ttt.total_seconds desc) as ranking,
-    guc.game_name,
-    -- 총 사용 시간을 H:M:S 포맷으로 변환 (DAO에서 변환해야 하지만, 뷰에서 문자열로 준비)
-    sec_to_time(ttt.total_seconds) as total_time_formatted,
-    guc.current_users as current_users
-from game_users_count guc
-         join today_total_time ttt on guc.game_name = ttt.game_name
-order by ranking;
+SELECT
+    -- 랭킹: 접속자 수 우선, 그 다음 플레이 시간
+    RANK() OVER (ORDER BY COALESCE(cp.current_users, 0) DESC, ttt.total_seconds DESC) AS ranking,
+    ttt.game_name,
+    SEC_TO_TIME(ttt.total_seconds) AS total_time_formatted,
+    COALESCE(cp.current_users, 0) AS current_users -- NULL이면 0명으로 표시
+FROM current_playing cp
+         RIGHT JOIN today_total_time ttt ON cp.game_name = ttt.game_name -- RIGHT JOIN 사용!
+ORDER BY ranking;
