@@ -5,14 +5,14 @@ import java.sql.PreparedStatement;
 
 import dto.StockInDTO;
 
-import util.DBUtil;
+import db.DBConnection;
 
 public class StockInDAO {
     public int insertStockIn(StockInDTO dto) {
         String sql = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price) "
                    + "VALUES (?, ?, ?, ?, 0)";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, generateInId());
