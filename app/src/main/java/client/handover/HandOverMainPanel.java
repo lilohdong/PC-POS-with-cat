@@ -147,7 +147,7 @@ public class HandOverMainPanel extends JPanel {
 
         JButton close = new JButton("닫기 (C)");
         close.setPreferredSize(new Dimension(100, 40));
-        close.addActionListener(e -> System.exit(0));
+        close.addActionListener(e -> parent.dispose());
 
         JButton done = new JButton("완료");
         done.setPreferredSize(new Dimension(100, 40));
