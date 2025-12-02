@@ -32,7 +32,7 @@ public class StockDAO {
         String sql =
                 "SELECT i.i_id, i.i_name, c.c_name, " +
                 "       (SELECT unit_price FROM stock_in WHERE i_id = i.i_id ORDER BY in_time DESC LIMIT 1) AS unit_price, " +
-                "       i.total_quantity, i.min_quantity, i.location " +
+                "       i.total_quantity, i.min_quantity, i.store_location " +
                 "FROM ingredient i " +
                 "LEFT JOIN ingredient_category c ON i.c_id = c.c_id";
 
@@ -47,7 +47,7 @@ public class StockDAO {
                         rs.getInt("unit_price"),
                         rs.getInt("total_quantity"),
                         rs.getInt("min_quantity"),
-                        rs.getString("location")
+                        rs.getString("store_location")
                 );
 
                 list.add(dto);

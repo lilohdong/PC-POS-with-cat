@@ -10,8 +10,10 @@ TRUNCATE TABLE stock_in;
 TRUNCATE TABLE stock_info;
 TRUNCATE TABLE menu_ingredient;
 TRUNCATE TABLE ingredient;
+TRUNCATE table ingredient_category;
 TRUNCATE TABLE menu;
 TRUNCATE TABLE seat;
+truncate table game;
 TRUNCATE TABLE play_log;
 TRUNCATE TABLE member;
 TRUNCATE TABLE handover;
@@ -74,10 +76,14 @@ BEGIN
     SET i = 1;
     WHILE i <= 500 DO
             SET v_m_id = CONCAT('user', LPAD(FLOOR(RAND() * 500) + 1, 3, '0'));
-            INSERT INTO orders (o_id, m_id, seat_num, o_status, requestment, pay_method)
+            INSERT INTO orders (o_id, m_id,o_time ,seat_num, o_status, requestment, pay_method)
             VALUES (
                        CONCAT('O', LPAD(i, 4, '0')),
                        v_m_id,
+                       FROM_UNIXTIME(
+                               UNIX_TIMESTAMP('2025-11-20 00:00:00') +
+                               FLOOR(RAND() * (UNIX_TIMESTAMP('2025-12-02 23:59:59') - UNIX_TIMESTAMP('2025-11-20 00:00:00')))
+                       ),
                        FLOOR(RAND() * 100) + 1,
                        'COMPLETED',
                        IF(RAND() > 0.9, '소스 많이 주세요', ''),
