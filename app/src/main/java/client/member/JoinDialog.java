@@ -138,6 +138,7 @@ class JoinDialog extends JDialog {
         buttonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 
         JButton submitBtn = new JButton("회원가입 완료");
+        submitBtn.setForeground(Color.WHITE);
         submitBtn.setPreferredSize(new Dimension(250, 40));
         submitBtn.setBackground(new Color(65, 105, 225));
         submitBtn.setFont(new Font("맑은 고딕", Font.BOLD, 16));
@@ -173,7 +174,7 @@ class JoinDialog extends JDialog {
         });
 
 
-        // 2. 회원가입 완료 버튼 기능 (검사, 이동)
+        // 회원가입 완료 버튼 기능 (검사, 이동)
         submitBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -257,7 +258,6 @@ class JoinDialog extends JDialog {
             panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
         } else{
             panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // 높이 고정
-            // 높이를 고정하니까 약관동의에서는 60으로는 3개를 전부 표시할수가업슨거임 100으로맞추니까 되네
         }
         panel.setBorder(new EmptyBorder(0, 0, 10, 0)); // 하단 여백
 

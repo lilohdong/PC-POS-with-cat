@@ -15,7 +15,7 @@ public class SearchMember extends JPanel implements ActionListener {
 
     private final JComboBox<String> combo;
     private final String[] searchMethod = {"전체검색", "이름", "아이디"};
-
+    private final ImageIcon searchimg = new ImageIcon(getClass().getResource("/imgs/searchimg.png"));
     JTextField searchField;
     JButton searchBtn;
     JLabel total;
@@ -47,7 +47,12 @@ public class SearchMember extends JPanel implements ActionListener {
 
         combo = new JComboBox<>(searchMethod);
         searchField = new JTextField(30);
-        searchBtn = new JButton();
+        searchBtn = new JButton(searchimg);
+
+        searchBtn.setBorder(BorderFactory.createEmptyBorder());
+        searchBtn.setContentAreaFilled(false);
+        searchBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
 
         searchPanel.add(combo);
         searchPanel.add(searchField);
