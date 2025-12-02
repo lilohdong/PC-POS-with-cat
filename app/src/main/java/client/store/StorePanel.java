@@ -24,7 +24,7 @@ public class StorePanel extends JPanel {
     private static final Color COLOR_AVAILABLE = new Color(200, 200, 200);
     private static final Color COLOR_UNAVAILABLE = new Color(150, 150, 150);
     private static final Color COLOR_CHILD_USER = new Color(180, 180, 255);
-    private static final Color COLOR_ADULT_USER = new Color(255, 180, 180);
+    private static final Color COLOR_ADULT_USER = new Color(180, 180, 255);
     private static final Color COLOR_SELECTED = new Color(255, 255, 150);
 
     private JPanel seatGridPanel;
@@ -54,7 +54,7 @@ public class StorePanel extends JPanel {
         // 제목 및 시간
         JPanel titlePanel = new JPanel(new BorderLayout());
 
-        JLabel titleLabel = new JLabel("◎ PC방 좌석 관리", JLabel.LEFT);
+        JLabel titleLabel = new JLabel("매장 관리", JLabel.LEFT);
         titleLabel.setFont(new Font("맑은 고딕", Font.BOLD, 24));
 
         JLabel timeLabel = new JLabel();
