@@ -267,6 +267,7 @@ public class StorePanel extends JPanel {
         return dateTime.substring(11, 16); // "YYYY-MM-DD HH:MM:SS" → "HH:MM"
     }
 
+
     private void startUsingSeat() {
         if (selectedSeat == null) {
             JOptionPane.showMessageDialog(this, "좌석을 선택하세요.");
