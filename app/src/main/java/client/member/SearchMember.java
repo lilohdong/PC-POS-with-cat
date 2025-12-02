@@ -120,9 +120,34 @@ public class SearchMember extends JPanel implements ActionListener {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRender);
         }
 
-        // 첫 화면: 전체 데이터 로딩
-        MemberService.getInstance().loadTable(model);
 
+        refresh();
+
+    }
+
+    // 테이블을 새로고침 메서드
+    public void refresh() {
+        model.setRowCount(0); // 리셋
+        MemberService.getInstance().loadTable(model);
+        updateTotal(); // 총 인원 수 갱신
+    }
+
+    // 선택된 회원 ID가져오는 메서드(수정, 삭제 / 인덱스 번호로 2 = 아이디)
+    public String getSelectedMemberId() {
+        int row = table.getSelectedRow();
+        if(row != -1) {
+            return (String) table.getValueAt(row, 2);
+        }
+        return null;
+    }
+
+    // 선택된 회원 DTO 가져오는 메서드 (수정)
+    public MemberDTO getSelectedMemberDTO() {
+        String id = getSelectedMemberId();
+        if(id != null) {
+            return MemberDAO.getInstance().getMemberById(id);
+        }
+        return null;
     }
 
 

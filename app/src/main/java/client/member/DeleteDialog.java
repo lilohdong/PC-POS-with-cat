@@ -7,25 +7,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import service.MemberService;
 
 public class DeleteDialog extends JDialog implements  ActionListener {
 
     private JPanel confirmPanel, donePanel;
-
     private JLabel titleLabel, descLabel, dateLabel;
     private JButton okButton, cancelButton, doneButton;
-
     private String currentDate;
-
-    // 부모 창 가져오기
-    private SearchMember searchMember;
+    private SearchMember searchMember;// 부모 창 가져오기
     private int selectedRow; // 지울 행 번호
+    private String targetId; // 삭제할 회원 ID
 
 
     public DeleteDialog(JFrame parents, SearchMember searchMember, int row){
         super(parents, "회원 삭제", true);
         this.searchMember = searchMember;
         this.selectedRow = row;
+
+        //선택된 행에서 아이디 가져오기
+        this.targetId = (String) searchMember.table.getValueAt(row, 2);
 
         setLayout(new BorderLayout());
         setUndecorated(true); // 타이틀바 없애기
@@ -155,13 +156,20 @@ public class DeleteDialog extends JDialog implements  ActionListener {
         if (e.getSource() == cancelButton) { // 취소 버튼 (그냥 닫기)
             dispose();
         } else if (e.getSource() == okButton) {  // 빨간 확인 버튼 (삭제하고, 화면 전환)
-            searchMember.removeRow(selectedRow); // 실제 데이터를 지우는 부분
+
+            boolean success = MemberService.getInstance().deleteMember(targetId); //DB 삭제 시도
+            if(success) {
+                // 성공 시 화면 전환 및 목록 갱신
+                searchMember.refresh();
 
             remove(confirmPanel); // 첫번째 화면 지우기
             add(donePanel);       //  두번째 화면 붙이기
 
             revalidate(); // 화면 갱신
             repaint();    // 다시 생성
+            } else {
+                JOptionPane.showMessageDialog(this, "삭제 실패");
+            }
         }
 
         // 파란 확인 버튼 (진짜 닫기)

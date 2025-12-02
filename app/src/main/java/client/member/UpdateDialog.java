@@ -6,12 +6,19 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
+import java.sql.Date;
+import dto.MemberDTO;
+import service.MemberService;
 
 public class UpdateDialog extends JDialog {
 
     private JTextField tid, tname, tphone;
     private JPasswordField tpassword;
     private JRadioButton male, female;
+
+    private SearchMember searchMember;
+    private MemberDTO targetMember;
+
     // 연령대 버튼
     private JRadioButton ele, mid, high, adult;
     private JComboBox<String> yearCombo, monthCombo, dayCombo;
@@ -19,8 +26,10 @@ public class UpdateDialog extends JDialog {
     // 비밀번호 초기화 버튼
     private JButton resetPwBtn;
 
-    public UpdateDialog(JFrame parents) {
+    public UpdateDialog(JFrame parents, SearchMember searchMember, MemberDTO targetMember) {
         super(parents, "회원정보 수정", true);
+        this.searchMember = searchMember;
+        this.targetMember = targetMember;
         setLayout(new BorderLayout());
 
         // 상단 타이틀
@@ -151,14 +160,30 @@ public class UpdateDialog extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH);
 
 
-        // 기존 정보 불러오기 시뮬레이션
-        tid.setText("admin");
-        tname.setText("오동준");
-        tphone.setText("010-1234-5678");
-        male.setSelected(true);
-        adult.setSelected(true);
-        yearCombo.setSelectedItem("2003년");
-        monthCombo.setSelectedItem("9월");
+        // 데이터 세팅
+        if(targetMember != null) {
+            tid.setText(targetMember.getmId());
+            tname.setText(targetMember.getName());
+            tphone.setText(targetMember.getPhone());
+            tpassword.setText(targetMember.getPasswd());
+
+            if("남".equals(targetMember.getSex())) male.setSelected(true);
+            else female.setSelected(true);
+
+            // 날짜 세팅
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(targetMember.getBirth());
+            yearCombo.setSelectedItem(cal.get(Calendar.YEAR) + "년");
+            monthCombo.setSelectedItem((cal.get(Calendar.MONTH) + 1) + "월");
+            dayCombo.setSelectedItem(cal.get(Calendar.DAY_OF_MONTH) + "일");
+
+            // 연령대 자동 체크 (나이 계산)
+            int age = currentYear - cal.get(Calendar.YEAR) + 1;
+            if(age <= 13) ele.setSelected(true);
+            else if(age <= 16) mid.setSelected(true);
+            else if(age <= 19) high.setSelected(true);
+            else adult.setSelected(true);
+        }
 
 
         // 취소 버튼
@@ -168,15 +193,13 @@ public class UpdateDialog extends JDialog {
         resetPwBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // DB에서 업데이트 해야할 부분, 임시로 넣음
-                int result = JOptionPane.showConfirmDialog(null,
-                        "비밀번호를 '1234'로 초기화하시겠습니까?",
+                /int result = JOptionPane.showConfirmDialog(null,
+                        "비밀번호를 '1234'로 초기화하시겠습니까?\n(수정 버튼을 눌러야 저장됩니다.)",
                         "비밀번호 초기화",
                         JOptionPane.YES_NO_OPTION);
 
                 if(result == JOptionPane.YES_OPTION) {
                     tpassword.setText("1234");
-                    JOptionPane.showMessageDialog(null, "비밀번호가 초기화되었습니다.");
                 }
             }
         });
@@ -209,10 +232,33 @@ public class UpdateDialog extends JDialog {
                 return;
             }
 
-            // 성공 시 DB 업데이트 로직이 들어갈 자리
-            // 임시 성공 메세지 출력
-            JOptionPane.showMessageDialog(null, "회원정보가 수정되었습니다.");
-            dispose();
+            // 성공 시 DB 업데이트 로직 추가
+            // MemberDTO 생성 및 값 설정
+            MemberDTO updateDto = new MemberDTO();
+            updateDto.setmId(tid.getText());
+            updateDto.setPasswd(new String(tpassword.getPassword()));
+            updateDto.setName(tname.getText());
+            updateDto.setPhone(tphone.getText());
+            updateDto.setSex(male.isSelected() ? "남" : "여");
+            updateDto.setRemainTime(targetMember.getRemainTime()); // 시간 유지
+
+            String y = ((String)yearCombo.getSelectedItem()).replace("년", "");
+            String m = ((String)monthCombo.getSelectedItem()).replace("월", "");
+            String d = ((String)dayCombo.getSelectedItem()).replace("일", "");
+            if(m.length() == 1) m = "0" + m;
+            if(d.length() == 1) d = "0" + d;
+            updateDto.setBirth(Date.valueOf(y + "-" + m + "-" + d));
+
+            // Service 호출
+            boolean success = MemberService.getInstance().updateMember(updateDto);
+
+            if(success) {
+                JOptionPane.showMessageDialog(null, "회원정보가 수정되었습니다.");
+                searchMember.refresh(); // 테이블 새로고침
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(null, "수정 실패 (DB 오류)");
+            }
         });
 
         setSize(450, 750);

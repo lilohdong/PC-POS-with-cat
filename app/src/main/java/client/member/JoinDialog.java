@@ -6,6 +6,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
+import java.sql.Date;
+import dto.MemberDTO;
+import service.MemberService;
+
 
 class JoinDialog extends JDialog {
 
@@ -17,8 +21,11 @@ class JoinDialog extends JDialog {
     private JLabel idMsgLabel; // 아이디 중복여부 메시지 띄울 라벨
     private boolean isIdChecked = false; // 아이디 중복확인을 했는지 체크하는 변수
 
-    public JoinDialog(JFrame parents) {
+    private SearchMember searchMember;
+
+    public JoinDialog(JFrame parents,SearchMember searchMember) {
         super(parents, "회원가입", true);
+        this.searchMember = searchMember;
         setLayout(new BorderLayout());
 
         // 상단 타이틀 (회원가입)
@@ -159,10 +166,10 @@ class JoinDialog extends JDialog {
                     idMsgLabel.setForeground(Color.RED);
                     return;
                 }
-
-                // 일단 admin만 넣었습니다.DB 설계 후 적용예정
-                if (inputId.equals("admin")) {
-                    idMsgLabel.setText("중복된 아이디입니다. 다른 아이디를 입력해주세요.");
+                // Service가져와 확인
+                boolean isDuplicate = MemberService.getInstance().isIdDuplicate(inputId);
+                if (isDuplicate) {
+                    idMsgLabel.setText("중복된 아이디입니다.");
                     idMsgLabel.setForeground(Color.RED);
                     isIdChecked = false;
                 } else {
@@ -238,9 +245,33 @@ class JoinDialog extends JDialog {
                     return;
                 }
 
-                // 모든 검사 통과 시
-                JOptionPane.showMessageDialog(null, "회원가입이 완료되었습니다!");
-                dispose(); // 창 닫기
+                // DTO 생성 및 값 넣기
+                MemberDTO dto = new MemberDTO();
+                dto.setmId(tid.getText().trim());
+                dto.setPasswd(pw);
+                dto.setName(tname.getText().trim());
+                dto.setPhone(tphone.getText().trim());
+                dto.setSex(male.isSelected() ? "남" : "여");
+                dto.setRemainTime(0); // 기본값 0
+
+                // 날짜 처리
+                String y = ((String)yearCombo.getSelectedItem()).replace("년", "");
+                String m = ((String)monthCombo.getSelectedItem()).replace("월", "");
+                String d = ((String)dayCombo.getSelectedItem()).replace("일", "");
+                if(m.length() == 1) m = "0" + m;
+                if(d.length() == 1) d = "0" + d;
+                dto.setBirth(Date.valueOf(y + "-" + m + "-" + d));
+
+                // Service 호출 DB 저장
+                boolean result = MemberService.getInstance().joinMember(dto);
+
+                if(result) {
+                    JOptionPane.showMessageDialog(null, "회원가입이 완료되었습니다!");
+                    searchMember.refresh(); // 부모창(SearchMember) 새로고침
+                    dispose(); // 창 닫기
+                } else {
+                    JOptionPane.showMessageDialog(null, "회원가입 실패");
+                }
             }
         });
 

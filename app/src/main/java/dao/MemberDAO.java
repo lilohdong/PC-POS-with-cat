@@ -149,7 +149,7 @@ public class MemberDAO {
             return false;
         }
     }
-
+    // 유효성 검사
     public static boolean isMemberIdValid(String mId) {
         String sql = "SELECT m_id FROM member WHERE m_id = ?";
 

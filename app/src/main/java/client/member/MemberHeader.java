@@ -1,5 +1,6 @@
 package client.member;
 
+import dto.MemberDTO;
 import util.Sizes;
 
 import javax.swing.*;
@@ -44,10 +45,10 @@ public class MemberHeader extends JPanel implements ActionListener {
         JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
 
         if (src == btnJoin) {
-            new JoinDialog(parent);
+            new JoinDialog(parent,searchMember);
         }
         else if (src == btnUpdate) {
-            new UpdateDialog(parent);
+            new UpdateDialog(parent,searchMember, targetMember);
         }
         else if (src == btnDelete) {
             int row = searchMember.getSelectedRow(); // SearchMember에게 선택된 줄 번호 물어보기
