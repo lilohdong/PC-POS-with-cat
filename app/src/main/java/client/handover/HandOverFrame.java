@@ -1,6 +1,7 @@
 package client.handover;
 
-import client.component.SideBar;
+import util.Sizes;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,13 +10,10 @@ public class HandOverFrame extends JFrame {
     public HandOverFrame() {
 
         setTitle("인수인계");
-        setSize(1200, 832);
+        setSize(Sizes.PANEL_WIDTH, 832);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
-
-        SideBar sb = new SideBar();
-        add(sb, BorderLayout.WEST);
 
         add(new HandOverLoginPanel(this), BorderLayout.CENTER);
 
@@ -37,7 +35,5 @@ public class HandOverFrame extends JFrame {
         repaint();
     }
 
-    public static void main(String[] args) {
-        new HandOverFrame();
-    }
+
 }

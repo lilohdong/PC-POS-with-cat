@@ -1,5 +1,6 @@
 package client.component;
 
+import client.handover.HandOverFrame;
 import com.formdev.flatlaf.FlatIntelliJLaf;
 import com.formdev.flatlaf.intellijthemes.FlatDarkFlatIJTheme;
 import util.Sizes;
@@ -32,6 +33,7 @@ public class MainFrame extends JFrame {
                 case "♣ 상품판매" -> mui.showUI("ORDER");
                 case "▣ 회원관리" -> mui.showUI("MEMBER");
                 case "▒ 재고관리" -> mui.showUI("STOCK");
+                case "§ 인수인계" -> new HandOverFrame();
             }
         });
         // 다크모드 변경 버튼 람다 리스너
