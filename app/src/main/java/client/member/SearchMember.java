@@ -1,6 +1,12 @@
 package client.member;
 
+import dao.MemberDAO;
+import dto.MemberDTO;
+import service.MemberService;
 import util.Sizes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -115,16 +121,11 @@ public class SearchMember extends JPanel implements ActionListener {
         }
 
         // 첫 화면: 전체 데이터 로딩
-        loadTable("", "전체검색");
+        MemberService.getInstance().loadTable(model);
 
     }
 
-    public void loadTable(String keyword, String type) { //type 기준 , keyword 검색창 문자열
 
-        //-----------------------------------------------//
-        // 테이블 데이터 가져오기 만들 예정, DB 생성 후 //
-
-    }
 
     // 총 회원수 갱신
     private void updateTotal() {
@@ -149,10 +150,11 @@ public class SearchMember extends JPanel implements ActionListener {
             String keyword = searchField.getText().trim();
             String type = combo.getSelectedItem().toString();
 
-
-            loadTable(keyword, type);
-
+            if(type.equals("전체검색")) {
+                MemberService.getInstance().loadTable(model);
+            } else {
+                MemberService.getInstance().loadTable(model,keyword, type);
+            }
         }
-
     }
 }

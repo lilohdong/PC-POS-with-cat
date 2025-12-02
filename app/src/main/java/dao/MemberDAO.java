@@ -44,7 +44,48 @@ public class MemberDAO {
         }
         return list;
     }
-
+    public MemberDTO getMemberById(String id) {
+        MemberDTO dto = new MemberDTO();
+        String sql = "SELECT * FROM member WHERE m_id = ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            if(rs.next()) {
+                dto.setmId(rs.getString("m_id"));
+                dto.setPasswd(rs.getString("passwd"));
+                dto.setName(rs.getString("name"));
+                dto.setBirth(rs.getDate("birth"));
+                dto.setSex(rs.getString("sex"));
+                dto.setRemainTime(rs.getInt("remain_time"));
+                dto.setPhone(rs.getString("phone"));
+                dto.setJoinDate(rs.getTimestamp("join_date"));
+            }
+        } catch (Exception e) {}
+        return dto;
+    }
+    public List<MemberDTO> getMembersByName(String name){
+        List<MemberDTO> list = new ArrayList<>();
+        String sql = "SELECT * FROM member WHERE name LIKE ?";
+        try(Connection conn = DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery())  {
+            while(rs.next()){
+                MemberDTO dto = new MemberDTO();
+                dto.setmId(rs.getString("m_id"));
+                dto.setPasswd(rs.getString("passwd"));
+                dto.setName(rs.getString("name"));
+                dto.setBirth(rs.getDate("birth"));
+                dto.setSex(rs.getString("sex"));
+                dto.setRemainTime(rs.getInt("remain_time"));
+                dto.setPhone(rs.getString("phone"));
+                dto.setJoinDate(rs.getTimestamp("join_date"));
+                list.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
     // 회원 가입 (INSERT)
     public boolean insertMember(MemberDTO dto) {
         String sql = "INSERT INTO member (m_id, passwd, name, birth, sex, remain_time, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
