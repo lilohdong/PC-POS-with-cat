@@ -225,33 +225,28 @@ from game_total_time gtt
 where (select overall_total from total_daily_minutes) > 0;
 
 CREATE OR REPLACE VIEW statistics_view AS
-WITH current_playing AS (
-    -- 1. 현재 진행 중인 게임 (end_time이 NULL인 기록)
-    SELECT
-        g.title AS game_name,
-        COUNT(pl.m_id) AS current_users
-    FROM play_log pl
-             JOIN game g ON pl.g_id = g.g_id
-    WHERE pl.end_time IS NULL -- 현재 플레이 중
-      AND DATE(pl.start_time) = CURRENT_DATE()
-    GROUP BY g.title
-),
-     today_total_time AS (
-         -- 2. 오늘 하루 총 플레이 시간 (진행 중 + 종료된 것 모두 포함)
-         SELECT
-             g.title AS game_name,
-             SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP()))) AS total_seconds
-         FROM play_log pl
-                  JOIN game g ON pl.g_id = g.g_id
-         WHERE DATE(pl.start_time) = CURRENT_DATE()
-         GROUP BY g.title
-     )
 SELECT
-    -- 랭킹: 접속자 수 우선, 그 다음 플레이 시간
-    RANK() OVER (ORDER BY COALESCE(cp.current_users, 0) DESC, ttt.total_seconds DESC) AS ranking,
-    ttt.game_name,
-    SEC_TO_TIME(ttt.total_seconds) AS total_time_formatted,
-    COALESCE(cp.current_users, 0) AS current_users -- NULL이면 0명으로 표시
-FROM current_playing cp
-         RIGHT JOIN today_total_time ttt ON cp.game_name = ttt.game_name -- RIGHT JOIN 사용!
+    -- 1. 랭킹: 오늘 이용자 수(중복제거) 많은 순 -> 총 플레이 시간 긴 순
+    RANK() OVER (
+        ORDER BY COUNT(DISTINCT pl.m_id) DESC,
+            SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP()))) DESC
+        ) AS ranking,
+
+    -- 2. 게임 이름
+    g.title AS game_name,
+
+    -- 3. 총 플레이 시간 포맷팅 (초 -> 시간:분:초)
+    SEC_TO_TIME(
+            SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP())))
+    ) AS total_time_formatted,
+
+    -- 4. 오늘 이용자 수 (Java DTO와 매핑을 위해 Alias는 current_users로 유지)
+    -- DISTINCT를 사용하여 한 사람이 여러 번 해도 1명으로 집계합니다.
+    -- 만약 접속 횟수(누적)로 하고 싶다면 DISTINCT를 빼시면 됩니다.
+    COUNT(DISTINCT pl.m_id) AS current_users
+
+FROM play_log pl
+         JOIN game g ON pl.g_id = g.g_id
+WHERE DATE(pl.start_time) = CURRENT_DATE() -- 오늘 시작한 기록만 대상
+GROUP BY g.title
 ORDER BY ranking;
