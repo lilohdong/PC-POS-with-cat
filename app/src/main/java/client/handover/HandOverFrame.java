@@ -1,6 +1,5 @@
 package client.handover;
 
-import client.component.SideBar;
 import util.Sizes;
 
 import javax.swing.*;
