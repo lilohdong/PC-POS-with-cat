@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 
 
 public class MainGameStatistics extends JPanel {
-    private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "현재 이용자 수"};
+    private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "오늘 이용자 수"};
     private DefaultTableModel tm;
 
     JLabel dateLabel;
