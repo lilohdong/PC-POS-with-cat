@@ -33,13 +33,14 @@ CREATE TABLE handover (
     memo VARCHAR(200)                          -- 특이사항 메모
 );
 
-
+-- 좌석 정보 저장 테이블
 create table seat (
     seat_no int primary key,
     is_used boolean default false,
     m_id VARCHAR(30) unique,
     login_time datetime default null,
     end_time datetime default null,
+    is_unavailable boolean default false,
     foreign key(m_id) references member(m_id) on update cascade on delete set null
 );
 
