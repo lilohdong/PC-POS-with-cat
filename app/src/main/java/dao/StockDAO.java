@@ -7,12 +7,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import db.DBConnection;
 import dto.IngredientDTO;
 import dto.StockInfoDTO;
 import dto.StockInDTO;
 
-import util.DBUtil;
+import db.DBConnection;
 
 public class StockDAO {
     
@@ -131,7 +130,7 @@ public class StockDAO {
     //ingredient 수량 증가
     public boolean addStock(String ingredientId, int qty) {
         String sql = "UPDATE ingredient SET total_quantity = total_quantity + ? WHERE i_id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, qty);
             pstmt.setString(2, ingredientId);
@@ -143,7 +142,7 @@ public class StockDAO {
     //ingredient 수량 감소
     public boolean subtractStock(String ingredientId, int qty) {
         String sql = "UPDATE ingredient SET total_quantity = total_quantity - ? WHERE i_id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, qty);
             pstmt.setString(2, ingredientId);
@@ -157,7 +156,7 @@ public class StockDAO {
         String id = createId("SI"); // 예: SI001
         String sql = "INSERT INTO stock_info(stock_info_id, i_id, unit_name, unit_quantity) VALUES(?, ?, ?, ?)";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, id);
@@ -176,7 +175,7 @@ public class StockDAO {
         String sqlGetIid = "SELECT i_id, unit_quantity FROM stock_info WHERE stock_info_id = ?";
         String sqlInsert = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price, unit_quantity) VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = util.DBUtil.getConnection()) {
+        try (Connection conn = db.DBConnection.getConnection();) {
             // 1) stock_info에서 i_id, unit_quantity 조회
             String ingredientId = null;
             int unitQuantity = 0;
