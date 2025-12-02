@@ -44,6 +44,39 @@ create table seat (
     foreign key(m_id) references member(m_id) on update cascade on delete set null
 );
 
+-- 좌석-회원 정보 통합 뷰
+-- 좌석 정보와 현재 앉아있는 회원의 정보를 조인
+create or replace view seat_member_info_view as
+select
+    s.seat_no,
+    s.login_time,
+    m.m_id,
+    m.name,
+    m.birth, -- 미성년자 판단용
+    m.remain_time -- 회원의 잔여 시간 (초 또는 분 단위, 여기선 분으로 가정)
+from seat s
+    left join member m on s.m_id = m.m_id
+where s.is_used = 1;
+
+-- 요금제 테이블
+create table price_plan (
+    plan_id int auto_increment primary key,
+    plan_name varchar(20) not null, -- 예: 1시간, 5시간
+    duration_min int not null,      -- 분 단위 (60, 300, 600)
+    price int not null              -- 가격 (1500, 6000, 10000)
+);
+
+-- 시간 결제 로그 테이블
+create table time_payment_log (
+    log_id int auto_increment primary key,
+    m_id varchar(30) not null,
+    plan_id int not null,
+    amount int not null,
+    pay_time datetime default current_timestamp,
+    foreign key (m_id) references member(m_id),
+    foreign key (plan_id) references price_plan(plan_id)
+);
+
 /*
 조민규: 주문화면, 재고관리 화면 관련 DB 테이블들
 

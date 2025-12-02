@@ -1,12 +1,11 @@
 package client.component;
 
 import client.game.GameMainPanel;
-import client.handover.HandOverFrame;
 import client.member.Member;
 import client.order.Order;
 import client.sales.SalesMainPanel;
 import client.stock.stock;
-import client.store.StorePanel;
+import client.store.view.StorePanel;
 import util.Sizes;
 
 import javax.swing.*;

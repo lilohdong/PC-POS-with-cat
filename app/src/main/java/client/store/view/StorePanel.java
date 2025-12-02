@@ -1,4 +1,4 @@
-package client.store;
+package client.store.view;
 
 import util.Sizes;
 
@@ -9,6 +9,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -18,6 +19,8 @@ import db.DBConnection;
 import dao.SeatDAO;
 import dto.SeatDTO;
 import dao.MemberDAO;
+import dto.SeatMemberInfoDTO;
+import dto.PricePlanDTO;
 
 public class StorePanel extends JPanel {
     private static final int GRID_ROWS = 8;
@@ -142,18 +145,21 @@ public class StorePanel extends JPanel {
 
         JButton startButton = createButton("사용 시작", new Color(146, 160, 250));
         JButton endButton = createButton("사용 종료", new Color(255, 150, 150));
+        JButton infoButton = createButton("회원 정보", new Color(200, 230, 255));
         JButton chargeButton = createButton("시간 충전", new Color(255, 200, 100));
         JButton availableButton = createButton("이용 불가", new Color(200, 200, 200));
         JButton refreshButton = createButton("새로고침", new Color(180, 180, 180));
 
         startButton.addActionListener(e -> startUsingSeat());
         endButton.addActionListener(e -> endUsingSeat());
+        infoButton.addActionListener(e -> showMemberInfoPopup());
         chargeButton.addActionListener(e -> chargeTime());
         availableButton.addActionListener(e -> toggleAvailable());
         refreshButton.addActionListener(e -> refreshSeats());
 
         buttonPanel.add(startButton);
         buttonPanel.add(endButton);
+        buttonPanel.add(infoButton);
         buttonPanel.add(chargeButton);
         buttonPanel.add(availableButton);
         buttonPanel.add(refreshButton);
@@ -207,7 +213,6 @@ public class StorePanel extends JPanel {
     private void setupSeats() {
         seatGridPanel.removeAll();
         seats.clear();
-
         List<SeatDTO> seatList = SeatDAO.getInstance().getAllSeats();
 
         for (SeatDTO dto : seatList) {
@@ -218,9 +223,26 @@ public class StorePanel extends JPanel {
             } else if (!dto.isUsed()) {
                 panel.setStatus(SeatStatus.AVAILABLE);
             } else {
-                // 사용 중
-                panel.setStatus(SeatStatus.OCCUPIED_ADULT);  // 기본값 (미성년 정보 DB에 없다면)
-                panel.setUserInfo(dto.getMemberId(), convertTime(dto.getStartTime()));
+                // [요구사항 2 & 3] 사용 중: 상세 정보 조회하여 미성년자 색상 및 남은 시간 표시
+                // SeatDTO에는 기본 정보만 있으므로, 상세 정보를 위해 SeatMemberInfoDTO를 조회
+                // (성능상 한 번에 조인된 쿼리를 가져오는 것이 좋으나, 기존 구조 유지를 위해 여기서 호출)
+                SeatMemberInfoDTO info = SeatDAO.getInstance().getSeatMemberInfo(dto.getSeatNo());
+
+                if (info != null) {
+                    // 미성년자 여부에 따른 색상 설정
+                    if (info.isMinor()) {
+                        panel.setStatus(SeatStatus.OCCUPIED_CHILD);
+                    } else {
+                        panel.setStatus(SeatStatus.OCCUPIED_ADULT);
+                    }
+
+                    // 좌석 패널에 정보 주입 (회원이름, 시작시간, DB저장 잔여시간)
+                    panel.setUserInfo(info.getName(), dto.getStartTime(), info.getSavedRemainTime());
+                } else {
+                    // 예외 상황: 사용중인데 회원정보가 없는 경우 성인 처리
+                    panel.setStatus(SeatStatus.OCCUPIED_ADULT);
+                    panel.setUserInfo(dto.getMemberId(), dto.getStartTime(), 0);
+                }
             }
 
             seats.put(String.valueOf(dto.getSeatNo()), panel);
@@ -265,9 +287,12 @@ public class StorePanel extends JPanel {
         updateTimer.start();
     }
 
-    private String convertTime(String dateTime) {
-        if (dateTime == null) return "";
-        return dateTime.substring(11, 16); // "YYYY-MM-DD HH:MM:SS" → "HH:MM"
+    // 분을 "HH:mm" 포맷 문자열로 변환하는 헬퍼 메서드
+    private String formatDuration(long totalMinutes) {
+        if (totalMinutes < 0) totalMinutes = 0; // 음수 방지
+        long hours = totalMinutes / 60;
+        long minutes = totalMinutes % 60;
+        return String.format("%02d:%02d", hours, minutes);
     }
 
     private boolean checkSelection() {
@@ -290,7 +315,7 @@ public class StorePanel extends JPanel {
         );
 
         if (memberId == null || memberId.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "회원 ID를 입력해야 합니다.");
+            JOptionPane.showMessageDialog(this, "회원 ID를 입력해야 합니다 ");
             return;
         }
 
@@ -298,7 +323,7 @@ public class StorePanel extends JPanel {
             // 등록되지 않은 ID일 경우 알림창을 띄우고 함수 종료
             JOptionPane.showMessageDialog(
                     this,
-                    "해당 ID (" + memberId + ")는 등록된 회원이 아닙니다.",
+                    "해당 ID (" + memberId + ")는 등록된 회원이 아닙니다 ",
                     "회원 정보 오류",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -324,16 +349,6 @@ public class StorePanel extends JPanel {
         updateStatistics();
     }
 
-    private int calcUsedMinutes(String startTime, String endTime) {
-        try {
-            LocalDateTime start = LocalDateTime.parse(startTime.replace(" ", "T"));
-            LocalDateTime end = LocalDateTime.parse(endTime.replace(" ", "T"));
-            return (int) java.time.Duration.between(start, end).toMinutes();
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
     private void endUsingSeat() {
         if (!checkSelection()) return;
 
@@ -355,33 +370,98 @@ public class StorePanel extends JPanel {
         updateStatistics();
     }
 
-    private int calculateFee(String time) {
-        // 간단한 요금 계산 (실제로는 더 복잡한 로직 필요)
-        return (int)(Math.random() * 10000) + 1000;
+    private void showMemberInfoPopup() {
+        if (!checkSelection()) return;
+
+        // 사용 중인 좌석이 아니면 정보가 없음
+        if (selectedSeat.getStatus() == SeatStatus.AVAILABLE || selectedSeat.getStatus() == SeatStatus.UNAVAILABLE) {
+            JOptionPane.showMessageDialog(this, "사용 중인 좌석이 아닙니다 ");
+            return;
+        }
+
+        // DB 뷰에서 정보 가져오기
+        SeatMemberInfoDTO info = SeatDAO.getInstance().getSeatMemberInfo(selectedSeat.getSeatNumber());
+        if (info == null) {
+            JOptionPane.showMessageDialog(this, "정보를 불러올 수 없습니다 ");
+            return;
+        }
+
+        // 시간 계산 로직
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = info.getLoginTime().toLocalDateTime();
+
+        long usedMinutes = Duration.between(start, now).toMinutes(); // 사용 시간(분)
+        int totalRemainInDb = info.getSavedRemainTime(); // DB 저장 잔여 시간(분)
+
+        // 실제 남은 시간 = (보유 시간) - (현재까지 사용 시간)
+        long currentRealRemain = totalRemainInDb - usedMinutes;
+
+        // 종료 예정 시간 계산
+        LocalDateTime endTime = now.plusMinutes(currentRealRemain);
+
+        // 포맷터 설정
+        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
+
+        // [요구사항 1] 모든 시간 포맷 00:00 형태로 수정
+        StringBuilder sb = new StringBuilder();
+        sb.append("좌석 번호: ").append(info.getSeatNo()).append("\n");
+        sb.append("회원 ID: ").append(info.getmId()).append("\n");
+        sb.append("이름: ").append(info.getName()).append("\n");
+        sb.append("구분: ").append(info.isMinor() ? "미성년자" : "성인").append("\n");
+        sb.append("----------------------------\n");
+        sb.append("시작 시간: ").append(start.format(timeFmt)).append("\n"); // 12:00
+        sb.append("사용 시간: ").append(formatDuration(usedMinutes)).append("\n"); // 01:30
+        sb.append("남은 시간: ").append(formatDuration(currentRealRemain)).append("\n"); // 00:45
+        sb.append("종료 예정: ").append(endTime.format(timeFmt)); // 14:15
+
+        JOptionPane.showMessageDialog(this, sb.toString(), "회원 상세 정보", JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void chargeTime() {
         if (!checkSelection()) return;
 
-        if (selectedSeat.getStatus() == SeatStatus.OCCUPIED_CHILD ||
-                        selectedSeat.getStatus() == SeatStatus.OCCUPIED_ADULT) {
+        // 사용 중인 좌석인지 확인
+        if (selectedSeat.getStatus() != SeatStatus.OCCUPIED_CHILD &&
+                selectedSeat.getStatus() != SeatStatus.OCCUPIED_ADULT) {
+            JOptionPane.showMessageDialog(this, "사용 중인 좌석만 충전 가능합니다 ");
+            return;
+        }
 
-            String input = JOptionPane.showInputDialog(this,
-                    "충전할 시간을 입력하세요 (시간 단위):",
-                    "시간 충전",
-                    JOptionPane.QUESTION_MESSAGE);
+        // DB에서 현재 좌석 정보(회원ID 필요) 가져오기
+        SeatMemberInfoDTO info = SeatDAO.getInstance().getSeatMemberInfo(selectedSeat.getSeatNumber());
+        if (info == null) return;
 
-            if (input != null && !input.isEmpty()) {
-                try {
-                    int hours = Integer.parseInt(input);
-                    statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() +
-                            "번에 " + hours + "시간 충전 완료");
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this,
-                            "올바른 숫자를 입력하세요",
-                            "오류",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+        // DB에서 요금제 목록 가져오기
+        List<PricePlanDTO> plans = SeatDAO.getInstance().getPricePlans();
+        if (plans.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "등록된 요금제가 없습니다 ");
+            return;
+        }
+
+        // 요금제 선택 콤보박스 팝업
+        PricePlanDTO selectedPlan = (PricePlanDTO) JOptionPane.showInputDialog(
+                this,
+                "충전할 요금제를 선택하세요:",
+                "시간 충전",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                plans.toArray(),
+                plans.get(0)
+        );
+
+        if (selectedPlan != null) {
+            // 트랜잭션 처리 (로그 저장 + 시간 충전)
+            boolean success = SeatDAO.getInstance().chargeTimeTransaction(
+                    info.getmId(),
+                    info.getSeatNo(),
+                    selectedPlan
+            );
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, selectedPlan.toString() + " 충전이 완료되었습니다 ");
+                refreshSeats(); // 화면 갱신
+            } else {
+                JOptionPane.showMessageDialog(this, "충전 처리에 실패했습니다 ");
             }
         }
     }
@@ -406,7 +486,6 @@ public class StorePanel extends JPanel {
         }
 
         selectedSeat.setSelected(false);
-
         selectedSeat.setStatus(unavailable ? SeatStatus.UNAVAILABLE : SeatStatus.AVAILABLE);
         selectedSeat = null;
 
@@ -417,8 +496,8 @@ public class StorePanel extends JPanel {
         updateStatistics();
     }
 
-
     private void refreshSeats() {
+        setupSeats();
         updateStatistics();
         statusLabel.setText("좌석 정보를 새로고침했습니다");
     }
@@ -430,9 +509,10 @@ public class StorePanel extends JPanel {
         private SeatStatus status;
         private boolean selected;
         private JLabel numberLabel;
-        private JLabel statusLabel;
-        private JLabel timeLabel;
-        private String currentTime = "00:00";
+        private JLabel nameLabel; // 회원 이름 표시용으로 변경
+        private JLabel timeLabel; // 남은 시간 표시용으로 변경
+        private LocalDateTime startDateTime;
+        private int dbSavedRemainTime; // DB에 저장되어 있던 총 잔여시간 (분)
 
         public SeatPanel(int seatNumber, int row, int col) {
             this.seatNumber = seatNumber;
@@ -453,16 +533,18 @@ public class StorePanel extends JPanel {
             numberLabel.setFont(new Font("맑은 고딕", Font.BOLD, 11));
             numberLabel.setForeground(Color.BLACK);
 
-            statusLabel = new JLabel("", JLabel.CENTER);
-            statusLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 9));
-            statusLabel.setForeground(Color.BLACK);
+            // [요구사항 2] 회원이름 표시 라벨
+            nameLabel = new JLabel("", JLabel.CENTER);
+            nameLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 10)); // 이름이 길 수 있으므로 폰트 약간 축소
+            nameLabel.setForeground(Color.BLACK);
 
+            // [요구사항 2] 남은 시간 표시 라벨
             timeLabel = new JLabel("", JLabel.CENTER);
-            timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 9));
+            timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 10));
             timeLabel.setForeground(Color.BLACK);
 
             infoPanel.add(numberLabel);
-            infoPanel.add(statusLabel);
+            infoPanel.add(nameLabel);
             infoPanel.add(timeLabel);
 
             add(infoPanel, BorderLayout.CENTER);
@@ -517,10 +599,21 @@ public class StorePanel extends JPanel {
             updateAppearance();
         }
 
-        public void setUserInfo(String userType, String time) {
-            statusLabel.setText(userType);
-            timeLabel.setText(time);
-            currentTime = time;
+        // [요구사항 2] 사용자 정보 세팅 (이름, 시작시간, DB저장 잔여시간)
+        public void setUserInfo(String memberName, String startTimeStr, int remainTime) {
+            this.dbSavedRemainTime = remainTime;
+            nameLabel.setText(memberName); // 회원 이름 표시
+
+            if (startTimeStr != null && !startTimeStr.isEmpty()) {
+                try {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    if (startTimeStr.length() > 19) startTimeStr = startTimeStr.substring(0, 19);
+                    this.startDateTime = LocalDateTime.parse(startTimeStr, formatter);
+                    updateTime();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         public void setSelected(boolean selected) {
@@ -533,19 +626,30 @@ public class StorePanel extends JPanel {
             updateAppearance();
         }
 
+        // [요구사항 2] 남은 시간 표시 로직
         public void updateTime() {
-            if (!currentTime.isEmpty() && !currentTime.equals("무제한")) {
-                // 시간 업데이트 로직
-                String[] parts = currentTime.split(":");
-                int hours = Integer.parseInt(parts[0]);
-                int minutes = Integer.parseInt(parts[1]);
-                minutes++;
-                if (minutes >= 60) {
-                    hours++;
-                    minutes = 0;
-                }
-                currentTime = String.format("%02d:%02d", hours, minutes);
-                timeLabel.setText(currentTime);
+            if (this.startDateTime != null && (status == SeatStatus.OCCUPIED_CHILD || status == SeatStatus.OCCUPIED_ADULT)) {
+                LocalDateTime now = LocalDateTime.now();
+
+                // 사용한 시간(분)
+                long usedMinutes = Duration.between(startDateTime, now).toMinutes();
+
+                // 남은 시간 = DB저장값 - 사용시간
+                long currentRemain = dbSavedRemainTime - usedMinutes;
+
+                // 음수 처리 (시간 초과 시 마이너스 대신 00:00 혹은 붉은색 표시 등 정책 필요, 여기선 00:00)
+                // if (currentRemain < 0) currentRemain = 0;
+
+                // 00:00 형태로 변환하여 표시
+                timeLabel.setText(formatDuration(currentRemain));
+
+                // (선택사항) 시간이 다 되었으면 붉은색으로 텍스트 변경
+                if (currentRemain <= 0) timeLabel.setForeground(Color.RED);
+                else timeLabel.setForeground(Color.BLACK);
+
+            } else {
+                timeLabel.setText("");
+                nameLabel.setText("");
             }
         }
 
@@ -557,10 +661,6 @@ public class StorePanel extends JPanel {
             return seatNumber;
         }
 
-        public String getTimeLabel() {
-            return currentTime;
-        }
-
         private void updateAppearance() {
             if (selected) {
                 setBackground(COLOR_SELECTED);
@@ -568,18 +668,18 @@ public class StorePanel extends JPanel {
                 switch (status) {
                     case AVAILABLE:
                         setBackground(COLOR_AVAILABLE);
-                        statusLabel.setText("이용가능");
+                        nameLabel.setText("이용가능");
                         timeLabel.setText("");
                         break;
                     case OCCUPIED_CHILD:
-                        setBackground(COLOR_CHILD_USER);
+                        setBackground(COLOR_CHILD_USER); // [요구사항 3] 미성년자 색상 적용
                         break;
                     case OCCUPIED_ADULT:
-                        setBackground(COLOR_ADULT_USER);
+                        setBackground(COLOR_ADULT_USER); // [요구사항 3] 성인 색상 적용
                         break;
                     case UNAVAILABLE:
                         setBackground(COLOR_UNAVAILABLE);
-                        statusLabel.setText("이용불가");
+                        nameLabel.setText("이용불가");
                         timeLabel.setText("");
                         break;
                 }

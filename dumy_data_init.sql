@@ -79,7 +79,6 @@ DELIMITER ;
 CALL InsertSeats();
 DROP PROCEDURE InsertSeats;
 
-
 -- 4. Category (카테고리) 데이터 (요청하신 3개 고정)
 INSERT INTO category (c_id, c_name) VALUES
                                         ('C001', '음식'),
@@ -374,3 +373,11 @@ END$$
 DELIMITER ;
 CALL InsertPlayLog();
 DROP PROCEDURE InsertPlayLog;
+
+
+-- 16. 요금제 데이터 입력
+INSERT INTO price_plan (plan_name, duration_min, price) VALUES
+    ('1시간', 60, 1500),
+    ('3시간', 180, 4000),
+    ('5시간', 300, 6000),
+    ('10시간', 600, 10000);
