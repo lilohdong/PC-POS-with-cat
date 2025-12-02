@@ -108,4 +108,23 @@ public class MemberDAO {
             return false;
         }
     }
+
+    public static boolean isMemberIdValid(String mId) {
+        String sql = "SELECT m_id FROM member WHERE m_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, mId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            // DB 연결 오류 또는 SQL 실행 오류 시
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

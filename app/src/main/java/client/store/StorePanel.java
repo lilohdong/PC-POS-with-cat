@@ -17,6 +17,7 @@ import java.sql.*;
 import db.DBConnection;
 import dao.SeatDAO;
 import dto.SeatDTO;
+import dao.MemberDAO;
 
 public class StorePanel extends JPanel {
     private static final int GRID_ROWS = 8;
@@ -291,6 +292,17 @@ public class StorePanel extends JPanel {
         if (memberId == null || memberId.trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "회원 ID를 입력해야 합니다.");
             return;
+        }
+
+        if (!MemberDAO.isMemberIdValid(memberId)) {
+            // 등록되지 않은 ID일 경우 알림창을 띄우고 함수 종료
+            JOptionPane.showMessageDialog(
+                    this,
+                    "해당 ID (" + memberId + ")는 등록된 회원이 아닙니다.",
+                    "회원 정보 오류",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return; // 유효하지 않으면 여기서 함수 실행을 중단
         }
 
         int seatNo = selectedSeat.getSeatNumber();
