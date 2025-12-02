@@ -119,12 +119,15 @@ create table ingredient_category(
 
 create table ingredient (
     i_id varchar(5) primary key,
-    c_id VARCHAR(5) not null, --표에 맞줘 추가
+    c_id VARCHAR(5) not null,
     i_name varchar(30) not null,
+    -- 표에 맞춰 추가
     total_quantity int default 0,
-    min_quantity int default 0, --표에 맞줘 추가
+    -- 표에 맞춰 추가
+    min_quantity int default 0,
+    -- 표에 맞춰 추가
     is_out boolean default false,
-    store_location varchar(20), --표에 맞줘 추가
+    store_location varchar(20),
     updated_time datetime default current_timestamp on update current_timestamp,
 
     foreign key (c_id) references ingredient_category(c_id)
@@ -144,7 +147,8 @@ create table stock_in(
     i_id varchar(5) not null,
     stock_info_id varchar(5) not null,
     in_quantity int not null,
-    unit_price int not null default 0, --표에 맞줘 추가
+    -- 표에 맞줘 추가
+    unit_price int not null default 0,
     unit_quantity int not null, -- 이 부분은 trigger를 통해 stock_info.unit_quantity 가져오기
     total_added int generated always as (in_quantity * unit_quantity) stored,
     in_time datetime default current_timestamp,
