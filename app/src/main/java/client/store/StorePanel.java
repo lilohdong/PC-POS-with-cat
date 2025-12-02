@@ -277,7 +277,6 @@ public class StorePanel extends JPanel {
         return true;
     }
 
-
     private void startUsingSeat() {
         if (!checkSelection()) return;
 
@@ -296,7 +295,7 @@ public class StorePanel extends JPanel {
 
         int seatNo = selectedSeat.getSeatNumber();
 
-        String sql = "UPDATE seat SET is_used = 1, m_id = ?, start_time = NOW(), end_time = NULL WHERE seat_no = ?";
+        String sql = "UPDATE seat SET is_used = 1, is_unavailable = 0, m_id = ?, login_time = NOW(), end_time = NULL WHERE seat_no = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
