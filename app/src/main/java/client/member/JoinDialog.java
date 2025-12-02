@@ -253,7 +253,12 @@ class JoinDialog extends JDialog {
     // 라벨 + 컴포넌트 추가
     private void addLabelAndComponent(JPanel parent, String labelText, Component comp) {
         JPanel panel = new JPanel(new BorderLayout(0, 5));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // 높이 고정
+        if(labelText.equals("약관 동의")) {
+            panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        } else{
+            panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60)); // 높이 고정
+            // 높이를 고정하니까 약관동의에서는 60으로는 3개를 전부 표시할수가업슨거임 100으로맞추니까 되네
+        }
         panel.setBorder(new EmptyBorder(0, 0, 10, 0)); // 하단 여백
 
         JLabel label = new JLabel(labelText);
@@ -263,7 +268,7 @@ class JoinDialog extends JDialog {
         panel.add(comp, BorderLayout.CENTER);
         parent.add(panel);
     }
-
+    // 그리드임? Parent Panel이 그리드냐고 bo
     // 라벨 + 컴포넌트 + 메시지라벨 추가 (아이디)
     private void addLabelComponentAndMsg(JPanel parent, String labelText, Component comp, JLabel msgLabel) {
         JPanel panel = new JPanel(new BorderLayout(0, 5));
