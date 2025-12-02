@@ -181,7 +181,7 @@ public class StockDAO {
             String ingredientId = null;
             int unitQuantity = 0;
             try (PreparedStatement psGet = conn.prepareStatement(sqlGetIid)) {
-                psGet.setString(1, dto.getStockCode()); // dto.getStockCode() == stock_info_id
+                psGet.setString(1, dto.getStockCode()); //dto.getStockCode() == stock_info_id
                 try (ResultSet rs = psGet.executeQuery()) {
                     if (rs.next()) {
                         ingredientId = rs.getString("i_id");
@@ -215,12 +215,11 @@ public class StockDAO {
 
     private String createInId() {
         String sql = "SELECT LPAD(IFNULL(MAX(CAST(SUBSTRING(in_id, 3) AS UNSIGNED)), 0) + 1, 3, '0') AS newId FROM stock_in";
-        // 'conn' 필드를 사용하고 있으므로, conn이 null인지 체크합니다.
         Connection tmpConn = this.conn;
         boolean createdLocal = false;
         try {
             if (tmpConn == null || tmpConn.isClosed()) {
-                tmpConn = DBConnection.getConnection(); // fallback: 새 연결 생성
+                tmpConn = DBConnection.getConnection();
                 createdLocal = true;
             }
             try (PreparedStatement ps = tmpConn.prepareStatement(sql);
@@ -236,11 +235,11 @@ public class StockDAO {
                 try { tmpConn.close(); } catch (Exception ignored) {}
             }
         }
-        // 최후의 수단: 랜덤 ID
+        //최후수단: 랜덤 ID
         return "IN" + (int)(Math.random() * 900 + 100);
     }
 
-    //ID 자동 생성 (간단 버전)
+    //ID 자동 생성
     private String createId(String prefix) {
         return prefix + (int)(Math.random()*900 + 100);
     }

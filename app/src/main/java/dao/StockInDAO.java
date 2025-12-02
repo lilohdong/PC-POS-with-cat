@@ -15,8 +15,8 @@ public class StockInDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setString(1, generateInId());  // 신규 입고번호 생성
-            pstmt.setString(2, getIngredientId(dto.getStockCode()));  // FK 처리
+            pstmt.setString(1, generateInId());
+            pstmt.setString(2, getIngredientId(dto.getStockCode()));
             pstmt.setString(3, dto.getStockCode());
             pstmt.setInt(4, dto.getAmount());
 
@@ -29,12 +29,12 @@ public class StockInDAO {
     }
 
     private String generateInId() {
-        // 실제로는 SELECT MAX(in_id) + 1 형태로 구현
+        //실제로는 SELECT MAX(in_id) + 1 형태로 구현
         return String.valueOf(System.currentTimeMillis()).substring(8);
     }
 
     private String getIngredientId(String stockInfoId) {
-        // stock_info → ingredient FK 조회 (SELECT i_id FROM stock_info WHERE stock_info_id = ?)
-        return stockInfoId.substring(0, 3); // 예시: 코드 앞 3자리 → 실제 DB 조회로 변경해야 함
+        //stock_info → ingredient FK 조회 (SELECT i_id FROM stock_info WHERE stock_info_id = ?)
+        return stockInfoId.substring(0, 3); //예시: 코드 앞 3자리 → 실제 DB 조회로 변경해야 함
     }
 }
