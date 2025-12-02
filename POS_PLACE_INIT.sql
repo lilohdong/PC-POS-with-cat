@@ -226,10 +226,9 @@ where (select overall_total from total_daily_minutes) > 0;
 
 CREATE OR REPLACE VIEW statistics_view AS
 SELECT
-    -- 1. 랭킹: 오늘 이용자 수(중복제거) 많은 순 -> 총 플레이 시간 긴 순
+    -- 1. 플레이시간 긴 순 -> 이용자 순
     RANK() OVER (
-        ORDER BY COUNT(DISTINCT pl.m_id) DESC,
-            SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP()))) DESC
+        ORDER BY SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP())),COUNT(DISTINCT pl.m_id) DESC) DESC
         ) AS ranking,
 
     -- 2. 게임 이름
@@ -240,9 +239,6 @@ SELECT
             SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP())))
     ) AS total_time_formatted,
 
-    -- 4. 오늘 이용자 수 (Java DTO와 매핑을 위해 Alias는 current_users로 유지)
-    -- DISTINCT를 사용하여 한 사람이 여러 번 해도 1명으로 집계합니다.
-    -- 만약 접속 횟수(누적)로 하고 싶다면 DISTINCT를 빼시면 됩니다.
     COUNT(DISTINCT pl.m_id) AS current_users
 
 FROM play_log pl
