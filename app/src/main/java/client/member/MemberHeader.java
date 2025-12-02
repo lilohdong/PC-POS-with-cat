@@ -1,6 +1,7 @@
 package client.member;
 
 import dto.MemberDTO;
+import dao.MemberDAO;
 import util.Sizes;
 
 import javax.swing.*;
@@ -48,7 +49,18 @@ public class MemberHeader extends JPanel implements ActionListener {
             new JoinDialog(parent,searchMember);
         }
         else if (src == btnUpdate) {
-            new UpdateDialog(parent,searchMember, targetMember);
+
+
+            int row = searchMember.getSelectedRow(); // 선택된 줄 번호 가져옴
+            if (row == -1) {
+                JOptionPane.showMessageDialog(parent, "수정할 회원을 선택해주세요.");
+                return;
+            }
+            String id = (String) searchMember.table.getValueAt(row, 2); // 아이디 가져옴
+
+            MemberDTO targetMember = MemberDAO.getInstance().getMemberById(id);
+
+            new UpdateDialog(parent,searchMember,targetMember);
         }
         else if (src == btnDelete) {
             int row = searchMember.getSelectedRow(); // SearchMember에게 선택된 줄 번호 물어보기

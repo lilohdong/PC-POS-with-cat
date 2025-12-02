@@ -193,7 +193,7 @@ public class UpdateDialog extends JDialog {
         resetPwBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                /int result = JOptionPane.showConfirmDialog(null,
+                int result = JOptionPane.showConfirmDialog(null,
                         "비밀번호를 '1234'로 초기화하시겠습니까?\n(수정 버튼을 눌러야 저장됩니다.)",
                         "비밀번호 초기화",
                         JOptionPane.YES_NO_OPTION);
