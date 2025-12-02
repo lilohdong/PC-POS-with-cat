@@ -212,7 +212,9 @@ public class StorePanel extends JPanel {
         for (SeatDTO dto : seatList) {
             SeatPanel panel = new SeatPanel(dto.getSeatNo(), 0, 0);
 
-            if (!dto.isUsed()) {
+            if (dto.isUnavailable()) {
+                panel.setStatus(SeatStatus.UNAVAILABLE);
+            } else if (!dto.isUsed()) {
                 panel.setStatus(SeatStatus.AVAILABLE);
             } else {
                 // 사용 중
@@ -267,12 +269,17 @@ public class StorePanel extends JPanel {
         return dateTime.substring(11, 16); // "YYYY-MM-DD HH:MM:SS" → "HH:MM"
     }
 
+    private boolean checkSelection() {
+        if (selectedSeat == null) {
+            JOptionPane.showMessageDialog(this, "좌석을 선택하세요!");
+            return false;
+        }
+        return true;
+    }
+
 
     private void startUsingSeat() {
-        if (selectedSeat == null) {
-            JOptionPane.showMessageDialog(this, "좌석을 선택하세요.");
-            return;
-        }
+        if (!checkSelection()) return;
 
         // --- 회원 ID 입력받기 ---
         String memberId = JOptionPane.showInputDialog(
@@ -306,9 +313,19 @@ public class StorePanel extends JPanel {
         updateStatistics();
     }
 
+    private int calcUsedMinutes(String startTime, String endTime) {
+        try {
+            LocalDateTime start = LocalDateTime.parse(startTime.replace(" ", "T"));
+            LocalDateTime end = LocalDateTime.parse(endTime.replace(" ", "T"));
+            return (int) java.time.Duration.between(start, end).toMinutes();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
 
     private void endUsingSeat() {
-        if (selectedSeat == null) return;
+        if (!checkSelection()) return;
+
         int seatNo = selectedSeat.getSeatNumber();
 
         String sql = "UPDATE seat SET is_used = 0, end_time = NOW(), m_id = NULL WHERE seat_no = ?";
@@ -333,9 +350,10 @@ public class StorePanel extends JPanel {
     }
 
     private void chargeTime() {
-        if (selectedSeat != null &&
-                (selectedSeat.getStatus() == SeatStatus.OCCUPIED_CHILD ||
-                        selectedSeat.getStatus() == SeatStatus.OCCUPIED_ADULT)) {
+        if (!checkSelection()) return;
+
+        if (selectedSeat.getStatus() == SeatStatus.OCCUPIED_CHILD ||
+                        selectedSeat.getStatus() == SeatStatus.OCCUPIED_ADULT) {
 
             String input = JOptionPane.showInputDialog(this,
                     "충전할 시간을 입력하세요 (시간 단위):",
@@ -358,19 +376,36 @@ public class StorePanel extends JPanel {
     }
 
     private void toggleAvailable() {
-        if (selectedSeat != null) {
-            if (selectedSeat.getStatus() == SeatStatus.UNAVAILABLE) {
-                selectedSeat.setStatus(SeatStatus.AVAILABLE);
-                statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() + "번 점검 완료");
-            } else if (selectedSeat.getStatus() == SeatStatus.AVAILABLE) {
-                selectedSeat.setStatus(SeatStatus.UNAVAILABLE);
-                statusLabel.setText("좌석 " + selectedSeat.getSeatNumber() + "번 점검 중");
-            }
-            selectedSeat.setSelected(false);
-            selectedSeat = null;
-            updateStatistics();
+        if (!checkSelection()) return;
+
+        boolean unavailable = (selectedSeat.getStatus() != SeatStatus.UNAVAILABLE);
+        int seatNo = selectedSeat.getSeatNumber();
+
+        String sql = "UPDATE seat SET is_unavailable = ? WHERE seat_no = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setBoolean(1, unavailable);
+            pstmt.setInt(2, seatNo);
+            pstmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
+        selectedSeat.setSelected(false);
+
+        selectedSeat.setStatus(unavailable ? SeatStatus.UNAVAILABLE : SeatStatus.AVAILABLE);
+        selectedSeat = null;
+
+        statusLabel.setText(unavailable ?
+                "좌석 " + seatNo + "번 점검 등록됨" :
+                "좌석 " + seatNo + "번 점검 해제됨");
+
+        updateStatistics();
     }
+
 
     private void refreshSeats() {
         updateStatistics();
@@ -386,7 +421,6 @@ public class StorePanel extends JPanel {
         private JLabel numberLabel;
         private JLabel statusLabel;
         private JLabel timeLabel;
-        private JPanel indicatorPanel;
         private String currentTime = "00:00";
 
         public SeatPanel(int seatNumber, int row, int col) {
@@ -400,24 +434,21 @@ public class StorePanel extends JPanel {
             setBorder(new LineBorder(Color.GRAY, 1));
             setPreferredSize(new Dimension(80, 65));
 
-            // 상단 표시기 (미성년자 표시)
-            indicatorPanel = new JPanel();
-            indicatorPanel.setPreferredSize(new Dimension(0, 8));
-            indicatorPanel.setOpaque(false);
-            add(indicatorPanel, BorderLayout.NORTH);
-
             // 중앙 정보 패널
             JPanel infoPanel = new JPanel(new GridLayout(3, 1, 0, 0));
             infoPanel.setOpaque(false);
 
             numberLabel = new JLabel("PC " + seatNumber, JLabel.CENTER);
             numberLabel.setFont(new Font("맑은 고딕", Font.BOLD, 11));
+            numberLabel.setForeground(Color.BLACK);
 
             statusLabel = new JLabel("", JLabel.CENTER);
             statusLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 9));
+            statusLabel.setForeground(Color.BLACK);
 
             timeLabel = new JLabel("", JLabel.CENTER);
             timeLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 9));
+            timeLabel.setForeground(Color.BLACK);
 
             infoPanel.add(numberLabel);
             infoPanel.add(statusLabel);
@@ -452,9 +483,19 @@ public class StorePanel extends JPanel {
         }
 
         public void selectSeat() {
+            // 이미 선택된 좌석을 다시 클릭 → 선택 해제
+            if (selectedSeat == this) {
+                setSelected(false);
+                selectedSeat = null;
+                StorePanel.this.statusLabel.setText("좌석 선택 해제됨");
+                return;
+            }
+
+            // 다른 좌석 선택 중이면 선택 해제
             if (selectedSeat != null) {
                 selectedSeat.setSelected(false);
             }
+
             selectedSeat = this;
             setSelected(true);
             StorePanel.this.statusLabel.setText("좌석 " + seatNumber + "번 선택됨");
@@ -510,8 +551,6 @@ public class StorePanel extends JPanel {
         }
 
         private void updateAppearance() {
-            indicatorPanel.setOpaque(false);
-
             if (selected) {
                 setBackground(COLOR_SELECTED);
             } else {
@@ -523,8 +562,6 @@ public class StorePanel extends JPanel {
                         break;
                     case OCCUPIED_CHILD:
                         setBackground(COLOR_CHILD_USER);
-                        indicatorPanel.setOpaque(true);
-                        indicatorPanel.setBackground(Color.YELLOW);
                         break;
                     case OCCUPIED_ADULT:
                         setBackground(COLOR_ADULT_USER);
