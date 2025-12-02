@@ -119,7 +119,7 @@ public class HandOverLoginPanel extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnCancel) {
-            System.exit(0); // 닫기
+            parent.dispose(); // 닫기
         } else if (e.getSource() == btnConfirm) {
             String inputPw = new String(receiverPassField.getPassword());
             if ("1234".equals(inputPw)) {
