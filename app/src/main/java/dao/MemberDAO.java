@@ -84,18 +84,22 @@ public class MemberDAO {
         String sql = "SELECT * FROM member WHERE name LIKE ?";
         try(Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery())  {
-            while(rs.next()){
-                MemberDTO dto = new MemberDTO();
-                dto.setmId(rs.getString("m_id"));
-                dto.setPasswd(rs.getString("passwd"));
-                dto.setName(rs.getString("name"));
-                dto.setBirth(rs.getDate("birth"));
-                dto.setSex(rs.getString("sex"));
-                dto.setRemainTime(rs.getInt("remain_time"));
-                dto.setPhone(rs.getString("phone"));
-                dto.setJoinDate(rs.getTimestamp("join_date"));
-                list.add(dto);
+            )  {
+
+            ps.setString(1, "%"+name+"%");
+            try(ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MemberDTO dto = new MemberDTO();
+                    dto.setmId(rs.getString("m_id"));
+                    dto.setPasswd(rs.getString("passwd"));
+                    dto.setName(rs.getString("name"));
+                    dto.setBirth(rs.getDate("birth"));
+                    dto.setSex(rs.getString("sex"));
+                    dto.setRemainTime(rs.getInt("remain_time"));
+                    dto.setPhone(rs.getString("phone"));
+                    dto.setJoinDate(rs.getTimestamp("join_date"));
+                    list.add(dto);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
