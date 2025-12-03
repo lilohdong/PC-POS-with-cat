@@ -33,6 +33,15 @@ CREATE TABLE handover (
     memo VARCHAR(200)                          -- 특이사항 메모
 );
 
+-- 금고 유지 테이블
+CREATE TABLE IF NOT EXISTS cash_safe (
+    id INT PRIMARY KEY,
+    amount INT NOT NULL
+);
+-- 초기값 삽입 (한 번만)
+INSERT INTO cash_safe(id, amount) VALUES(1, 0)ON DUPLICATE KEY UPDATE amount = amount;
+
+
 -- 좌석 정보 저장 테이블
 create table seat (
     seat_no int primary key,
