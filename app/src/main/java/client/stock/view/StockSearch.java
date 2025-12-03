@@ -1,39 +1,76 @@
 package client.stock.view;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.FlowLayout;
+import java.util.function.Consumer;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
-public class StockSearch extends JPanel{
-    public StockSearch(){
-        setLayout(new FlowLayout(FlowLayout.LEFT));
+public class StockSearch extends JPanel {
+    private JTextField m_name;
+    private JTextField m_code;
+    private JComboBox<String> category;
+    private JButton btnSearch;
+    private JButton btnNormal;
+    private JButton btnLack;
+    private JButton btnSoldout;
+    private Consumer<String[]> searchCallback; // accepts [name, code, category]
+    private java.util.function.Consumer<String> filterCallback;
 
-        JTextField m_name = new JTextField(10);
-        JTextField m_code = new JTextField(10);
-        String[] categories = {"전체", "라면", "음료", "사이드", "토핑"};
-        JComboBox<String> category = new JComboBox<>(categories);
+    public StockSearch() {
+        this.setLayout(new FlowLayout(0));
+        m_name = new JTextField(10);
+        m_code = new JTextField(10);
+        String[] categories = new String[]{"전체", "라면", "음료", "사이드", "토핑"};
+        category = new JComboBox<>(categories);
+        btnSearch = new JButton("검색");
+        btnNormal = new JButton("정상");
+        btnLack = new JButton("재고부족");
+        btnSoldout = new JButton("품절");
+        this.add(new JLabel("상품명:"));
+        this.add(m_name);
+        this.add(new JLabel("상품코드:"));
+        this.add(m_code);
+        this.add(new JLabel("카테고리:"));
+        this.add(category);
+        this.add(btnSearch);
+        this.add(btnNormal);
+        this.add(btnLack);
+        this.add(btnSoldout);
 
-        JButton btnSearch = new JButton("검색");
-        JButton btnNormal = new JButton("정상");
-        JButton btnLack = new JButton("재고부족");
-        JButton btnSoldout = new JButton("품절");
+        // UI 버튼에 내부 리스너 등록 -> 밖에 등록된 콜백 호출
+        btnSearch.addActionListener(e -> {
+            if (searchCallback != null) {
+                searchCallback.accept(new String[]{m_name.getText(), m_code.getText(), (String) category.getSelectedItem()});
+            }
+        });
 
-        
-        //라인1: 검색창 + 검색버튼
-        add(new JLabel("상품명:"));
-        add(m_name);
+        btnNormal.addActionListener(e -> {
+            if (filterCallback != null) filterCallback.accept("NORMAL");
+        });
 
-        add(new JLabel("상품코드:"));
-        add(m_code);
+        btnLack.addActionListener(e -> {
+            if (filterCallback != null) filterCallback.accept("LACK");
+        });
 
-        add(new JLabel("카테고리:"));
-        add(category);
+        btnSoldout.addActionListener(e -> {
+            if (filterCallback != null) filterCallback.accept("SOLDOUT");
+        });
+    }
 
-        add(btnSearch);
+    // 외부에서 콜백 등록
+    public void setSearchAction(java.util.function.Consumer<String[]> cb) {
+        this.searchCallback = cb;
+    }
 
+    public void setFilterAction(java.util.function.Consumer<String> cb) {
+        this.filterCallback = cb;
+    }
 
-        //라인2: 재고 상태필터
-        add(btnNormal);
-        add(btnLack);
-        add(btnSoldout);
+    public void setSearchAction(Object cb) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setSearchAction'");
     }
 }

@@ -26,41 +26,77 @@ public class OMCenter extends JPanel{
 
         JPanel container = new JPanel();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
-        //검색창
-        JTextField search = new JTextField("메뉴 검색");
+        JTextField search = new JTextField();
+        search.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        search.setAlignmentX(LEFT_ALIGNMENT);
+        search.setBorder(BorderFactory.createTitledBorder("메뉴 검색"));
         container.add(search);
+        container.add(Box.createVerticalStrut(15));  // 여백
 
-        //주문내역 영역
+
         JLabel title = new JLabel("주문내역");
+        title.setAlignmentX(LEFT_ALIGNMENT);
         container.add(title);
+        container.add(Box.createVerticalStrut(5));
 
-        JList<String> orderList = new JList<>(new DefaultListModel<>());
+        DefaultListModel<String> model = new DefaultListModel<>();
+        JList<String> orderList = new JList<>(model);
+
         JScrollPane scrollBar = new JScrollPane(orderList);
+        scrollBar.setAlignmentX(LEFT_ALIGNMENT);
+        scrollBar.setPreferredSize(new Dimension(0, 300)); // 최소 높이
+        scrollBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         container.add(scrollBar);
+        container.add(Box.createVerticalStrut(15));
 
-        //가격(합산)
+
         JLabel totalPrice = new JLabel("가격: 0 원");
+        totalPrice.setAlignmentX(LEFT_ALIGNMENT);
         container.add(totalPrice);
+        container.add(Box.createVerticalStrut(15));
 
-        // 결제수단
-        JPanel payPanel = new JPanel();
+
+        JPanel payPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        payPanel.setAlignmentX(LEFT_ALIGNMENT);
         payPanel.add(new JButton("현금"));
         payPanel.add(new JButton("신용카드"));
         container.add(payPanel);
+        container.add(Box.createVerticalStrut(15));
 
-        // 좌석번호
-        container.add(new JLabel("고객 좌석:"));
+
+        JPanel seatPanel = new JPanel();
+        seatPanel.setLayout(new BoxLayout(seatPanel, BoxLayout.Y_AXIS));
+        seatPanel.setAlignmentX(LEFT_ALIGNMENT);
+        seatPanel.setBorder(BorderFactory.createTitledBorder("고객 좌석"));
+
         JTextField seatField = new JTextField();
-        container.add(seatField);
+        seatField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        seatPanel.add(seatField);
+        container.add(seatPanel);
+        container.add(Box.createVerticalStrut(15));
 
-        // 요청사항
-        container.add(new JLabel("고객 요청:"));
-        JTextField requestField = new JTextField();
-        container.add(requestField);
 
-        // 접수 버튼
+        JPanel reqPanel = new JPanel();
+        reqPanel.setLayout(new BoxLayout(reqPanel, BoxLayout.Y_AXIS));
+        reqPanel.setAlignmentX(LEFT_ALIGNMENT);
+        reqPanel.setBorder(BorderFactory.createTitledBorder("고객 요청"));
+
+        JTextArea requestField = new JTextArea(4, 1);
+        requestField.setLineWrap(true);
+        requestField.setWrapStyleWord(true);
+
+        JScrollPane reqScroll = new JScrollPane(requestField);
+        reqScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        reqPanel.add(reqScroll);
+        container.add(reqPanel);
+        container.add(Box.createVerticalStrut(15));
+
+
         JButton submit = new JButton("접수");
+        submit.setAlignmentX(LEFT_ALIGNMENT);
+        submit.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         container.add(submit);
 
 

@@ -1,38 +1,186 @@
 package client.stock.view;
 
+import dao.StockDAO;
+import dto.IngredientDTO;
+
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.*;
+import java.util.Vector;
 
-public class StockBottom extends JPanel{
+import db.DBConnection;
+
+public class StockBottom extends JPanel {
     private JTable alarmTable;
     private DefaultTableModel alarmModel;
+    private JButton btnAlarm;
+    private JButton btnOutHistory;
+    private JButton btnInHistory;
+    private JButton btnLack;
 
     public StockBottom() {
+        this.setLayout(new BorderLayout());
+        this.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        JPanel topPanel = new JPanel(new FlowLayout(0));
+        btnAlarm = new JButton("알림");
+        btnInHistory = new JButton("입고내역");
+        btnOutHistory = new JButton("출고내역");
+        btnLack = new JButton("부족");
 
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        topPanel.add(btnAlarm);
+        topPanel.add(btnInHistory);
+        topPanel.add(btnOutHistory);
+        topPanel.add(btnLack);
 
-        JPanel table = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton btnAlarm = new JButton("알림");
-        JButton btnOutHistory = new JButton("출고내역");
-        JButton btnLack = new JButton("부족");
+        // 테이블 컬럼에 TYPE 추가 (IN, OUT, ALARM)
+        String[] cols = new String[]{"TYPE", "코드", "이름", "수량", "시간"};
+        this.alarmModel = new DefaultTableModel(cols, 0) {
+            // 생성 이후 TYPE 컬럼이 보이지 않게 할 것
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        this.alarmTable = new JTable(this.alarmModel);
 
-        String[] cols = {"코드", "이름", "카테고리", "현재 재고", "최소 재고", "위치"};
-        alarmModel = new DefaultTableModel(cols, 0);
-        alarmTable = new JTable(alarmModel);
+        // TYPE 컬럼은 숨김 (폭 0)
+        this.alarmTable.getColumnModel().getColumn(0).setMinWidth(0);
+        this.alarmTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        this.alarmTable.getColumnModel().getColumn(0).setWidth(0);
 
-        //예시 데이터(DB 연동시 삭제)
-        alarmModel.addRow(new Object[]{"1004", "치즈(팩)", "토핑", 1, 3, "냉장고"});
-        JScrollPane scrollbar = new JScrollPane(alarmTable);
+        // 커스텀 렌더러로 행 배경색 설정
+        this.alarmTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                Object type = table.getModel().getValueAt(row, 0); // TYPE
+                if (!isSelected) {
+                    if ("IN".equals(type)) {
+                        c.setBackground(new Color(200, 255, 200)); // 연두
+                    } else if ("OUT".equals(type)) {
+                        c.setBackground(new Color(255, 230, 180)); // 주황
+                    } else if ("ALARM".equals(type)) {
+                        c.setBackground(new Color(255, 200, 200)); // 빨강
+                    } else {
+                        c.setBackground(Color.WHITE);
+                    }
+                }
+                return c;
+            }
+        });
 
+        JScrollPane scrollbar = new JScrollPane(this.alarmTable);
+        this.add(topPanel, "North");
+        this.add(scrollbar, "Center");
 
+        // 버튼 리스너
+        btnAlarm.addActionListener(e -> refreshAllRecords());
+        btnInHistory.addActionListener(e -> refreshInRecords());
+        btnOutHistory.addActionListener(e -> refreshOutRecords());
+        btnLack.addActionListener(e -> refreshAlarmRecords());
 
-        table.add(btnAlarm);
-        table.add(btnOutHistory);
-        table.add(btnLack);
+        // 초기 로드
+        refreshAllRecords();
+    }
 
-        add(table, BorderLayout.NORTH);
-        add(scrollbar, BorderLayout.CENTER);
+    // Bottom에 새로운 기록 추가 (UI에서 호출)
+    // type: "IN" or "OUT"
+    public void addRecord(String type, String code, String name, int qty) {
+        // 시간은 현재 시간 문자열로 표기
+        String time = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        this.alarmModel.addRow(new Object[]{type, code, name, qty, time});
+    }
+
+    // DB에서 입출고/부족 기록을 로드하는 함수들
+    public void refreshAllRecords() {
+        // 전체: 입고(in) + 출고(out) + 부족 알람
+        alarmModel.setRowCount(0);
+        loadInRecords();
+        loadOutRecords();
+        loadAlarmRecords();
+    }
+
+    public void refreshInRecords() {
+        alarmModel.setRowCount(0);
+        loadInRecords();
+    }
+
+    public void refreshOutRecords() {
+        alarmModel.setRowCount(0);
+        loadOutRecords();
+    }
+
+    public void refreshAlarmRecords() {
+        alarmModel.setRowCount(0);
+        loadAlarmRecords();
+    }
+
+    private void loadInRecords() {
+        String sql = "SELECT in_id, i_id, in_quantity, in_time FROM stock_in ORDER BY in_time DESC LIMIT 100";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String code = rs.getString("i_id");
+                int qty = rs.getInt("in_quantity");
+                Timestamp t = rs.getTimestamp("in_time");
+                String time = t == null ? "" : t.toString();
+                // 이름을 가져오기 위해 ingredient에서 i_name 조회
+                String name = getIngredientName(code);
+                alarmModel.addRow(new Object[]{"IN", code, name, qty, time});
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadOutRecords() {
+        String sql = "SELECT out_id, i_id, out_quantity, out_time FROM stock_out ORDER BY out_time DESC LIMIT 100";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String code = rs.getString("i_id");
+                int qty = rs.getInt("out_quantity");
+                Timestamp t = rs.getTimestamp("out_time");
+                String time = t == null ? "" : t.toString();
+                String name = getIngredientName(code);
+                alarmModel.addRow(new Object[]{"OUT", code, name, qty, time});
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadAlarmRecords() {
+        String sql = "SELECT i_id, i_name, total_quantity, min_quantity FROM ingredient WHERE total_quantity < min_quantity ORDER BY total_quantity ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String code = rs.getString("i_id");
+                String name = rs.getString("i_name");
+                int qty = rs.getInt("total_quantity");
+                alarmModel.addRow(new Object[]{"ALARM", code, name, qty, ""});
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getIngredientName(String code) {
+        String sql = "SELECT i_name FROM ingredient WHERE i_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getString("i_name");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
