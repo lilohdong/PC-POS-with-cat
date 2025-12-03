@@ -15,10 +15,6 @@ public class OrderMakePanel extends JPanel{
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.PANEL_HEIGHT));
         setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new GridLayout(1, 3));
-        add(mainPanel, BorderLayout.CENTER);
-
-
         int wLeft = (int)(Sizes.PANEL_WIDTH * 0.7);
         int wCenter = (int)(Sizes.PANEL_WIDTH * 0.2);
         int wRight = (int)(Sizes.PANEL_WIDTH * 0.1);
@@ -34,5 +30,9 @@ public class OrderMakePanel extends JPanel{
         OMRight rightPanel = new OMRight();
         rightPanel.setPreferredSize(new Dimension(wRight, Sizes.PANEL_HEIGHT)); 
         rightPanel.setBackground(Color.WHITE);
+
+        add(leftPanel, BorderLayout.WEST);
+        add(centerPanel, BorderLayout.CENTER);
+        add(rightPanel, BorderLayout.EAST);
     }
 }

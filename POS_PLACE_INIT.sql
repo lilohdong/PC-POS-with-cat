@@ -86,10 +86,6 @@ menu(등록되어있는 메뉴의 정보)
 orders(주문)
 order_menu(주문에 있는 메뉴들)
 refund(환불 기록)
-ingredient(재료 정보 - 이 테이블에는 전부 단일 수량으로 표시)
-stock_info(재고 단위별 단일수량 정보 저장 ex:치즈 한 박스 = 치즈50개)
-stock_in(실제 재료 입고 기록 + 수량 정보)
-menu_ingredient(메뉴에 소비되는 재료 정보)
 */
 create table category(
 	c_id varchar(5) primary key,
@@ -150,7 +146,12 @@ create table ingredient_category(
     c_id varchar(5) primary key,
     c_name varchar(20) not null
 );
-
+/*
+ingredient(재료 정보 - 이 테이블에는 전부 단일 수량으로 표시)
+stock_info(재고 단위별 단일수량 정보 저장 ex:치즈 한 박스 = 치즈50개)
+stock_in(실제 재료 입고 기록 + 수량 정보)
+menu_ingredient(메뉴에 소비되는 재료 정보)
+*/
 create table ingredient (
     i_id varchar(5) primary key,
     c_id VARCHAR(5) not null,
@@ -189,6 +190,14 @@ create table stock_in(
 
     foreign key (i_id) references ingredient(i_id),
     foreign key (stock_info_id) references stock_info(stock_info_id)
+);
+
+CREATE TABLE IF NOT EXISTS stock_out (
+    out_id VARCHAR(8) PRIMARY KEY,
+    i_id  VARCHAR(5) NOT NULL,
+    out_quantity INT NOT NULL,
+    out_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (i_id) REFERENCES ingredient(i_id)
 );
 
 create table menu_ingredient (
