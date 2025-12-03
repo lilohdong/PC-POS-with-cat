@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MemberDAO {
-    // 싱글톤 패턴
+    // 싱글톤 패턴 적용
     private static MemberDAO instance;
     public static MemberDAO getInstance(){
         if(instance == null){
@@ -18,7 +18,7 @@ public class MemberDAO {
     }
     private MemberDAO() {}
 
-    // 회원 전체 조회
+    // 회원 전체 조회 (JTable 출력용)
     public List<MemberDTO> getAllMembers() {
         List<MemberDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM member ORDER BY join_date DESC"; // 가입일 역순 정렬 예시
@@ -44,29 +44,41 @@ public class MemberDAO {
         }
         return list;
     }
-
-    // ID로 회원 조회
     public MemberDTO getMemberById(String id) {
-        MemberDTO dto = new MemberDTO();
+        // 1. 여기서 초기화를 null로 할지, 빈 객체로 할지 결정해야 합니다.
+        // 보통은 데이터가 없으면 null을 리턴해서 호출하는 쪽에서 알게 하는 게 좋습니다.
+        MemberDTO dto = null;
+
         String sql = "SELECT * FROM member WHERE m_id = ?";
-        try(Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery()) {
-            if(rs.next()) {
-                dto.setmId(rs.getString("m_id"));
-                dto.setPasswd(rs.getString("passwd"));
-                dto.setName(rs.getString("name"));
-                dto.setBirth(rs.getDate("birth"));
-                dto.setSex(rs.getString("sex"));
-                dto.setRemainTime(rs.getInt("remain_time"));
-                dto.setPhone(rs.getString("phone"));
-                dto.setJoinDate(rs.getTimestamp("join_date"));
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            // [중요] 물음표(?)에 파라미터 바인딩
+            ps.setString(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // 데이터가 있을 때만 객체 생성
+                    dto = new MemberDTO();
+
+                    dto.setmId(rs.getString("m_id"));
+                    dto.setPasswd(rs.getString("passwd"));
+                    dto.setName(rs.getString("name"));
+                    dto.setBirth(rs.getDate("birth"));
+                    dto.setSex(rs.getString("sex"));
+                    dto.setRemainTime(rs.getInt("remain_time"));
+                    dto.setPhone(rs.getString("phone"));
+                    dto.setJoinDate(rs.getTimestamp("join_date"));
+                }
             }
-        } catch (Exception e) {}
-        return dto;
+        } catch (Exception e) {
+            e.printStackTrace(); // 에러 로그를 꼭 확인하세요
+        }
+
+        return dto; // 회원이 없으면 null 반환
     }
 
-    // 이름으로 회원 조회
     public List<MemberDTO> getMembersByName(String name){
         List<MemberDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM member WHERE name LIKE ?";
@@ -90,7 +102,6 @@ public class MemberDAO {
         }
         return list;
     }
-
     // 회원 가입 (INSERT)
     public boolean insertMember(MemberDTO dto) {
         String sql = "INSERT INTO member (m_id, passwd, name, birth, sex, remain_time, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";

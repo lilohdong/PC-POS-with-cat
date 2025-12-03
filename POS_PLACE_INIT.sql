@@ -259,9 +259,11 @@ where (select overall_total from total_daily_minutes) > 0;
 
 CREATE OR REPLACE VIEW statistics_view AS
 SELECT
-    -- 1. 플레이시간 긴 순 -> 이용자 순
+    -- 1. 랭킹: 총 플레이 시간(내림차순) -> 이용자 수(내림차순)
     RANK() OVER (
-        ORDER BY SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP())),COUNT(DISTINCT pl.m_id) DESC) DESC
+        ORDER BY
+            SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP()))) DESC,
+            COUNT(DISTINCT pl.m_id) DESC
         ) AS ranking,
 
     -- 2. 게임 이름
@@ -272,10 +274,10 @@ SELECT
             SUM(TIMESTAMPDIFF(SECOND, pl.start_time, COALESCE(pl.end_time, CURRENT_TIMESTAMP())))
     ) AS total_time_formatted,
 
+    -- 4. 이용자 수
     COUNT(DISTINCT pl.m_id) AS current_users
 
 FROM play_log pl
          JOIN game g ON pl.g_id = g.g_id
-WHERE DATE(pl.start_time) = CURRENT_DATE() -- 오늘 시작한 기록만 대상
-GROUP BY g.title
-ORDER BY ranking;
+WHERE DATE(pl.start_time) = CURRENT_DATE() -- 오늘 날짜 필터링
+GROUP BY g.title;
