@@ -284,7 +284,7 @@ public class StoreController {
 
         boolean success = service.chargeTime(
                 info.getmId(),
-                selectedPlan
+                // selectedPlan
         );
 
         if (success) {
