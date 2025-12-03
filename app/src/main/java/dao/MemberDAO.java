@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MemberDAO {
-    // 싱글톤 패턴 적용
+    // 싱글톤 패턴
     private static MemberDAO instance;
     public static MemberDAO getInstance(){
         if(instance == null){
@@ -18,7 +18,7 @@ public class MemberDAO {
     }
     private MemberDAO() {}
 
-    // 회원 전체 조회 (JTable 출력용)
+    // 회원 전체 조회
     public List<MemberDTO> getAllMembers() {
         List<MemberDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM member ORDER BY join_date DESC"; // 가입일 역순 정렬 예시
@@ -44,6 +44,8 @@ public class MemberDAO {
         }
         return list;
     }
+
+    // ID로 회원 조회
     public MemberDTO getMemberById(String id) {
         MemberDTO dto = new MemberDTO();
         String sql = "SELECT * FROM member WHERE m_id = ?";
@@ -63,6 +65,8 @@ public class MemberDAO {
         } catch (Exception e) {}
         return dto;
     }
+
+    // 이름으로 회원 조회
     public List<MemberDTO> getMembersByName(String name){
         List<MemberDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM member WHERE name LIKE ?";
@@ -86,6 +90,7 @@ public class MemberDAO {
         }
         return list;
     }
+
     // 회원 가입 (INSERT)
     public boolean insertMember(MemberDTO dto) {
         String sql = "INSERT INTO member (m_id, passwd, name, birth, sex, remain_time, phone) VALUES (?, ?, ?, ?, ?, ?, ?)";
