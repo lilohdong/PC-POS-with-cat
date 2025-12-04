@@ -1,5 +1,6 @@
 package client.game;
 
+import font.ClearGodic;
 import service.GameStatisticsService;
 
 import javax.swing.*;
@@ -52,7 +53,7 @@ public class MainGameStatistics extends JPanel {
 
         // 테이블 헤더 스타일
         JTableHeader header = table.getTableHeader();
-        header.setFont(new Font("맑은 고딕", Font.BOLD, 12));
+        header.setFont(new ClearGodic(12));
         header.setBackground(Color.gray);
         header.setPreferredSize(new Dimension(0, 35));
 
