@@ -100,8 +100,9 @@ public class SearchMember extends JPanel implements ActionListener {
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setResizingAllowed(false);
 
-        //컬럼 별 크기 고정(마지막 크기는 남는 공간 가변 길이로 공백)
+        //컬럼 별 크기 고정
         int[] preferredWidths = {100, 100, 130, 130, 60, 60, 170 };
+        int lastIndex = table.getColumnCount() - 1; // 휴대폰 컬럼 index = 7
 
         // 배열의 길이와 컬럼 수 중 작은 값 만큼 반복, i번째 컬럼을 가져와 크기 적용 조건
         for (int i = 0; i < preferredWidths.length && i < table.getColumnModel().getColumnCount(); i++) {
@@ -111,6 +112,14 @@ public class SearchMember extends JPanel implements ActionListener {
             col.setMaxWidth(preferredWidths[i]);       // 컬럼 최대 크기
             col.setResizable(false);                   // 사용자가 컬럼 크기 조절 불가
         }
+
+        // 마지막 컬럼만 가변길이 허용 (휴대폰)
+        TableColumn last = table.getColumnModel().getColumn(lastIndex);
+        last.setMinWidth(150);
+        last.setPreferredWidth(200);          // 기본 크기
+        last.setMaxWidth(Integer.MAX_VALUE);  // 최대 무제한
+        last.setResizable(true);              // 가변 허용
+
 
         // 가운데 정렬
         DefaultTableCellRenderer centerRender = new DefaultTableCellRenderer();

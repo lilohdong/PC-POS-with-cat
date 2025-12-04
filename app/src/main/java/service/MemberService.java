@@ -78,7 +78,6 @@ public class MemberService {
                 dto.getSex(),
                 age,
                 remainTimeStr,
-                dto.getRemainTime(),
                 dto.getPhone()
         };
         tm.addRow(dd);
