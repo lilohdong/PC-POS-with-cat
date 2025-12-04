@@ -15,7 +15,7 @@ public class HandOverFrame extends JFrame {
         this.service = new HandOverService(); // 서비스 초기화
 
         setTitle("인수인계");
-        setSize(800, 832);
+        setSize(900, 832);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());

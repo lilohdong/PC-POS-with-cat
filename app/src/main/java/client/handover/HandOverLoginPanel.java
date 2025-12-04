@@ -92,6 +92,7 @@ public class HandOverLoginPanel extends JPanel implements ActionListener {
     private JPanel createButtonPanel() {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnConfirm = new JButton("확인");
+        btnConfirm.setForeground(Color.WHITE);
         btnConfirm.setBackground(new Color(50, 100, 255));
         btnConfirm.setPreferredSize(new Dimension(80, 35));
 
