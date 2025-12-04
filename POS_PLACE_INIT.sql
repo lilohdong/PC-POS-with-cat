@@ -90,7 +90,7 @@ create table price_plan (
 -- 시간 결제 로그 테이블
 create table time_payment_log (
     log_id int auto_increment primary key,
-    m_id varchar(30) not null,
+    m_id varchar(30),
     plan_id int not null,
     amount int not null,
     pay_time datetime default current_timestamp,
@@ -129,7 +129,7 @@ create table menu(
     created_time datetime default current_timestamp,
     updated_time datetime default current_timestamp,
     
-    c_id varchar(5) not null,
+    c_id varchar(5),
     foreign key(c_id) references category(c_id) on update cascade on delete set null
 );
 
@@ -206,7 +206,7 @@ create table stock_info(
 
 create table stock_in(
     in_id varchar(5) primary key,
-    i_id varchar(5) not null,
+    i_id varchar(5),
     stock_info_id varchar(5) null,
     in_quantity int not null,
     -- 표에 맞줘 추가
@@ -263,7 +263,7 @@ DELIMITER ;
 
 CREATE TABLE stock_out (
     out_id VARCHAR(8) PRIMARY KEY,
-    i_id  VARCHAR(5) NOT NULL,
+    i_id  VARCHAR(5),
     out_quantity INT NOT NULL,
     out_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (i_id) REFERENCES ingredient(i_id) on update cascade on delete set null
@@ -271,8 +271,8 @@ CREATE TABLE stock_out (
 
 create table menu_ingredient (
     menu_ingredient_id varchar(5) primary key,
-    m_id varchar(5) not null,
-    i_id varchar(5) not null,
+    m_id varchar(5),
+    i_id varchar(5),
     required_quantity int not null,
 
     foreign key (m_id) references menu(menu_id) on update cascade on delete set null,
@@ -290,8 +290,8 @@ create table game(
 
 create table play_log(
             log_id varchar(10) primary key,
-            m_id varchar(30) not null,
-            g_id varchar(5) not null,
+            m_id varchar(30),
+            g_id varchar(5),
             seat_no int not null,
             start_time datetime not null,
             end_time datetime,
