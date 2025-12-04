@@ -43,6 +43,7 @@ public class StockSearch extends JPanel {
         // UI 버튼에 내부 리스너 등록 -> 밖에 등록된 콜백 호출
         btnSearch.addActionListener(e -> {
             if (searchCallback != null) {
+                System.out.println("SEARCH CLICK: " + m_name.getText() + "," + category.getSelectedItem());
                 searchCallback.accept(new String[]{m_name.getText(), m_code.getText(), (String) category.getSelectedItem()});
             }
         });

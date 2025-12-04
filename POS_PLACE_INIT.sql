@@ -182,7 +182,6 @@ create table ingredient (
     i_id varchar(5) primary key,
     c_id VARCHAR(5) not null,
     i_name varchar(30) not null,
-    -- 표에 맞춰 추가
     total_quantity int default 0,
     -- 표에 맞춰 추가
     min_quantity int default 0,
@@ -191,7 +190,8 @@ create table ingredient (
     store_location varchar(20),
     updated_time datetime default current_timestamp on update current_timestamp,
 
-    foreign key (c_id) references ingredient_category(c_id)
+    foreign key (c_id) references ingredient_category(c_id),
+    unique key unique_name_category(i_name, c_id)
 );
 
 create table stock_info(
@@ -200,25 +200,68 @@ create table stock_info(
     unit_name varchar(20) not null,
     unit_quantity int not null,
 
-    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null
+    foreign key (i_id) references ingredient(i_id),
+    unique key unique_unit_per_ingredient(i_id, unit_name)
 );
 
 create table stock_in(
     in_id varchar(5) primary key,
     i_id varchar(5) not null,
-    stock_info_id varchar(5) not null,
+    stock_info_id varchar(5) null,
     in_quantity int not null,
     -- 표에 맞줘 추가
     unit_price int not null default 0,
-    unit_quantity int not null, -- 이 부분은 trigger를 통해 stock_info.unit_quantity 가져오기
-    total_added int generated always as (in_quantity * unit_quantity) stored,
+    total_added int not null default 0,
     in_time datetime default current_timestamp,
 
     foreign key (i_id) references ingredient(i_id) on update cascade on delete set null,
     foreign key (stock_info_id) references stock_info(stock_info_id) on update cascade on delete set null
 );
 
-CREATE TABLE IF NOT EXISTS stock_out (
+-- INSERT 전에 total_added 자동 계산하는 트리거
+DELIMITER $$
+CREATE TRIGGER trg_stock_in_before_insert
+    BEFORE INSERT ON stock_in
+    FOR EACH ROW
+BEGIN
+    DECLARE unit_qty INT DEFAULT 1;
+
+    IF NEW.stock_info_id IS NOT NULL THEN
+        SELECT unit_quantity INTO unit_qty
+        FROM stock_info
+        WHERE stock_info_id = NEW.stock_info_id;
+
+        -- 만약 stock_info_id가 잘못됐으면 NULL이 들어가므로 1로 fallback
+        IF unit_qty IS NULL THEN
+            SET unit_qty = 1;
+        END IF;
+    END IF;
+
+    SET NEW.total_added = NEW.in_quantity * unit_qty;
+END$$
+DELIMITER ;
+
+-- UPDATE 시에도 안전하게 (필요하면)
+DELIMITER $$
+CREATE TRIGGER trg_stock_in_before_update
+    BEFORE UPDATE ON stock_in
+    FOR EACH ROW
+BEGIN
+    DECLARE unit_qty INT DEFAULT 1;
+
+    IF NEW.stock_info_id IS NOT NULL THEN
+        SELECT unit_quantity INTO unit_qty
+        FROM stock_info
+        WHERE stock_info_id = NEW.stock_info_id;
+        IF unit_qty IS NULL THEN SET unit_qty = 1; END IF;
+    END IF;
+
+    SET NEW.total_added = NEW.in_quantity * unit_qty;
+END$$
+DELIMITER ;
+
+
+CREATE TABLE stock_out (
     out_id VARCHAR(8) PRIMARY KEY,
     i_id  VARCHAR(5) NOT NULL,
     out_quantity INT NOT NULL,
