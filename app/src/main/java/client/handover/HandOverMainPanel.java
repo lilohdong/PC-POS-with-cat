@@ -33,7 +33,11 @@ public class HandOverMainPanel extends JPanel {
     // 필드명을 UI 용도에 맞게 매칭 (출금, 환불, 인계금액)
     private JTextField withdrawalField, refundField, handoverField;
 
-    // 생성자 파라미터에 Service와 인수자 이름 추가
+    // 매출 값 보관용 (PC / 현금 / 카드)
+    private int pcSalesValue;         // 시간충전 = PC 사용료
+    private int cashProductSales;     // 상품 판매 (현금)
+    private int cardProductSales;     // 상품 판매 (카드)
+
     public HandOverMainPanel(HandOverFrame parent, HandOverService service, String giverName, String receiverName) {
         this.parent = parent;
         this.service = service;
@@ -65,13 +69,11 @@ public class HandOverMainPanel extends JPanel {
         this.prevCashReserve = lastData.getCashReserve(); // 이전 시재가 나의 인수 금액
         this.endTime = Timestamp.valueOf(LocalDateTime.now()); // 현재 시간
 
-        // 영속화된 '금고 금액'을 DB로부터 읽어와서 prevCashReserve로 덮어쓸지 결정
-        // 사용자가 원하면 prevCashReserve를 handover 테이블의 값(마지막 인계금액)으로 유지할 수도 있음.
+        // 금고 금액을 DB로부터 읽어와서 prevCashReserve로 덮어쓸지 결정
         try {
-            int persistedSafe = service.getCashSafe(); // [추가] Service에서 DAO 호출
+            int persistedSafe = service.getCashSafe(); // Service에서 DAO 호출
             if (persistedSafe > 0) {
-                // 실제 운영 환경에서는 정책에 따라 병합/대체 결정 필요
-                this.prevCashReserve = persistedSafe; // [추가] 우선 DB에 저장된 금고값 사용
+                this.prevCashReserve = persistedSafe; // 우선 DB에 저장된 금고값 사용
             }
         } catch (Exception e) {
             // 실패 시 기존값 유지
@@ -107,8 +109,16 @@ public class HandOverMainPanel extends JPanel {
 
     // 문자열 금액 파싱 헬퍼
     private long parseLong(String text) {
-        if(text == null || text.trim().isEmpty()) return 0;
-        return Long.parseLong(text.replaceAll("[^0-9]", ""));
+        // 음수도 제대로 파싱되도록 변경 (업무차액이 -일 수 있음)
+        if (text == null) return 0;
+        String trimmed = text.trim();
+        if (trimmed.isEmpty()) return 0;
+
+        // "원", 콤마, 공백 등 제거하되, 맨 앞의 음수 기호는 살림
+        String cleaned = trimmed.replaceAll("[^0-9\\-]", "");
+        if (cleaned.equals("") || cleaned.equals("-")) return 0;
+
+        return Long.parseLong(cleaned);
     }
 
     // UI 구성
@@ -152,15 +162,17 @@ public class HandOverMainPanel extends JPanel {
         leftPanel.add(Box.createVerticalStrut(30));
 
         // DB에서 매출 데이터 로드
+        // PC / 현금 / 카드 / 합계 분리해서 사용
         Map<String, Integer> sales = service.getSales(startTime, endTime);
-        int cashS = sales.get("cash");
-        int cardS = sales.get("card");
-        int pcS = 0; // PC 사용료 로직 (임시 0)
+        pcSalesValue      = sales.getOrDefault("pc", 0);
+        cashProductSales  = sales.getOrDefault("cash", 0);
+        cardProductSales  = sales.getOrDefault("card", 0);
+        int totalSalesVal = sales.getOrDefault("total", pcSalesValue + cashProductSales + cardProductSales);
 
         leftPanel.add(createHeader("매출"));
-        pcSalesField = new JTextField(df.format(pcS) + " 원");
-        productSalesField = new JTextField(df.format(cashS + cardS) + " 원"); // 상품 총액
-        cashDepositField = new JTextField(df.format(cashS) + " 원"); // 현금 매출
+        pcSalesField = new JTextField(df.format(pcSalesValue) + " 원");
+        productSalesField = new JTextField(df.format(cashProductSales + cardProductSales) + " 원"); // 상품 총액
+        cashDepositField = new JTextField(df.format(cashProductSales) + " 원"); // 현금 매출
 
         leftPanel.add(createFieldRow("PC 사용료", pcSalesField));
         leftPanel.add(createFieldRow("상품 판매액", productSalesField));
@@ -189,8 +201,8 @@ public class HandOverMainPanel extends JPanel {
 
         leftPanel.add(Box.createVerticalStrut(30));
 
-        // 합계
-        totalSalesField = new JTextField(df.format(pcS + cashS + cardS) + " 원");
+        // 합계 (PC + 상품(현금/카드) 전체)
+        totalSalesField = new JTextField(df.format(totalSalesVal) + " 원");
         totalSalesField.setFont(new Font("맑은 고딕", Font.BOLD, 16));
         totalSalesField.setForeground(new Color(50, 100, 255)); // 파란색 강조
         leftPanel.add(createFieldRow("매출 합계", totalSalesField));
@@ -274,24 +286,42 @@ public class HandOverMainPanel extends JPanel {
             dto.setReceiverId(receiverName);
             dto.setStartTime(startTime);
             dto.setEndTime(Timestamp.valueOf(LocalDateTime.now()));
-            dto.setTotalSales((int)parseLong(totalSalesField.getText()));
-            dto.setCashSales((int)parseLong(cashDepositField.getText()));
-            dto.setCardSales(dto.getTotalSales() - dto.getCashSales());
-            dto.setCashReserve((int)parseLong(handoverField.getText())); // 인계 금액 저장
+
+            // PC / 상품(현금/카드) 분리해서 DTO에 정확히 저장
+            int pc   = pcSalesValue;
+            int cash = cashProductSales;
+            int card = cardProductSales;
+
+            dto.setTotalSales(pc + cash + card);   // 매출 합계 (PC + 상품 전체)
+            dto.setCashSales(cash);                // 상품 판매 현금
+            dto.setCardSales(card);                // 상품 판매 카드
+
+            dto.setCashReserve((int)parseLong(handoverField.getText())); // 인계 금액 저장 (실제 금고 금액)
             dto.setMemo("업무차액: " + diffField.getText());
 
-            // 저장 성공 시 금고 금액을 영속화(cash_safe 테이블에 저장)
+            // 저장 성공 시 금고 금액 + 업무차액 누적 업데이트
             if(service.save(dto)) {
-                // DB에 인수인계 기록이 저장되었으므로 현재 실제 금고(인계 금액)를 영속화
                 try {
-                    int newSafe = dto.getCashReserve();
-                    service.updateCashSafe(newSafe);
+                    // 현재 금고 누적 값 (DB)
+                    int previousSafe = service.getCashSafe();
+
+                    // 이번 인수인계 매출 전체
+                    int totalSales = dto.getTotalSales();
+
+                    // 금고 누적 = 기존 + 매출
+                    int newSafe = previousSafe + totalSales;
+
+                    // 업무 차액
+                    int diffDelta = (int)parseLong(diffField.getText());
+
+                    // 금고 + 차액 누적 저장
+                    service.updateCashSafe(newSafe, diffDelta);
+
+                    JOptionPane.showMessageDialog(this, "인수인계가 완료되었습니다.");
+                    parent.dispose();
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
-
-                JOptionPane.showMessageDialog(this, "인수인계가 완료되었습니다.");
-                parent.dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "저장 실패");
             }

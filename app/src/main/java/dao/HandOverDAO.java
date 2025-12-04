@@ -3,6 +3,8 @@ package dao;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import dto.HandOverDTO;
 import db.DBConnection;
@@ -30,31 +32,74 @@ public class HandOverDAO {
     // 매출 집계
     public Map<String, Integer> getSalesData(Timestamp start, Timestamp end) {
         Map<String, Integer> result = new HashMap<>();
-        result.put("cash", 0); result.put("card", 0);
+        result.put("pc", 0);
+        result.put("cash", 0);
+        result.put("card", 0);
+        result.put("total", 0);
 
-        // orders 테이블에서 pay_method에 따라 집계
-        String sql = "SELECT pay_method, SUM(total_price) as total FROM orders " +
-                "WHERE o_time >= ? AND o_time <= ? AND o_status = 'COMPLETED' GROUP BY pay_method";
+        try (Connection conn = DBConnection.getConnection()) {
 
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, start);
-            ps.setTimestamp(2, end);
-            try (ResultSet rs = ps.executeQuery()) {
-                while(rs.next()) {
-                    String method = rs.getString("pay_method");
-                    int val = rs.getInt("total");
-                    // DB에 저장된 ENUM 값에 따라 분기
-                    if ("CREDIT-CARD".equals(method) || "신용카드".equals(method)) {
-                        result.put("card", result.get("card") + val);
-                    } else {
-                        result.put("cash", result.get("cash") + val);
+            // PC 사용료 계산 (amount = 결제 금액)
+            String pcSql =
+                    "SELECT tpl.amount AS paid_amount " +
+                            "FROM time_payment_log tpl " +
+                            "WHERE tpl.pay_time >= ? AND tpl.pay_time <= ?";
+
+            try (PreparedStatement ps = conn.prepareStatement(pcSql)) {
+                ps.setTimestamp(1, start);
+                ps.setTimestamp(2, end);
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    int pcTotal = 0;
+                    while (rs.next()) {
+                        int paidAmount = rs.getInt("paid_amount");
+                        pcTotal += paidAmount;  // 결제 금액 그대로 합산
+                    }
+                    result.put("pc", pcTotal);
+                }
+            }
+
+            // 상품 매출 (CASH / CARD)
+            String prodSql =
+                    "SELECT o.pay_method, SUM(om.total_price) AS total " +
+                            "FROM orders o " +
+                            "JOIN order_menu om ON o.o_id = om.o_id " +
+                            "WHERE o.o_status = 'COMPLETED' " +
+                            "  AND o.o_time >= ? " +
+                            "  AND o.o_time <= ? " +
+                            "GROUP BY o.pay_method";
+
+            try (PreparedStatement ps = conn.prepareStatement(prodSql)) {
+                ps.setTimestamp(1, start);
+                ps.setTimestamp(2, end);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        String method = rs.getString("pay_method");
+                        int val = rs.getInt("total");
+                        if ("CASH".equalsIgnoreCase(method)) {
+                            result.put("cash", val);
+                        } else if ("CARD".equalsIgnoreCase(method)) {
+                            result.put("card", val);
+                        }
                     }
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+
+            // 총 매출 계산
+            int total =
+                    result.get("pc") +
+                            result.get("cash") +
+                            result.get("card");
+
+            result.put("total", total);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return result;
     }
+
 
     // 인수인계 저장
     public boolean insertHandover(HandOverDTO dto) {
@@ -93,21 +138,69 @@ public class HandOverDAO {
     }
 
     public void updateCashSafe(int amount) {
-        String sql = "UPDATE cash_safe SET amount = ? WHERE id = 1";
+        // diff 누적 없이 금고 금액만 바꾸고 싶을 때는 diffDelta=0으로 통일
+        updateCashSafe(amount, 0);
+    }
+
+    // 금고 금액 + 업무 차액(diff) 누적 업데이트
+    public void updateCashSafe(int amount, int diffDelta) {
+        String sql = "UPDATE cash_safe SET amount = ?, diff_accumulate = diff_accumulate + ? WHERE id = 1";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, amount);
+            ps.setInt(2, diffDelta);
             int updated = ps.executeUpdate();
             if (updated == 0) {
                 // 만약 행이 없다면 insert 시도 (안정성)
-                String ins = "INSERT INTO cash_safe(id, amount) VALUES(1, ?)";
+                String ins = "INSERT INTO cash_safe(id, amount, diff_accumulate) VALUES(1, ?, ?)";
                 try (PreparedStatement ps2 = conn.prepareStatement(ins)) {
                     ps2.setInt(1, amount);
+                    ps2.setInt(2, diffDelta);
                     ps2.executeUpdate();
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // 직원 목록 가져오기
+    public List<String> getStaffNames() {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT staff_name FROM staff WHERE is_active = 1";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(rs.getString("staff_name"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    // 직원 비밀번호 검증
+
+    public boolean verifyStaffPassword(String name, String password) {
+        String sql = "SELECT passwd FROM staff WHERE staff_name = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("passwd").equals(password);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

@@ -5,9 +5,11 @@ import dto.HandOverDTO;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 public class HandOverService {
+
     private HandOverDAO dao;
 
     public HandOverService() {
@@ -38,13 +40,25 @@ public class HandOverService {
         return dao.insertHandover(dto);
     }
 
-
     // 금고 조회/갱신
     public int getCashSafe() {
         return dao.getCashSafe();
     }
 
-    public void updateCashSafe(int amount) {
-        dao.updateCashSafe(amount);
+
+    // 금고 금액 + 업무 차액(diff) 누적을 동시에 갱신
+    public void updateCashSafe(int amount, int diffDelta) {
+        dao.updateCashSafe(amount, diffDelta);
+    }
+
+
+    // 직원 목록 불러오기 (콤보박스용)
+    public List<String> getStaffNames() {
+        return dao.getStaffNames();
+    }
+
+    // 직원 비밀번호 검증
+    public boolean checkStaffPassword(String name, String pw) {
+        return dao.verifyStaffPassword(name, pw);
     }
 }

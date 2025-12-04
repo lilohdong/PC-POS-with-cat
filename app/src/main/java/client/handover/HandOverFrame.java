@@ -30,6 +30,10 @@ public class HandOverFrame extends JFrame {
         setVisible(true);
     }
 
+    public HandOverService getService() {
+        return service;
+    }
+
     // 화면 전환 메서드
     public void changeToMain(String giverName,String receiverName) {
         // 기존 센터 패널(로그인) 제거
