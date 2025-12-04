@@ -4,6 +4,7 @@ import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
 import dao.SalesDAO;
 import dto.SalesDTO;
+import font.Gurilm;
 import service.SalesTableService;
 import util.Sizes;
 
@@ -80,8 +81,10 @@ public class SalesTablePanel extends JPanel {
         sp.setBorder(null);
         add(sp);
 
+        // 총 매출 계산 JLabel
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         allSales = new JLabel(); // 한 줄 안에 바로
+        allSales.setFont(new Gurilm(25));
         allSales.setText(SalesTableService.getInstance().calculateTotalSales(tm));
         bottomPanel.add(allSales);
         bottomPanel.setMinimumSize(new Dimension(Sizes.PANEL_WIDTH,100));

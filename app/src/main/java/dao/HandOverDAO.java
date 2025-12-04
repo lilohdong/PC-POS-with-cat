@@ -74,29 +74,6 @@ public class HandOverDAO {
         } catch (Exception e) { e.printStackTrace(); return false; }
     }
 
-    // 마지막 인수자(=다음 인계자) 또는 기본값 반환
-    public String getInitialGiver() {
-        String sql = "SELECT receiver_id FROM handover ORDER BY ho_id DESC LIMIT 1";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            if (rs.next()) {
-                String lastReceiver = rs.getString("receiver_id");
-                if (lastReceiver == null || lastReceiver.trim().isEmpty()) {
-                    return "사장님";
-                }
-                return lastReceiver;
-            } else {
-                // 테이블이 비어있을 때 기본값
-                return "사장님";
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "사장님";
-        }
-    }
 
     // 금고 유지
     public int getCashSafe() {

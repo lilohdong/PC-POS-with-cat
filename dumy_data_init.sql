@@ -40,8 +40,8 @@ BEGIN
     WHILE i <= 100 DO
             INSERT INTO handover (giver_id, receiver_id, start_time, end_time, total_sales, cash_sales, card_sales, cash_reserve, memo)
             VALUES (
-                       CONCAT('member', FLOOR(1 + RAND() * 10)), -- 관리자라고 가정
-                       CONCAT('member', FLOOR(1 + RAND() * 10)),
+                       CONCAT('manager', FLOOR(1 + RAND() * 10)), -- 관리자라고 가정
+                       CONCAT('manager', FLOOR(1 + RAND() * 10)),
                        DATE_ADD('2025-11-20', INTERVAL i * 4 HOUR),
                        DATE_ADD('2025-11-20', INTERVAL (i * 4) + 4 HOUR),
                        FLOOR(RAND() * 500000),
