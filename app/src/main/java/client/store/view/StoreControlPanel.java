@@ -78,7 +78,6 @@ public class StoreControlPanel extends JPanel {
         statusLabel.setText(text);
     }
 
-    // Getter methods for Controller binding
     public JButton getStartBtn() { return startBtn; }
     public JButton getEndBtn() { return endBtn; }
     public JButton getInfoBtn() { return infoBtn; }
