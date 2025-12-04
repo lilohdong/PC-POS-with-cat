@@ -28,6 +28,16 @@ public class MemberService {
     //검색 조건
     public void loadTable(DefaultTableModel tm, String keyword, String type) {
         tm.setRowCount(0); // 기존 데이터 초기화
+
+        if(type.equals("전체검색")) {
+            List<MemberDTO> list = MemberDAO.getInstance().getAllMembers();
+            for(MemberDTO dto : list) {
+                if(dto.getName().contains(keyword) || dto.getmId().contains(keyword)) {
+                    addToModel(tm, dto);
+                }
+            }
+            return;
+        }
         if(type.equals("이름")) {
             List<MemberDTO> list = MemberDAO.getInstance().getMembersByName(keyword);
             for(MemberDTO dto : list) {
@@ -41,6 +51,13 @@ public class MemberService {
         }
     }
 
+    // 잔여시간 형식
+    private String formatRemainTime(int minutes) {
+        int h = minutes / 60;
+        int m = minutes % 60;
+        return String.format("%02d:%02d", h, m);
+    }
+
     // 테이블에 행 추가
     private void addToModel(DefaultTableModel tm, MemberDTO dto) {
         // 나이 계산 (년도)
@@ -51,6 +68,8 @@ public class MemberService {
         // 연령대 계산
         String ageGroup = getAgeGroup(age);
 
+        String remainTimeStr = formatRemainTime(dto.getRemainTime());
+
         Object[] dd = {
                 ageGroup,
                 dto.getName(),
@@ -58,6 +77,7 @@ public class MemberService {
                 dto.getBirth(),
                 dto.getSex(),
                 age,
+                remainTimeStr,
                 dto.getRemainTime(),
                 dto.getPhone()
         };

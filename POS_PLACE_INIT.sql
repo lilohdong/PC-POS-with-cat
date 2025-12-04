@@ -15,6 +15,18 @@ create table member(
     join_date datetime not null default current_timestamp
 );
 
+-- 직원 테이블
+CREATE TABLE staff (
+   staff_id INT auto_increment PRIMARY KEY,
+   staff_name VARCHAR(10) NOT NULL, -- 이름
+   birth DATE NOT NULL, -- 생년월일
+   gender ENUM('남','여') NOT NULL, -- 성별
+   salary INT NOT NULL, -- 월급 (원)
+   hire_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- 입사일
+   is_active BOOLEAN DEFAULT TRUE, -- 재직 여부 (퇴사시 FALSE)
+   phone VARCHAR(20)
+);
+
 -- 인수인계 테이블
 CREATE TABLE handover (
     ho_id INT AUTO_INCREMENT PRIMARY KEY,      -- 인수인계 고유 번호
@@ -82,10 +94,15 @@ create table time_payment_log (
     plan_id int not null,
     amount int not null,
     pay_time datetime default current_timestamp,
-    foreign key (m_id) references member(m_id),
+    foreign key (m_id) references member(m_id) on update cascade on delete set null,
     foreign key (plan_id) references price_plan(plan_id)
 );
-
+-- Sales에서 사용할 time 계산 뷰
+create or replace view time_sales_view as
+    select tpl.log_id as log_id, tpl.m_id as m_id, pp.plan_name,tpl.pay_time as time,tpl.amount as amount, pp.price * tpl.amount as total_price
+    from time_payment_log tpl, price_plan pp
+    where pp.plan_id = tpl.plan_id;
+select * from time_sales_view;
 /*
 조민규: 주문화면, 재고관리 화면 관련 DB 테이블들
 
@@ -113,7 +130,7 @@ create table menu(
     updated_time datetime default current_timestamp,
     
     c_id varchar(5) not null,
-    foreign key(c_id) references category(c_id)
+    foreign key(c_id) references category(c_id) on update cascade on delete set null
 );
 
 create table orders(
@@ -197,8 +214,8 @@ create table stock_in(
     total_added int not null default 0,
     in_time datetime default current_timestamp,
 
-    foreign key (i_id) references ingredient(i_id),
-    foreign key (stock_info_id) references stock_info(stock_info_id)
+    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null,
+    foreign key (stock_info_id) references stock_info(stock_info_id) on update cascade on delete set null
 );
 
 -- INSERT 전에 total_added 자동 계산하는 트리거
@@ -249,7 +266,7 @@ CREATE TABLE stock_out (
     i_id  VARCHAR(5) NOT NULL,
     out_quantity INT NOT NULL,
     out_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (i_id) REFERENCES ingredient(i_id)
+    FOREIGN KEY (i_id) REFERENCES ingredient(i_id) on update cascade on delete set null
 );
 
 create table menu_ingredient (
@@ -258,8 +275,8 @@ create table menu_ingredient (
     i_id varchar(5) not null,
     required_quantity int not null,
 
-    foreign key (m_id) references menu(menu_id),
-    foreign key (i_id) references ingredient(i_id)
+    foreign key (m_id) references menu(menu_id) on update cascade on delete set null,
+    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null
 );
 
 /*
@@ -278,8 +295,8 @@ create table play_log(
             seat_no int not null,
             start_time datetime not null,
             end_time datetime,
-            foreign key(m_id) references member(m_id),
-            foreign key(g_id) references game(g_id)
+            foreign key(m_id) references member(m_id) on update cascade on delete set null,
+            foreign key(g_id) references game(g_id) on update cascade on delete set null
 );
 -- sales에 사용할 뷰
 create view sales_view as

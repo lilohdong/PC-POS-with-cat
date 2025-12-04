@@ -15,14 +15,14 @@ public class HandOverFrame extends JFrame {
         this.service = new HandOverService(); // 서비스 초기화
 
         setTitle("인수인계");
-        setSize(800, 832);
+        setSize(900, 832);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
         // 현재 근무자 정보 가져오기
         // getInitialGiver()는 DAO에서 마지막 receiver_id를 가져오거나 "사장님" 반환
-        this.currentGiver = service.getInitialGiver();
+        this.currentGiver = service.getInitialData().getReceiverId();
 
         // 로그인 패널에 현재 근무자 이름 전달 (한 번만 추가)
         add(new HandOverLoginPanel(this, currentGiver), BorderLayout.CENTER);

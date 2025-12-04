@@ -4,6 +4,7 @@ import client.game.GameMainPanel;
 import client.member.Member;
 import client.order.Order;
 import client.sales.SalesMainPanel;
+import client.staff.view.StaffPanel;
 import client.stock.stock;
 import client.store.view.StorePanel;
 import util.Sizes;
@@ -28,14 +29,14 @@ public class MainUI extends JPanel {
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
         StorePanel storeMainPanel = new StorePanel();
         stock stockMainPanel = new stock();
-
+        StaffPanel staffPanel = new StaffPanel();
         add(storeMainPanel, "STORE");
         add(gameMainPanel, "GAME");
         add(orderMainPanel, "ORDER");
         add(salesMainPanel, "SALES");
         add(memberMainPanel, "MEMBER");
         add(stockMainPanel, "STOCK");
-
+        add(staffPanel, "STAFF");
     }
     public void showUI(String title) {
         cl.show(this,title);

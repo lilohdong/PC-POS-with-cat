@@ -37,8 +37,45 @@ public class SalesTableService {
             tm.addRow(rowData);
         }
     }
+    public void updateTimeTable(List<SalesDTO> salesList, DefaultTableModel tm) {
+        tm.setRowCount(0);
+        if (salesList == null || salesList.isEmpty()) {
+            return;
+        }
+        for (SalesDTO dto : salesList) {
+            Object[] rowData = {
+                    dto.getSalesId(),
+                    dto.getMemberId(),
+                    dto.getSalesDate(),
+                    dto.getSalesTime(),
+                    dto.getProduct(), // setProduct(rs.getString("p_name"))로 설정된 값
+                    dto.getPrice()
+            };
+            // 모델에 행 추가
+            tm.addRow(rowData);
+        }
+    }
+    public void initTimeMenuTable(DefaultTableModel tm) {
+        tm.setRowCount(0);
+        SalesDAO dao = SalesDAO.getInstance();
+        List<SalesDTO> list = dao.getTimeSalesListAll();
 
-    public void initTable(DefaultTableModel tm) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        for (SalesDTO dto : list) {
+            Object[] rowData = {
+                    dto.getSalesId(),
+                    dto.getMemberId(),
+                    dto.getSalesDate(),
+                    dto.getSalesTime(),
+                    dto.getProduct(),
+                    dto.getPrice()
+            };
+            tm.addRow(rowData);
+        }
+    }
+    public void initSalesMenuTable(DefaultTableModel tm) {
         tm.setRowCount(0);
         SalesDAO dao = SalesDAO.getInstance();
         List<SalesDTO> list = dao.getSalesListAll();
@@ -63,7 +100,7 @@ public class SalesTableService {
     public String calculateTotalSales(DefaultTableModel tm) {
         int sum = 0;
         for(int i = 0; i < tm.getRowCount(); i++) {
-            sum += (Integer)tm.getValueAt(i, 6);
+            sum += (Integer)tm.getValueAt(i, tm.getColumnCount()-1);
         }
         NumberFormat numberFormat = NumberFormat.getInstance(Locale.KOREA);
         return "기간 매출액 : "+numberFormat.format(sum);

@@ -38,10 +38,6 @@ public class HandOverService {
         return dao.insertHandover(dto);
     }
 
-    // 다음 실행에 사용할 인계자(마지막 인수자) 또는 기본값 반환
-    public String getInitialGiver() {
-        return dao.getInitialGiver();
-    }
 
     // 금고 조회/갱신
     public int getCashSafe() {
