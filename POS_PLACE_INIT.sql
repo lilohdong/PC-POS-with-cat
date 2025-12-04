@@ -94,7 +94,7 @@ create table time_payment_log (
     plan_id int not null,
     amount int not null,
     pay_time datetime default current_timestamp,
-    foreign key (m_id) references member(m_id),
+    foreign key (m_id) references member(m_id) on update cascade on delete set null,
     foreign key (plan_id) references price_plan(plan_id)
 );
 -- Sales에서 사용할 time 계산 뷰
@@ -130,7 +130,7 @@ create table menu(
     updated_time datetime default current_timestamp,
     
     c_id varchar(5) not null,
-    foreign key(c_id) references category(c_id)
+    foreign key(c_id) references category(c_id) on update cascade on delete set null
 );
 
 create table orders(
@@ -200,7 +200,7 @@ create table stock_info(
     unit_name varchar(20) not null,
     unit_quantity int not null,
 
-    foreign key (i_id) references ingredient(i_id)
+    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null
 );
 
 create table stock_in(
@@ -214,8 +214,8 @@ create table stock_in(
     total_added int generated always as (in_quantity * unit_quantity) stored,
     in_time datetime default current_timestamp,
 
-    foreign key (i_id) references ingredient(i_id),
-    foreign key (stock_info_id) references stock_info(stock_info_id)
+    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null,
+    foreign key (stock_info_id) references stock_info(stock_info_id) on update cascade on delete set null
 );
 
 CREATE TABLE IF NOT EXISTS stock_out (
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS stock_out (
     i_id  VARCHAR(5) NOT NULL,
     out_quantity INT NOT NULL,
     out_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (i_id) REFERENCES ingredient(i_id)
+    FOREIGN KEY (i_id) REFERENCES ingredient(i_id) on update cascade on delete set null
 );
 
 create table menu_ingredient (
@@ -232,8 +232,8 @@ create table menu_ingredient (
     i_id varchar(5) not null,
     required_quantity int not null,
 
-    foreign key (m_id) references menu(menu_id),
-    foreign key (i_id) references ingredient(i_id)
+    foreign key (m_id) references menu(menu_id) on update cascade on delete set null,
+    foreign key (i_id) references ingredient(i_id) on update cascade on delete set null
 );
 
 /*
@@ -252,8 +252,8 @@ create table play_log(
             seat_no int not null,
             start_time datetime not null,
             end_time datetime,
-            foreign key(m_id) references member(m_id),
-            foreign key(g_id) references game(g_id)
+            foreign key(m_id) references member(m_id) on update cascade on delete set null,
+            foreign key(g_id) references game(g_id) on update cascade on delete set null
 );
 -- sales에 사용할 뷰
 create view sales_view as
