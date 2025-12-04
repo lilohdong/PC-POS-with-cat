@@ -116,7 +116,7 @@ public class AdminLoginFrame extends JFrame implements ActionListener {
             return;
         }
         try {
-            AdminLoginCheck.check(idField.getText(), new String(pwField.getPassword()));
+            AdminLoginCheck.getInstance().check(idField.getText(), new String(pwField.getPassword()));
             JOptionPane.showMessageDialog(this,
                     "환영합니다 " + idField.getText() + "님",
                     "환영합니다.", JOptionPane.INFORMATION_MESSAGE);
