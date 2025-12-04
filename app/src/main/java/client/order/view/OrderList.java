@@ -1,11 +1,12 @@
 package client.order.view;
 
 import client.order.controller.OrderController;
-import client.order.model.OrderData;
+//import client.order.model.OrderData; OrderData 삭제됨
 import util.Sizes;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.List;
 
 /*
@@ -35,10 +36,10 @@ public class OrderList extends JPanel {
     }
 
     //모드에 따라 적절한 OrderData객체(주문 정보)를 표시
-    public void displayOrders(List<OrderData> cookingList, List<OrderData> doneList) {
+    public void displayOrdersString(List<String> cookingList, List<String> doneList) {
         listAreaPanel.removeAll();  //목록 초기화
 
-        List<OrderData> targetList;
+        List<String> targetList;
         //모드에 따라 표시할 목록 결정하는 조건
         if (currentMode == COOKING_MODE) {
             targetList = cookingList;            
@@ -48,9 +49,8 @@ public class OrderList extends JPanel {
 
         /*
         목록의 각 주문 데이터를 패널(UI)로 변환해서 추가
-        targetlist가 null일 가능성을 위해 안전하게 처리
         */
-        for (OrderData od : targetList) {
+        for (String od : targetList) {
             listAreaPanel.add(createOrderPanel(od));
         }
 
@@ -64,19 +64,27 @@ public class OrderList extends JPanel {
     }
 
     //주문을 화면에 표시하는 패널 생성(단일)
-    private JPanel createOrderPanel(OrderData order) {
+    private JPanel createOrderPanel(String order) {
         JPanel menu = new JPanel();
         menu.setLayout(new GridLayout(0, 1));   //새로로 정보나열
         menu.setBorder(BorderFactory.createLineBorder(Color.GRAY));
 
-        menu.add(new JLabel("좌석: " + order.seatNum));
-        menu.add(new JLabel("주문시간: " + order.orderTime));
-        menu.add(new JLabel("경과시간: " + order.getCookingTime() + "분"));
-        menu.add(new JLabel("주문내역: " + order.item));
+        String[] details = order.split(", ");
+        for (String detail : details) {
+            if (detail.startsWith("완료시간:")){
+                continue;
+            } else if (detail.startsWith("시간:")) {
+                menu.add(new JLabel("주문" + detail));
+            } else {
+               menu.add(new JLabel(detail));
+            }
+        }
 
+        menu.add(new JLabel("경과시간: ?분(DB 구현 시 사용)"));
 
         JButton finishBtn = new JButton("준비완료");
         JButton cancelBtn = new JButton("취소");
+
         if (currentMode == COOKING_MODE) {
             //조리중 목록: 조리완료 버튼 표시
             finishBtn.addActionListener(e -> {
@@ -90,8 +98,14 @@ public class OrderList extends JPanel {
                 OrderController.removeOrder(order);
             });
             menu.add(cancelBtn);
-            menu.add(new JLabel("완료시간: " + order.completeTime));
-            menu.add(new JLabel("걸린시간: " + order.getFinishCookingTime() + "분"));
+
+            String completeTime = Arrays.stream(details)
+                            .filter(d -> d.startsWith("완료시간:"))
+                                    .findFirst()
+                                            .orElse("완료시간: ?(DB)");
+            menu.add(new JLabel(completeTime));
+
+            menu.add(new JLabel("걸린시간: ?분(DB)"));
         }
 
         return menu;
