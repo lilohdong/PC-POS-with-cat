@@ -86,6 +86,11 @@ create table time_payment_log (
     foreign key (plan_id) references price_plan(plan_id)
 );
 
+create or replace view time_sales_view as
+    select tpl.log_id as log_id, tpl.m_id as m_id, pp.plan_name,tpl.pay_time as time,tpl.amount as amount, pp.price * tpl.amount as total_price
+    from time_payment_log tpl, price_plan pp
+    where pp.plan_id = tpl.plan_id;
+select * from time_sales_view;
 /*
 조민규: 주문화면, 재고관리 화면 관련 DB 테이블들
 
