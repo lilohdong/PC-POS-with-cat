@@ -7,6 +7,7 @@ import client.stock.view.StockSearch;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.Arrays;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
@@ -42,6 +43,7 @@ public class stock extends JPanel {
             }
 
             s_list.performSearch(name, code, category);
+            System.out.println("performSearch called: " + Arrays.toString(arr));
         });
 
         // 필터 액션은 Consumer<String> 이므로 기존 방식 유지

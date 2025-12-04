@@ -206,103 +206,80 @@ WHERE o.o_id <= '00020'; -- 앞쪽 20개 주문에 대해 환불 처리 (예시)
 UPDATE orders SET o_status = 'REFUNDED' WHERE o_id <= '00020';
 
 
--- 9. Ingredient_Category (재료 카테고리) 데이터 (5개)
+-- DML 데이터 삽입
 INSERT INTO ingredient_category (c_id, c_name) VALUES
-                                                   ('IC001', '육류'), ('IC002', '채소'), ('IC003', '소스'), ('IC004', '음료베이스'), ('IC005', '기타');
+                                                   ('C001', '면류'),
+                                                   ('C002', '밥/곡물'),
+                                                   ('C003', '육류/해산물'),
+                                                   ('C004', '채소/과일'),
+                                                   ('C005', '유제품/소스'),
+                                                   ('C006', '음료/액상'),
+                                                   ('C007', '스낵/과자'),
+                                                   ('C008', '조미료/양념'),
+                                                   ('C009', '기타 잡화');
+
+INSERT INTO ingredient (i_id, c_id, i_name, total_quantity, min_quantity, is_out, store_location) VALUES
+                                                                                                      ('I001', 'C001', '신라면', 150, 50, FALSE, '창고A-선반1'),
+                                                                                                      ('I002', 'C002', '냉동볶음밥(새우)', 80, 30, FALSE, '냉동고B-칸2'),
+                                                                                                      ('I003', 'C003', '돼지고기(대패)', 45, 10, FALSE, '냉동고A-칸1'),
+                                                                                                      ('I004', 'C005', '모짜렐라치즈', 20, 5, FALSE, '냉장고C-칸3'),
+                                                                                                      ('I005', 'C006', '콜라(캔 355ml)', 300, 100, FALSE, '창고A-선반4'),
+                                                                                                      ('I006', 'C004', '양파', 10, 5, FALSE, '야채실'),
+                                                                                                      ('I007', 'C007', '포카칩(양파맛)', 60, 20, FALSE, '매대-스낵'),
+                                                                                                      ('I008', 'C002', '흰 쌀밥(즉석밥)', 200, 50, FALSE, '창고A-선반2'),
+                                                                                                      ('I009', 'C006', '아이스티(분말)', 120, 40, FALSE, '창고A-선반5'),
+                                                                                                      ('I010', 'C008', '간장', 5, 1, FALSE, '주방-선반1'),
+                                                                                                      ('I011', 'C009', '일회용 젓가락', 1000, 200, FALSE, '창고B-잡화'),
+                                                                                                      ('I012', 'C001', '우동면', 50, 15, FALSE, '냉장고A-칸1'),
+                                                                                                      ('I013', 'C003', '비엔나 소시지', 90, 20, FALSE, '냉장고B-칸2');
+
+INSERT INTO stock_info (stock_info_id, i_id, unit_name, unit_quantity) VALUES
+                                                                           ('S001', 'I001', '박스(40개)', 40),
+                                                                           ('S002', 'I002', '봉지(10팩)', 10),
+                                                                           ('S003', 'I003', '박스(1kg/5팩)', 5),
+                                                                           ('S004', 'I004', '봉지(1kg)', 1), -- 치즈 1kg 봉지 = 단일 수량 1 (단위 환산 없음)
+                                                                           ('S005', 'I005', '캔 박스(30개)', 30),
+                                                                           ('S006', 'I006', '망(10개)', 10),
+                                                                           ('S007', 'I007', '박스(20개)', 20),
+                                                                           ('S008', 'I008', '박스(24개)', 24),
+                                                                           ('S009', 'I009', '봉지(1kg/60인분)', 60),
+                                                                           ('S010', 'I010', '통(1.8L)', 1), -- 간장은 1통이 단일 수량 1 (단위 환산 없음)
+                                                                           ('S011', 'I011', '박스(500쌍)', 500),
+                                                                           ('S012', 'I012', '팩(10개)', 10),
+                                                                           ('S013', 'I013', '팩(10개)', 10);
 
 
--- 10. Ingredient (재료) 데이터 (100개)
-DELIMITER $$
-CREATE PROCEDURE InsertIngredients()
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    WHILE i <= 100 DO
-            INSERT INTO ingredient (i_id, c_id, i_name, total_quantity, min_quantity, is_out, store_location)
-            VALUES (
-                       LPAD(i, 5, '0'),
-                       CONCAT('IC00', FLOOR(1 + RAND() * 5)),
-                       CONCAT('재료_', i),
-                       FLOOR(RAND() * 500),
-                       10,
-                       FALSE,
-                       CONCAT('창고_', CHAR(65 + FLOOR(RAND() * 5)))
-                   );
-            SET i = i + 1;
-        END WHILE;
-END$$
-DELIMITER ;
-CALL InsertIngredients();
-DROP PROCEDURE InsertIngredients;
+-- in_time은 current_timestamp로 자동 설정됩니다.
+-- total_added는 트리거에 의해 in_quantity * unit_quantity로 계산됩니다.
 
+INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES
+                                                                               ('IN001', 'I001', 'S001', 3, 20000), -- 신라면 3박스 (3 * 40 = 120개 추가)
+                                                                               ('IN002', 'I005', 'S005', 5, 15000), -- 콜라 5박스 (5 * 30 = 150개 추가)
+                                                                               ('IN003', 'I002', 'S002', 4, 18000), -- 볶음밥 4봉지 (4 * 10 = 40개 추가)
+                                                                               ('IN004', 'I004', 'S004', 20, 7000), -- 치즈 20봉지 (20 * 1 = 20개 추가)
+                                                                               ('IN005', 'I007', 'S007', 3, 12000), -- 포카칩 3박스 (3 * 20 = 60개 추가)
+                                                                               ('IN006', 'I006', 'S006', 1, 8000), -- 양파 1망 (1 * 10 = 10개 추가)
+                                                                               ('IN007', 'I003', 'S003', 9, 25000), -- 대패삼겹 9박스 (9 * 5 = 45개 추가)
+                                                                                ('IN008', 'I008', 'S008', 5, 28000),  -- 즉석밥 5박스 (5 * 24 = 120개 추가)
+                                                                                ('IN009', 'I009', 'S009', 2, 22000),  -- 아이스티 분말 2봉지 (2 * 60 = 120인분 추가)
+                                                                                ('IN010', 'I011', 'S011', 2, 18000),  -- 젓가락 2박스 (2 * 500 = 1000쌍 추가)
+                                                                                ('IN011', 'I013', 'S013', 8, 15000),  -- 소시지 8팩 (8 * 10 = 80개 추가)
+                                                                                ('IN012', 'I010', 'S010', 1, 9000);   -- 간장 1통 (1 * 1 = 1개 추가)
 
--- 11. Stock_Info (재료 단위 정보) 데이터 (100개)
--- 재료 1:1 매핑
-DELIMITER $$
-CREATE PROCEDURE InsertStockInfo()
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    WHILE i <= 100 DO
-            INSERT INTO stock_info (stock_info_id, i_id, unit_name, unit_quantity)
-            VALUES (
-                       LPAD(i, 5, '0'),
-                       LPAD(i, 5, '0'),
-                       'BOX',
-                       FLOOR(10 + RAND() * 50) -- 한 박스당 10~60개
-                   );
-            SET i = i + 1;
-        END WHILE;
-END$$
-DELIMITER ;
-CALL InsertStockInfo();
-DROP PROCEDURE InsertStockInfo;
+-- out_time은 current_timestamp로 자동 설정됩니다.
 
-
--- 12. Stock_In (입고) 데이터 (100개)
-DELIMITER $$
-CREATE PROCEDURE InsertStockIn()
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    DECLARE u_qty INT;
-    WHILE i <= 100 DO
-            SELECT unit_quantity INTO u_qty FROM stock_info WHERE stock_info_id = LPAD(i, 5, '0');
-
-            INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price, unit_quantity)
-            VALUES (
-                       LPAD(i, 5, '0'),
-                       LPAD(i, 5, '0'),
-                       LPAD(i, 5, '0'),
-                       FLOOR(1 + RAND() * 10), -- 1~10 박스 입고
-                       FLOOR(5000 + RAND() * 20000), -- 단가
-                       u_qty
-                   );
-            SET i = i + 1;
-        END WHILE;
-END$$
-DELIMITER ;
-CALL InsertStockIn();
-DROP PROCEDURE InsertStockIn;
-
-
+INSERT INTO stock_out (out_id, i_id, out_quantity) VALUES
+                                                       ('OUT001', 'I001', 5),  -- 신라면 5개 소비
+                                                       ('OUT002', 'I005', 10), -- 콜라 10개 소비
+                                                       ('OUT003', 'I002', 3),  -- 볶음밥 3개 소비
+                                                       ('OUT004', 'I004', 1),  -- 치즈 1개 소비
+                                                       ('OUT005', 'I003', 2),  -- 대패삼겹 2개 소비
+                                                        ('OUT006', 'I008', 15),  -- 흰 쌀밥 15개 소비
+                                                        ('OUT007', 'I009', 20),  -- 아이스티 20인분 소비
+                                                        ('OUT008', 'I011', 50),  -- 젓가락 50쌍 소비
+                                                        ('OUT009', 'I013', 5),   -- 비엔나 소시지 5개 소비
+                                                        ('OUT010', 'I012', 3);   -- 우동면 3개 소비
 -- 13. Menu_Ingredient (메뉴 레시피) 데이터 (100개)
--- 메뉴와 재료 랜덤 매핑
-DELIMITER $$
-CREATE PROCEDURE InsertMenuIngredient()
-BEGIN
-    DECLARE i INT DEFAULT 1;
-    WHILE i <= 100 DO
-            INSERT INTO menu_ingredient (menu_ingredient_id, m_id, i_id, required_quantity)
-            VALUES (
-                       LPAD(i, 5, '0'),
-                       LPAD(FLOOR(1 + RAND() * 100), 5, '0'), -- 랜덤 메뉴
-                       LPAD(FLOOR(1 + RAND() * 100), 5, '0'), -- 랜덤 재료
-                       FLOOR(1 + RAND() * 5)
-                   );
-            SET i = i + 1;
-        END WHILE;
-END$$
-DELIMITER ;
-CALL InsertMenuIngredient();
-DROP PROCEDURE InsertMenuIngredient;
 
 
 -- 14. Game (게임) 데이터 (20개)
