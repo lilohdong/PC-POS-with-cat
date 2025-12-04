@@ -2,9 +2,10 @@ package client.order.controller;
 
 //import client.order.model.OrderData;
 import client.order.view.OrderList;
+import dao.OrderDAO;
+import dto.MenuDTO;
+import dto.OrderDataDTO;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -17,54 +18,60 @@ import java.util.List;
 OrderList UI 패널 업데이트 호출 기능
 */
 public class OrderController {
-    public static List<String> cookingList = new ArrayList<>();  //조리중 목옥
-    public static List<String> doneList = new ArrayList<>();     //조리완료 목록
-
-    //UI 갱신: OrderList 패널 참조
     public static OrderList listPanel;
+    private static OrderDAO orderDAO = new OrderDAO();
 
     //화면의 OrderList 패널 연결
     public static void init(OrderList panel) {
         listPanel = panel;
-        //테스트용 임시 Data
-        String nowTime = LocalDateTime.now().toString().substring(11, 16);
-        String before5Min =  LocalDateTime.now().minusMinutes(5).toString().substring(11, 16);
-        cookingList.add("좌석: 101, 주문내역: 라면, 시간: " + before5Min);
-        cookingList.add("좌석: 102, 주문내역: 라면, 시간: " + nowTime);
-
-        //초기화면 호출
         changeMode(OrderList.COOKING_MODE);
     }
 
     //모드 전환 + UI갱신
     public static void changeMode(int mode) {
         listPanel.setMode(mode);
-        listPanel.displayOrdersString(cookingList, doneList);
+
+        String status = (mode == OrderList.COOKING_MODE) ? "PREPARING" : "COMPLETED";
+        List<OrderDataDTO> orders = orderDAO.getOrdersByStatus(status);
+
+        listPanel.displayOrdersDTO(orders);
     }
 
     //새로운 주문을 조리중 목록에 추가 + 화면 갱신
-    public static void addNewOrder(String orderInfo) {
-        cookingList.add(orderInfo);
-        listPanel.displayOrdersString(cookingList, doneList);
+    public static String addNewOrder(OrderDataDTO orderDTO, List<MenuDTO> selectedMenus, List<Integer> quantities) {
+        String newOId = orderDAO.insertNewOrder(orderDTO, selectedMenus, quantities);
+
+        if (newOId != null) {
+            changeMode(OrderList.COOKING_MODE);
+            // 성공 시 주문 ID 반환
+            return newOId;
+        }
+        // 실패 시 null 반환
+        return null;
     }
 
     //조리중 -> 조리완료 이동
-    public static void markAsDone(String orderInfo) {
-        cookingList.remove(orderInfo);
-        //완료시간 임시 추가
-        String[] parts = orderInfo.split(", 시간: ");
-        String baseInfo = parts[0];
-        String orderTime = parts.length > 1 ? parts[1] : "?";
+    public static void markAsDone(String oId) {
+        orderDAO.updateOrderStatus(oId, "COMPLETED");
 
-        String doneInfo = baseInfo + ", 완료시간: " + LocalDateTime.now().toString().substring(11, 16) + ", 시간: " + orderTime;
-        doneList.add(doneInfo);
-
-        listPanel.displayOrdersString(cookingList, doneList);
+        // [수정] ListPanel 대신 OrderController의 listPanel 정적 변수를 사용하여 현재 모드 가져옴
+        changeMode(listPanel.getCurrentMode());
     }
 
-    //조리완료 목록에서 주문 제거(취소 처리)
-    public static void removeOrder(String orderInfo) {
-        doneList.remove(orderInfo);
-        listPanel.displayOrdersString(cookingList, doneList);
+    // 주문 취소/환불 처리 (요청 4, 5번)
+    public static void processCancel(OrderDataDTO orderDTO) {
+        // orders 테이블의 o_status를 'CANCELED' 또는 'REFUNDED'로 변경하고 sales 차감
+        // 이미 완료된 주문(COMPLETED)은 환불 프로세스, 조리중 주문(PREPARING)은 취소 프로세스라고 가정
+
+        // 현재는 'REFUNDED'로 통합 처리하고 Sales 테이블 차감 로직 사용
+        orderDAO.processRefund(orderDTO);
+
+        // 주문 목록 UI 갱신 (현재 모드 유지하며 갱신)
+        changeMode(listPanel.getCurrentMode());
+    }
+
+    // 주문 상세 내역 조회
+    public static String getOrderDetails(String oId) {
+        return orderDAO.getOrderDetails(oId);
     }
 }

@@ -4,6 +4,8 @@ import javax.swing.*;
 
 
 public class OrderMakeFrame extends JFrame{
+    private OrderMakePanel orderMakePanel;
+
     public OrderMakeFrame() {
 
         setTitle("주문하기");
@@ -11,8 +13,13 @@ public class OrderMakeFrame extends JFrame{
         setLocationRelativeTo(null);
         setResizable(false);
 
+        orderMakePanel = new OrderMakePanel();
         add(new OrderMakePanel());
 
         setVisible(true);
+    }
+
+    public OrderMakePanel getOrderMakePanel() {
+        return orderMakePanel;
     }
 }

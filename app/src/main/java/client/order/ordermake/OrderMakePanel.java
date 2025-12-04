@@ -6,7 +6,11 @@ import javax.swing.*;
 import java.awt.*;
 
 public class OrderMakePanel extends JPanel{
-    
+
+    private OMLeft leftPanel;
+    private OMCenter centerPanel;
+    private OMRight rightPanel;
+
     public OrderMakePanel(){
         initUI();
     }
@@ -34,5 +38,9 @@ public class OrderMakePanel extends JPanel{
         add(leftPanel, BorderLayout.WEST);
         add(centerPanel, BorderLayout.CENTER);
         add(rightPanel, BorderLayout.EAST);
+    }
+
+    public OMCenter getCenterPanel() {
+        return centerPanel;
     }
 }
