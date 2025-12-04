@@ -1,7 +1,7 @@
 package client.staff.view;
 
-import dao.MemberDAO;
-import dto.MemberDTO;
+import dao.StaffDAO;
+import dto.StaffDTO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -10,15 +10,17 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 public class StaffPanel extends JPanel {
-    private MemberDAO memberDAO;
+    private StaffDAO staffDAO;
 
     // 탭 버튼
-    private JButton memberInfoBtn;
-    private JButton routeManageBtn;
+    private JButton staffInfoBtn;
+    private JButton attendanceBtn;
 
     // 검색 패널
     private JTextField searchField;
@@ -26,20 +28,23 @@ public class StaffPanel extends JPanel {
 
     // 테이블
     private DefaultTableModel tableModel;
-    private JTable memberTable;
+    private JTable staffTable;
 
     // 하단 버튼
     private JButton addBtn;
     private JButton editBtn;
     private JButton deleteBtn;
 
+    // 현재 로드된 직원 목록 (테이블 행과 매핑용)
+    private List<StaffDTO> currentStaffList;
+
     public StaffPanel() {
-        memberDAO = MemberDAO.getInstance();
+        staffDAO = StaffDAO.getInstance();
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
 
         initComponents();
-        loadMemberData();
+        loadStaffData();
     }
 
     private void initComponents() {
@@ -57,14 +62,14 @@ public class StaffPanel extends JPanel {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
-        memberInfoBtn = createTabButton("직원 정보", true);
-        routeManageBtn = createTabButton("근태 관리", false);
+        staffInfoBtn = createTabButton("직원 정보", true);
+        attendanceBtn = createTabButton("근태 관리", false);
 
-        memberInfoBtn.addActionListener(e -> selectTab(true));
-        routeManageBtn.addActionListener(e -> selectTab(false));
+        staffInfoBtn.addActionListener(e -> selectTab(true));
+        attendanceBtn.addActionListener(e -> selectTab(false));
 
-        panel.add(memberInfoBtn);
-        panel.add(routeManageBtn);
+        panel.add(staffInfoBtn);
+        panel.add(attendanceBtn);
 
         return panel;
     }
@@ -90,23 +95,23 @@ public class StaffPanel extends JPanel {
         return button;
     }
 
-    private void selectTab(boolean isMemberInfo) {
-        if (isMemberInfo) {
-            memberInfoBtn.setBackground(Color.WHITE);
-            memberInfoBtn.setForeground(Color.BLACK);
-            memberInfoBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(70, 130, 255)));
+    private void selectTab(boolean isStaffInfo) {
+        if (isStaffInfo) {
+            staffInfoBtn.setBackground(Color.WHITE);
+            staffInfoBtn.setForeground(Color.BLACK);
+            staffInfoBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(70, 130, 255)));
 
-            routeManageBtn.setBackground(new Color(245, 245, 245));
-            routeManageBtn.setForeground(Color.GRAY);
-            routeManageBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+            attendanceBtn.setBackground(new Color(245, 245, 245));
+            attendanceBtn.setForeground(Color.GRAY);
+            attendanceBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
         } else {
-            routeManageBtn.setBackground(Color.WHITE);
-            routeManageBtn.setForeground(Color.BLACK);
-            routeManageBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(70, 130, 255)));
+            attendanceBtn.setBackground(Color.WHITE);
+            attendanceBtn.setForeground(Color.BLACK);
+            attendanceBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(70, 130, 255)));
 
-            memberInfoBtn.setBackground(new Color(245, 245, 245));
-            memberInfoBtn.setForeground(Color.GRAY);
-            memberInfoBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+            staffInfoBtn.setBackground(new Color(245, 245, 245));
+            staffInfoBtn.setForeground(Color.GRAY);
+            staffInfoBtn.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
             JOptionPane.showMessageDialog(this, "근태 관리 기능은 준비 중입니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -169,10 +174,10 @@ public class StaffPanel extends JPanel {
         searchBtn.setBorderPainted(false);
         searchBtn.setBackground(Color.WHITE);
         searchBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        searchBtn.addActionListener(e -> searchMember());
+        searchBtn.addActionListener(e -> searchStaff());
 
         // Enter 키로도 검색 가능
-        searchField.addActionListener(e -> searchMember());
+        searchField.addActionListener(e -> searchStaff());
 
         panel.add(searchField);
         panel.add(searchBtn);
@@ -184,8 +189,8 @@ public class StaffPanel extends JPanel {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
 
-        // 테이블 모델 생성
-        String[] columnNames = {"이름", "생년월일", "시급", "고용일"};
+        // 테이블 모델 생성 - Staff 테이블 구조에 맞춤
+        String[] columnNames = {"이름", "생년월일", "월급", "고용일"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -193,17 +198,17 @@ public class StaffPanel extends JPanel {
             }
         };
 
-        memberTable = new JTable(tableModel);
-        memberTable.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
-        memberTable.setRowHeight(45);
-        memberTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        memberTable.setShowVerticalLines(false);
-        memberTable.setGridColor(new Color(240, 240, 240));
-        memberTable.setSelectionBackground(new Color(230, 240, 255));
-        memberTable.setSelectionForeground(Color.BLACK);
+        staffTable = new JTable(tableModel);
+        staffTable.setFont(new Font("맑은 고딕", Font.PLAIN, 13));
+        staffTable.setRowHeight(45);
+        staffTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        staffTable.setShowVerticalLines(false);
+        staffTable.setGridColor(new Color(240, 240, 240));
+        staffTable.setSelectionBackground(new Color(230, 240, 255));
+        staffTable.setSelectionForeground(Color.BLACK);
 
         // 헤더 스타일
-        JTableHeader header = memberTable.getTableHeader();
+        JTableHeader header = staffTable.getTableHeader();
         header.setFont(new Font("맑은 고딕", Font.BOLD, 13));
         header.setBackground(new Color(250, 250, 250));
         header.setForeground(Color.BLACK);
@@ -213,24 +218,24 @@ public class StaffPanel extends JPanel {
         // 셀 정렬
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
-        for (int i = 0; i < memberTable.getColumnCount(); i++) {
-            memberTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        for (int i = 0; i < staffTable.getColumnCount(); i++) {
+            staffTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
         // 더블클릭 이벤트
-        memberTable.addMouseListener(new MouseAdapter() {
+        staffTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                    int row = memberTable.getSelectedRow();
+                    int row = staffTable.getSelectedRow();
                     if (row >= 0) {
-                        showMemberDetail(row);
+                        showStaffDetail(row);
                     }
                 }
             }
         });
 
-        JScrollPane scrollPane = new JScrollPane(memberTable);
+        JScrollPane scrollPane = new JScrollPane(staffTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(220, 220, 220)));
         panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -245,9 +250,9 @@ public class StaffPanel extends JPanel {
         editBtn = createActionButton("수정", new Color(100, 180, 100));
         deleteBtn = createActionButton("삭제", new Color(255, 100, 100));
 
-        addBtn.addActionListener(e -> addMember());
-        editBtn.addActionListener(e -> editMember());
-        deleteBtn.addActionListener(e -> deleteMember());
+        addBtn.addActionListener(e -> addStaff());
+        editBtn.addActionListener(e -> editStaff());
+        deleteBtn.addActionListener(e -> deleteStaff());
 
         panel.add(addBtn);
         panel.add(editBtn);
@@ -281,204 +286,249 @@ public class StaffPanel extends JPanel {
         return button;
     }
 
-    // 데이터 로드
-    private void loadMemberData() {
+    // Staff 테이블 데이터 로드
+    private void loadStaffData() {
         tableModel.setRowCount(0);
-        List<MemberDTO> members = memberDAO.getAllMembers();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        currentStaffList = staffDAO.getAllStaff();
 
-        for (MemberDTO member : members) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
+        NumberFormat currencyFormat = NumberFormat.getInstance(Locale.KOREA);
+
+        for (StaffDTO staff : currentStaffList) {
             Object[] row = {
-                    member.getName(),
-                    member.getBirth() != null ? dateFormat.format(member.getBirth()) : "",
-                    "10,030원", // 고정 시급 (실제로는 별도 테이블에서 관리 필요)
-                    member.getJoinDate() != null ? dateFormat.format(member.getJoinDate()) : ""
+                    staff.getStaffName(),
+                    staff.getBirth() != null ? dateFormat.format(staff.getBirth()) : "",
+                    currencyFormat.format(staff.getSalary()) + "원",
+                    staff.getHireDate() != null ? dateFormat.format(staff.getHireDate()) : ""
             };
             tableModel.addRow(row);
         }
     }
 
     // 검색 기능
-    private void searchMember() {
+    private void searchStaff() {
         String searchText = searchField.getText().trim();
         if (searchText.isEmpty() || searchText.equals("이름으로 검색하기...")) {
-            loadMemberData();
+            loadStaffData();
             return;
         }
 
         tableModel.setRowCount(0);
-        List<MemberDTO> members = memberDAO.getMembersByName(searchText);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
+        currentStaffList = staffDAO.getStaffByName(searchText);
 
-        if (members.isEmpty()) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
+        NumberFormat currencyFormat = NumberFormat.getInstance(Locale.KOREA);
+
+        if (currentStaffList.isEmpty()) {
             JOptionPane.showMessageDialog(this, "검색 결과가 없습니다.", "알림", JOptionPane.INFORMATION_MESSAGE);
-            loadMemberData();
+            loadStaffData();
             return;
         }
 
-        for (MemberDTO member : members) {
+        for (StaffDTO staff : currentStaffList) {
             Object[] row = {
-                    member.getName(),
-                    member.getBirth() != null ? dateFormat.format(member.getBirth()) : "",
-                    "10,030원",
-                    member.getJoinDate() != null ? dateFormat.format(member.getJoinDate()) : ""
+                    staff.getStaffName(),
+                    staff.getBirth() != null ? dateFormat.format(staff.getBirth()) : "",
+                    currencyFormat.format(staff.getSalary()) + "원",
+                    staff.getHireDate() != null ? dateFormat.format(staff.getHireDate()) : ""
             };
             tableModel.addRow(row);
         }
     }
 
     // 직원 상세 정보 보기
-    private void showMemberDetail(int row) {
-        List<MemberDTO> members = memberDAO.getAllMembers();
-        if (row < 0 || row >= members.size()) return;
+    private void showStaffDetail(int row) {
+        if (currentStaffList == null || row < 0 || row >= currentStaffList.size()) {
+            JOptionPane.showMessageDialog(this, "직원 정보를 불러올 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        MemberDTO member = members.get(row);
+        StaffDTO staff = currentStaffList.get(row);
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        NumberFormat currencyFormat = NumberFormat.getInstance(Locale.KOREA);
 
         StringBuilder info = new StringBuilder();
-        info.append("━━━━━━━━━━ 직원 정보 ━━━━━━━━━━\n\n");
-        info.append("회원 ID: ").append(member.getmId()).append("\n");
-        info.append("이름: ").append(member.getName()).append("\n");
-        info.append("생년월일: ").append(member.getBirth() != null ? dateFormat.format(member.getBirth()) : "").append("\n");
-        info.append("성별: ").append(member.getSex()).append("\n");
-        info.append("연락처: ").append(member.getPhone()).append("\n");
-        info.append("잔여 시간: ").append(member.getRemainTime()).append("분\n");
-        info.append("가입일: ").append(member.getJoinDate() != null ? dateFormat.format(member.getJoinDate()) : "").append("\n");
+        info.append("━━━━━━━━━━ 직원 상세 정보 ━━━━━━━━━━\n\n");
+        info.append("직원 ID: ").append(staff.getStaffId()).append("\n");
+        info.append("이름: ").append(staff.getStaffName()).append("\n");
+        info.append("생년월일: ").append(staff.getBirth() != null ? dateFormat.format(staff.getBirth()) : "").append("\n");
+        info.append("성별: ").append(staff.getGender()).append("\n");
+        info.append("연락처: ").append(staff.getPhone() != null ? staff.getPhone() : "미등록").append("\n");
+        info.append("\n─────────────────────────\n\n");
+        info.append("월급: ").append(currencyFormat.format(staff.getSalary())).append("원\n");
+        info.append("입사일: ").append(staff.getHireDate() != null ? dateFormat.format(staff.getHireDate()) : "").append("\n");
+        info.append("재직 상태: ").append(staff.isActive() ? "재직중" : "퇴사").append("\n");
 
         JOptionPane.showMessageDialog(this, info.toString(), "직원 상세 정보", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // 직원 추가
-    private void addMember() {
-        JPanel inputPanel = new JPanel(new GridLayout(7, 2, 10, 10));
+    private void addStaff() {
+        JPanel inputPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JTextField idField = new JTextField();
-        JPasswordField passField = new JPasswordField();
         JTextField nameField = new JTextField();
         JTextField birthField = new JTextField();
-        JTextField sexField = new JTextField();
+        JTextField genderField = new JTextField();
+        JTextField salaryField = new JTextField();
         JTextField phoneField = new JTextField();
-        JTextField timeField = new JTextField("0");
 
-        inputPanel.add(new JLabel("회원 ID:"));
-        inputPanel.add(idField);
-        inputPanel.add(new JLabel("비밀번호:"));
-        inputPanel.add(passField);
         inputPanel.add(new JLabel("이름:"));
         inputPanel.add(nameField);
         inputPanel.add(new JLabel("생년월일 (yyyy-MM-dd):"));
         inputPanel.add(birthField);
-        inputPanel.add(new JLabel("성별 (M/F):"));
-        inputPanel.add(sexField);
+        inputPanel.add(new JLabel("성별 (남/여):"));
+        inputPanel.add(genderField);
+        inputPanel.add(new JLabel("월급(원):"));
+        inputPanel.add(salaryField);
         inputPanel.add(new JLabel("연락처:"));
         inputPanel.add(phoneField);
-        inputPanel.add(new JLabel("잔여 시간(분):"));
-        inputPanel.add(timeField);
 
-        int result = JOptionPane.showConfirmDialog(this, inputPanel, "직원 추가", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(this, inputPanel, "직원 추가",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                MemberDTO newMember = new MemberDTO();
-                newMember.setmId(idField.getText().trim());
-                newMember.setPasswd(new String(passField.getPassword()));
-                newMember.setName(nameField.getText().trim());
-                newMember.setBirth(java.sql.Date.valueOf(birthField.getText().trim()));
-                newMember.setSex(sexField.getText().trim());
-                newMember.setPhone(phoneField.getText().trim());
-                newMember.setRemainTime(Integer.parseInt(timeField.getText().trim()));
-
-                if (memberDAO.insertMember(newMember)) {
-                    JOptionPane.showMessageDialog(this, "직원이 추가되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-                    loadMemberData();
-                } else {
-                    JOptionPane.showMessageDialog(this, "직원 추가에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                // 입력값 검증
+                if (nameField.getText().trim().isEmpty()) {
+                    throw new IllegalArgumentException("이름을 입력해주세요.");
                 }
+                if (!genderField.getText().trim().equals("남") && !genderField.getText().trim().equals("여")) {
+                    throw new IllegalArgumentException("성별은 '남' 또는 '여'로 입력해주세요.");
+                }
+
+                StaffDTO newStaff = new StaffDTO();
+                newStaff.setStaffName(nameField.getText().trim());
+                newStaff.setBirth(java.sql.Date.valueOf(birthField.getText().trim()));
+                newStaff.setGender(genderField.getText().trim());
+                newStaff.setSalary(Integer.parseInt(salaryField.getText().trim()));
+                newStaff.setPhone(phoneField.getText().trim().isEmpty() ? null : phoneField.getText().trim());
+
+                if (staffDAO.insertStaff(newStaff)) {
+                    JOptionPane.showMessageDialog(this, "직원이 추가되었습니다.", "성공",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadStaffData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "직원 추가에 실패했습니다.", "오류",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "입력 오류", JOptionPane.WARNING_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "입력 형식이 올바르지 않습니다.\n" + e.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "입력 형식이 올바르지 않습니다.\n" + e.getMessage(),
+                        "오류", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
     // 직원 수정
-    private void editMember() {
-        int selectedRow = memberTable.getSelectedRow();
+    private void editStaff() {
+        int selectedRow = staffTable.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "수정할 직원을 선택해주세요.", "알림", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "수정할 직원을 선택해주세요.", "알림",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        List<MemberDTO> members = memberDAO.getAllMembers();
-        MemberDTO member = members.get(selectedRow);
+        if (currentStaffList == null || selectedRow >= currentStaffList.size()) {
+            JOptionPane.showMessageDialog(this, "직원 정보를 불러올 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-        JPanel inputPanel = new JPanel(new GridLayout(7, 2, 10, 10));
+        StaffDTO staff = currentStaffList.get(selectedRow);
 
-        JTextField idField = new JTextField(member.getmId());
+        JPanel inputPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JTextField idField = new JTextField(String.valueOf(staff.getStaffId()));
         idField.setEditable(false);
-        JPasswordField passField = new JPasswordField(member.getPasswd());
-        JTextField nameField = new JTextField(member.getName());
-        JTextField birthField = new JTextField(member.getBirth().toString());
-        JTextField sexField = new JTextField(member.getSex());
-        JTextField phoneField = new JTextField(member.getPhone());
-        JTextField timeField = new JTextField(String.valueOf(member.getRemainTime()));
+        idField.setBackground(new Color(240, 240, 240));
+        JTextField nameField = new JTextField(staff.getStaffName());
+        JTextField birthField = new JTextField(staff.getBirth().toString());
+        JTextField genderField = new JTextField(staff.getGender());
+        JTextField salaryField = new JTextField(String.valueOf(staff.getSalary()));
+        JTextField phoneField = new JTextField(staff.getPhone() != null ? staff.getPhone() : "");
 
-        inputPanel.add(new JLabel("회원 ID:"));
+        inputPanel.add(new JLabel("직원 ID:"));
         inputPanel.add(idField);
-        inputPanel.add(new JLabel("비밀번호:"));
-        inputPanel.add(passField);
         inputPanel.add(new JLabel("이름:"));
         inputPanel.add(nameField);
         inputPanel.add(new JLabel("생년월일 (yyyy-MM-dd):"));
         inputPanel.add(birthField);
-        inputPanel.add(new JLabel("성별 (M/F):"));
-        inputPanel.add(sexField);
+        inputPanel.add(new JLabel("성별 (남/여):"));
+        inputPanel.add(genderField);
+        inputPanel.add(new JLabel("월급(원):"));
+        inputPanel.add(salaryField);
         inputPanel.add(new JLabel("연락처:"));
         inputPanel.add(phoneField);
-        inputPanel.add(new JLabel("잔여 시간(분):"));
-        inputPanel.add(timeField);
 
-        int result = JOptionPane.showConfirmDialog(this, inputPanel, "직원 정보 수정", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        int result = JOptionPane.showConfirmDialog(this, inputPanel, "직원 정보 수정",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                member.setPasswd(new String(passField.getPassword()));
-                member.setName(nameField.getText().trim());
-                member.setBirth(java.sql.Date.valueOf(birthField.getText().trim()));
-                member.setSex(sexField.getText().trim());
-                member.setPhone(phoneField.getText().trim());
-                member.setRemainTime(Integer.parseInt(timeField.getText().trim()));
-
-                if (memberDAO.updateMember(member)) {
-                    JOptionPane.showMessageDialog(this, "직원 정보가 수정되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-                    loadMemberData();
-                } else {
-                    JOptionPane.showMessageDialog(this, "정보 수정에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+                // 입력값 검증
+                if (nameField.getText().trim().isEmpty()) {
+                    throw new IllegalArgumentException("이름을 입력해주세요.");
                 }
+                if (!genderField.getText().trim().equals("남") && !genderField.getText().trim().equals("여")) {
+                    throw new IllegalArgumentException("성별은 '남' 또는 '여'로 입력해주세요.");
+                }
+
+                staff.setStaffName(nameField.getText().trim());
+                staff.setBirth(java.sql.Date.valueOf(birthField.getText().trim()));
+                staff.setGender(genderField.getText().trim());
+                staff.setSalary(Integer.parseInt(salaryField.getText().trim()));
+                staff.setPhone(phoneField.getText().trim().isEmpty() ? null : phoneField.getText().trim());
+
+                if (staffDAO.updateStaff(staff)) {
+                    JOptionPane.showMessageDialog(this, "직원 정보가 수정되었습니다.", "성공",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    loadStaffData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "정보 수정에 실패했습니다.", "오류",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this, e.getMessage(), "입력 오류", JOptionPane.WARNING_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "입력 형식이 올바르지 않습니다.\n" + e.getMessage(), "오류", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "입력 형식이 올바르지 않습니다.\n" + e.getMessage(),
+                        "오류", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
-    // 직원 삭제
-    private void deleteMember() {
-        int selectedRow = memberTable.getSelectedRow();
+    // 직원 삭제 (퇴사 처리)
+    private void deleteStaff() {
+        int selectedRow = staffTable.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "삭제할 직원을 선택해주세요.", "알림", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "삭제할 직원을 선택해주세요.", "알림",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "선택한 직원을 삭제하시겠습니까?", "삭제 확인", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (currentStaffList == null || selectedRow >= currentStaffList.size()) {
+            JOptionPane.showMessageDialog(this, "직원 정보를 불러올 수 없습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        StaffDTO staff = currentStaffList.get(selectedRow);
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "선택한 직원 '" + staff.getStaffName() + "'을(를) 퇴사 처리하시겠습니까?",
+                "퇴사 확인",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        List<MemberDTO> members = memberDAO.getAllMembers();
-        MemberDTO member = members.get(selectedRow);
-
-        if (memberDAO.deleteMember(member.getmId())) {
-            JOptionPane.showMessageDialog(this, "직원이 삭제되었습니다.", "성공", JOptionPane.INFORMATION_MESSAGE);
-            loadMemberData();
+        if (staffDAO.deleteStaff(staff.getStaffId())) {
+            JOptionPane.showMessageDialog(this, "직원이 퇴사 처리되었습니다.", "성공",
+                    JOptionPane.INFORMATION_MESSAGE);
+            loadStaffData();
         } else {
-            JOptionPane.showMessageDialog(this, "삭제에 실패했습니다.", "오류", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "퇴사 처리에 실패했습니다.", "오류",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 }
