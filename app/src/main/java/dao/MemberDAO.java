@@ -45,18 +45,16 @@ public class MemberDAO {
         return list;
     }
     public MemberDTO getMemberById(String id) {
-        // 1. 여기서 초기화를 null로 할지, 빈 객체로 할지 결정해야 합니다.
-        // 보통은 데이터가 없으면 null을 리턴해서 호출하는 쪽에서 알게 하는 게 좋습니다.
         MemberDTO dto = null;
 
-        String sql = "SELECT * FROM member WHERE m_id = ?";
+        String sql = "SELECT * FROM member WHERE m_id = ? or name = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            // [중요] 물음표(?)에 파라미터 바인딩
+            // 물음표(?)에 파라미터 바인딩
             ps.setString(1, id);
-
+            ps.setString(2, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     // 데이터가 있을 때만 객체 생성
@@ -73,7 +71,7 @@ public class MemberDAO {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace(); // 에러 로그를 꼭 확인하세요
+            e.printStackTrace();
         }
 
         return dto; // 회원이 없으면 null 반환
