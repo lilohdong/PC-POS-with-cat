@@ -11,6 +11,9 @@ public class StaffDTO {
     private int salary;
     private Timestamp hireDate;
     private boolean isActive;
+    private String passwd;
+
+
     private String phone;
 
     public StaffDTO() {}
@@ -82,6 +85,13 @@ public class StaffDTO {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+    public String getPasswd() {
+        return passwd;
+    }
+
+    public void setPasswd(String passwd) {
+        this.passwd = passwd;
     }
 
     public String getPhone() {

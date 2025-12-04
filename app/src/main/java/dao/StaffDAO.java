@@ -217,4 +217,22 @@ public class StaffDAO {
         }
         return 0;
     }
+    public StaffDTO getLoginStaff(String name) {
+        String sql = "SELECT * FROM staff WHERE staff_name = ?";
+        StaffDTO dto = null;
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                dto = new StaffDTO();
+                dto.setStaffName(rs.getString("staff_name"));
+                dto.setPasswd(rs.getString("passwd"));
+            }
+        }catch(Exception e) {
+            System.out.println("DB 연동 실패");
+            e.printStackTrace();
+        }
+        return dto;
+    }
 }
