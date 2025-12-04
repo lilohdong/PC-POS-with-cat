@@ -120,7 +120,6 @@ public class SearchMember extends JPanel implements ActionListener {
             table.getColumnModel().getColumn(i).setCellRenderer(centerRender);
         }
 
-
         refresh();
 
     }
@@ -151,7 +150,6 @@ public class SearchMember extends JPanel implements ActionListener {
     }
 
 
-
     // 총 회원수 갱신
     private void updateTotal() {
         total.setText("총 회원 수 : " + model.getRowCount());
@@ -176,10 +174,17 @@ public class SearchMember extends JPanel implements ActionListener {
             String type = combo.getSelectedItem().toString();
 
             if(type.equals("전체검색")) {
-                MemberService.getInstance().loadTable(model);
+                // 검색창에 값이 있으면 전체를 불러오고 필터 적용
+                if(!keyword.isEmpty()) {
+                    MemberService.getInstance().loadTable(model, keyword, "전체검색");
+                } else {
+                    MemberService.getInstance().loadTable(model);
+                }
             } else {
-                MemberService.getInstance().loadTable(model,keyword, type);
+                MemberService.getInstance().loadTable(model, keyword, type);
             }
+
+            updateTotal(); // 검색 후 회원 수 갱신
         }
     }
 }
