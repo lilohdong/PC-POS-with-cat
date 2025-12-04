@@ -20,10 +20,21 @@ public class StockSearch extends JPanel {
     private java.util.function.Consumer<String> filterCallback;
 
     public StockSearch() {
-        this.setLayout(new FlowLayout(0));
+        this.setLayout(new FlowLayout(FlowLayout.LEFT));
         m_name = new JTextField(10);
         m_code = new JTextField(10);
-        String[] categories = new String[]{"전체", "라면", "음료", "사이드", "토핑"};
+        String[] categories = new String[]{
+                "전체",
+                "면류",
+                "밥/곡물",
+                "육류/해산물",
+                "채소/과일",
+                "유제품/소스",
+                "음료/액상",
+                "스낵/과자",
+                "조미료/양념",
+                "기타 잡화"
+        };
         category = new JComboBox<>(categories);
         btnSearch = new JButton("검색");
         btnNormal = new JButton("정상");

@@ -97,19 +97,18 @@ public class StockBottom extends JPanel {
     public void refreshAllRecords() {
         // 전체: 입고(in) + 출고(out) + 부족 알람
         alarmModel.setRowCount(0);
-        loadInRecords();
-        loadOutRecords();
+        loadHistoryRecords(null);
         loadAlarmRecords();
     }
 
     public void refreshInRecords() {
         alarmModel.setRowCount(0);
-        loadInRecords();
+        loadHistoryRecords("IN");
     }
 
     public void refreshOutRecords() {
         alarmModel.setRowCount(0);
-        loadOutRecords();
+        loadHistoryRecords("OUT");
     }
 
     public void refreshAlarmRecords() {
@@ -117,42 +116,59 @@ public class StockBottom extends JPanel {
         loadAlarmRecords();
     }
 
-    private void loadInRecords() {
-        String sql = "SELECT in_id, i_id, in_quantity, in_time FROM stock_in ORDER BY in_time DESC LIMIT 100";
+    private void loadHistoryRecords(String filter) {
+
+        String baseSql = "SELECT * FROM (" +
+                "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
+                "UNION ALL " +
+                "SELECT out_time AS time, 'OUT' AS type, i_id, out_quantity AS quantity FROM stock_out" +
+                ") AS history_records ";
+
+        StringBuilder sqlBuilder = new StringBuilder(baseSql);
+
+        if (filter != null) {
+            sqlBuilder.append(" WHERE type = ?");
+        }
+
+        sqlBuilder.append("ORDER BY time DESC LIMIT 100");
+
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String code = rs.getString("i_id");
-                int qty = rs.getInt("in_quantity");
-                Timestamp t = rs.getTimestamp("in_time");
-                String time = t == null ? "" : t.toString();
-                // 이름을 가져오기 위해 ingredient에서 i_name 조회
-                String name = getIngredientName(code);
-                alarmModel.addRow(new Object[]{"IN", code, name, qty, time});
+                PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())){
+
+            if (filter != null){
+                ps.setString(1, filter);
             }
-        } catch (Exception e) {
+
+            try(ResultSet rs = ps.executeQuery()){
+                while (rs.next()){
+                    String type = rs.getString("type");
+                    String code = rs.getString("i_id");
+                    int qty = rs.getInt("quantity");
+                    Timestamp t = rs.getTimestamp("time");
+                    String time = t == null ? "": t.toString();
+                    String name = getIngredientName(code);
+                    alarmModel.addRow(new Object[]{type, code, qty, name, time});
+                }
+            }
+        }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    private void loadOutRecords() {
-        String sql = "SELECT out_id, i_id, out_quantity, out_time FROM stock_out ORDER BY out_time DESC LIMIT 100";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                String code = rs.getString("i_id");
-                int qty = rs.getInt("out_quantity");
-                Timestamp t = rs.getTimestamp("out_time");
-                String time = t == null ? "" : t.toString();
-                String name = getIngredientName(code);
-                alarmModel.addRow(new Object[]{"OUT", code, name, qty, time});
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    /* 사용 중단 - 쿼리를 나누지 않고 하나로 명확하게 구성
+    private static String getString(String filter) {
+        String unionSql = "SELECT * FROM (" +
+                            "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
+                            "UNION ALL " +
+                            "SELECT out_time AS time, 'OUT' AS type, i_id, out_quantity AS quantity FROM stock_out" +
+                            ") AS history_records ";
+
+        if (filter == null){
+            unionSql += "WHERE type = ? ";
         }
-    }
+        unionSql += "ORDER BY time DESC LIMIT 100";
+        return unionSql;
+    } */
 
     private void loadAlarmRecords() {
         String sql = "SELECT i_id, i_name, total_quantity, min_quantity FROM ingredient WHERE total_quantity < min_quantity ORDER BY total_quantity ASC";
