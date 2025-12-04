@@ -97,7 +97,7 @@ create table time_payment_log (
     foreign key (m_id) references member(m_id),
     foreign key (plan_id) references price_plan(plan_id)
 );
-
+-- Sales에서 사용할 time 계산 뷰
 create or replace view time_sales_view as
     select tpl.log_id as log_id, tpl.m_id as m_id, pp.plan_name,tpl.pay_time as time,tpl.amount as amount, pp.price * tpl.amount as total_price
     from time_payment_log tpl, price_plan pp
