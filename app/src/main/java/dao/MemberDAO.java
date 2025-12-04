@@ -188,4 +188,25 @@ public class MemberDAO {
             return false;
         }
     }
+
+    // 회원의 남은 시간 조회
+    public int getRemainTime(String mId) {
+        String sql = "SELECT remain_time FROM member WHERE m_id = ?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, mId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("remain_time");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

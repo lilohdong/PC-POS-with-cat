@@ -217,4 +217,22 @@ public class SeatDAO {
             return false;
         }
     }
+
+    // 회원의 남은 시간을 DB에 업데이트 (1분마다 실행)
+    public boolean updateMemberRemainTime(String memberId, int remainMinutes) {
+        String sql = "UPDATE member SET remain_time = GREATEST(?, 0) WHERE m_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, remainMinutes);
+            pstmt.setString(2, memberId);
+
+            int result = pstmt.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

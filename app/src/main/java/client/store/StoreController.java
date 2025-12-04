@@ -82,6 +82,10 @@ public class StoreController {
 
     // 타이머 틱 처리
     public void onTimerTick() {
+        // 모든 좌석의 시간 업데이트 및 만료 처리
+        service.updateAllSeatsTime();
+
+        // UI 갱신
         for (SeatButton btn : view.getGridPanel().getSeatButtons()) {
             if (btn.getStatus() == SeatStatus.OCCUPIED_CHILD ||
                     btn.getStatus() == SeatStatus.OCCUPIED_ADULT) {
@@ -93,6 +97,10 @@ public class StoreController {
                             info.getSavedRemainTime()
                     );
                     btn.updateStatus(btn.getStatus(), info.getName(), remain);
+                } else {
+                    // 시간 만료로 좌석이 비워진 경우 UI 갱신
+                    refreshSeats();
+                    return;
                 }
             }
         }
@@ -127,6 +135,9 @@ public class StoreController {
                 break;
             case "EMPTY_ID":
                 view.showMsg("회원 ID를 입력해주세요.");
+                break;
+            case "NO_TIME":
+                view.showMsg("남은 시간이 없습니다. 시간을 충전해주세요.");
                 break;
             default:
                 view.showMsg("좌석 시작에 실패했습니다.");
@@ -234,23 +245,19 @@ public class StoreController {
 
     // 시간 충전 핸들러
     public void handleCharge() {
-        if (selectedSeat == null) {
-            view.showMsg("좌석을 선택해주세요.");
+        // 회원 ID 입력 받기
+        String memberId = JOptionPane.showInputDialog(view, "시간을 충전할 회원 ID를 입력하세요:");
+        if (memberId == null || memberId.trim().isEmpty()) {
             return;
         }
 
-        if (selectedSeat.getStatus() != SeatStatus.OCCUPIED_CHILD &&
-                selectedSeat.getStatus() != SeatStatus.OCCUPIED_ADULT) {
-            view.showMsg("사용중인 좌석이 아닙니다.");
+        // 회원 유효성 검사
+        if (!service.isValidMember(memberId.trim())) {
+            view.showMsg("존재하지 않는 회원입니다.");
             return;
         }
 
-        SeatMemberInfoDTO info = service.getSeatDetail(selectedSeat.getSeatNumber());
-        if (info == null) {
-            view.showMsg("좌석 정보를 가져올 수 없습니다.");
-            return;
-        }
-
+        // 요금제 선택
         List<PricePlanDTO> plans = service.getPricePlans();
         if (plans.isEmpty()) {
             view.showMsg("이용 가능한 요금제가 없습니다.");
@@ -273,7 +280,8 @@ public class StoreController {
 
         int confirm = JOptionPane.showConfirmDialog(
                 view,
-                selectedPlan.toString() + "을(를) 충전하시겠습니까?",
+                "회원 ID: " + memberId.trim() + "\n" +
+                        selectedPlan.toString() + "을(를) 충전하시겠습니까?",
                 "충전 확인",
                 JOptionPane.YES_NO_OPTION
         );
@@ -283,7 +291,7 @@ public class StoreController {
         }
 
         boolean success = service.chargeTime(
-                info.getmId(),
+                memberId.trim(),
                 selectedPlan.getPlanId(),
                 selectedPlan.getPrice()
         );

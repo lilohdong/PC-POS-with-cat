@@ -20,7 +20,7 @@ BEGIN
                               SUBSTRING(last_names, FLOOR(1 + RAND() * 60), 1)),
                        DATE_ADD('1990-01-01', INTERVAL FLOOR(RAND() * 10000) DAY),
                        IF(RAND() > 0.5, 'M', 'F'),
-                       FLOOR(RAND() * 50000), -- 남은 시간(초 or 분)
+                       FLOOR(RAND() * 600), -- 남은 시간(초 or 분)
                        CONCAT('010-', LPAD(FLOOR(RAND() * 9999), 4, '0'), '-', LPAD(FLOOR(RAND() * 9999), 4, '0')),
                        DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 300) DAY)
                    );
