@@ -106,9 +106,6 @@ create or replace view time_sales_view as
     where pp.plan_id = tpl.plan_id;
 select * from time_sales_view;
 /*
-조민규: 주문화면, 재고관리 화면 관련 DB 테이블들
-
-!!완전 갈아엎었습니다!!
 category(메뉴 카테고리)
 menu(등록되어있는 메뉴의 정보)
 orders(주문)
@@ -167,6 +164,16 @@ create table refund(
     r_amount int not null,
     
     foreign key(o_id)references orders(o_id)
+);
+
+create table sales(
+    s_id varchar(5) primary key,
+    s_date date not null, -- 정산 날짜 (YYYY-MM-DD)
+    total_sales int not null default 0, -- 총 매출
+    card_sales int not null default 0, -- 카드 매출
+    cash_sales int not null default 0, -- 현금 매출
+
+    unique index idx_s_date (s_date)
 );
 
 -- 표에 맞추기 위해서 ingredint_category 추가

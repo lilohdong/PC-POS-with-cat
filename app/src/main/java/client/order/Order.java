@@ -1,5 +1,6 @@
 package client.order;
 
+import client.order.controller.OrderController;
 import client.order.view.OrderHeader;
 import client.order.view.OrderList;
 import client.order.view.OrderState;
@@ -32,12 +33,14 @@ public class Order extends JPanel {
         
         //상태 패널(조리중/조리완료)
         OrderState state = new OrderState();
-        state.setBackground(Color.CYAN);
+        state.setBackground(Color.LIGHT_GRAY);
         add(state, BorderLayout.CENTER);
 
         //메인 패널(주문 목록 표시)
         OrderList list = new OrderList();
         list.setBackground(Color.WHITE);
         add(list, BorderLayout.SOUTH);
+
+        OrderController.init(list);
     }
 }
