@@ -83,4 +83,65 @@ public class SalesDAO {
         }
         return list;
     }
+    public List<SalesDTO> getTimeSalesListAll(){
+        List<SalesDTO> list = new ArrayList<>();
+        String sql = "select * " +
+                "from time_sales_view";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()){
+            while(rs.next()){
+                SalesDTO dto = new SalesDTO();
+                Timestamp timestamp = rs.getTimestamp("time");
+
+                dto.setSalesId(rs.getString("log_id"));
+                dto.setMemberId(rs.getString("m_id"));
+                dto.setSalesDate(dateFormat.format(timestamp));
+                dto.setSalesTime(timeFormat.format(timestamp));
+                dto.setProduct(rs.getString("plan_name"));
+                dto.setPrice(rs.getInt("amount"));
+
+                list.add(dto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<SalesDTO> getTimeSalesList(String startDate, String endDate,String startTime,String endTime){
+        List<SalesDTO> list = new ArrayList<>();
+        String sql = "SELECT * " +
+                "FROM time_sales_view " +
+                "WHERE time BETWEEN CONCAT(?, ' ', ?) AND CONCAT(?, ' ', ?)";
+        // YYYY-MM-DD HH:MM:SS 구조
+        try {
+            Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+
+            ps.setString(1, startDate);
+            ps.setString(2, startTime + ":00");
+            ps.setString(3, endDate);
+            ps.setString(4, endTime);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                SalesDTO dto = new SalesDTO();
+                Timestamp timestamp = rs.getTimestamp("time");
+
+                dto.setSalesId(rs.getString("log_id"));
+                dto.setMemberId(rs.getString("m_id"));
+                dto.setSalesDate(dateFormat.format(timestamp));
+                dto.setSalesTime(timeFormat.format(timestamp));
+                dto.setProduct(rs.getString("plan_name"));
+                dto.setPrice(rs.getInt("amount"));
+                list.add(dto);
+            }
+            rs.close();
+            ps.close();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

@@ -1,4 +1,4 @@
-package client.sales;
+package client.sales.timesales;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.DatePickerSettings;
@@ -20,12 +20,12 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
-public class SalesTablePanel extends JPanel {
+public class TimeSalesTablePanel extends JPanel{
     private JComboBox<String> selectD;
     private String[] duration = { "일간", "주간", "월간" };
     private final ImageIcon cal = new ImageIcon(getClass().getResource("/imgs/calendar.png"));
     private JButton calBtn;
-    private final String[] column = {"주문번호", "아이디", "매출발생일", "매출발생시간", "상품","수량","매출액"};
+    private final String[] column = {"주문번호", "아이디", "매출발생일", "매출발생시간", "상품","매출액"};
     private DefaultTableModel tm;
 
     private JPanel dateAppearance;
@@ -40,12 +40,11 @@ public class SalesTablePanel extends JPanel {
     private JButton searchBtn;
 
     private JLabel allSales;
-    SalesTableService sts = SalesTableService.getInstance();
-    public SalesTablePanel() {
+    private SalesTableService sts = SalesTableService.getInstance();
+    public TimeSalesTablePanel() {
         initUI();
         updatePeriodDisplay(datePicker.getDate(), (String) selectD.getSelectedItem());
     }
-
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.SALES_TABLE_HEIGHT));
         setLayout(new BorderLayout());
@@ -71,7 +70,7 @@ public class SalesTablePanel extends JPanel {
         tm = new DefaultTableModel(column,0);
         JTable mainTable = new JTable(tm);
         mainTable.setFillsViewportHeight(true);
-        sts.initTable(tm);
+        sts.initTimeMenuTable(tm);
         JTableHeader header = mainTable.getTableHeader();
         header.setPreferredSize(new Dimension(0, 35));
 
@@ -90,7 +89,6 @@ public class SalesTablePanel extends JPanel {
         bottomPanel.setMinimumSize(new Dimension(Sizes.PANEL_WIDTH,100));
         add(bottomPanel, BorderLayout.SOUTH);
     }
-
     private JPanel createMainHeaderPanel() {
         JPanel jp = new JPanel();
         jp.setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, 40));
@@ -125,7 +123,7 @@ public class SalesTablePanel extends JPanel {
         calBtn.setContentAreaFilled(false);
         calBtn.setFocusPainted(false);
         // 동그래지는거 해결하는 코드
-        calBtn.addActionListener(new CalListener());
+        calBtn.addActionListener(new TimeCalListener());
 
         period = new JLabel("날짜를 선택하세요");
         period.setFont(period.getFont().deriveFont(Font.BOLD, 14f));
@@ -153,12 +151,10 @@ public class SalesTablePanel extends JPanel {
         jp.add(period);
 
         searchBtn = new JButton("조회");
-        searchBtn.addActionListener(new SearchListener());
+        searchBtn.addActionListener(new TimeSearchListener());
         jp.add(searchBtn);
         return jp;
     }
-
-
     private void updatePeriodDisplay(LocalDate selectedDate, String durationType) {
         if (selectedDate == null) {
             period.setText("날짜를 선택하세요");
@@ -200,7 +196,7 @@ public class SalesTablePanel extends JPanel {
 
     }
 
-    class CalListener implements ActionListener {
+    class TimeCalListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
 
@@ -212,7 +208,7 @@ public class SalesTablePanel extends JPanel {
             }
         }
     }
-    class SearchListener implements ActionListener {
+    class TimeSearchListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             LocalDate start = startDate;
@@ -222,7 +218,7 @@ public class SalesTablePanel extends JPanel {
             String endTimeStr = (String) endTime.getSelectedItem();
 
             if (start == null || end == null) {
-                JOptionPane.showMessageDialog(SalesTablePanel.this,
+                JOptionPane.showMessageDialog(TimeSalesTablePanel.this,
                         "날짜 기간이 설정되지 않았습니다.",
                         "경고", JOptionPane.WARNING_MESSAGE);
                 return;
@@ -234,18 +230,18 @@ public class SalesTablePanel extends JPanel {
             SalesDAO salesDAO = SalesDAO.getInstance();
             try {
                 // start.toString()과 end.toString()은 yyyy-mm-dd 형식
-                List<SalesDTO> salesList = salesDAO.getSalesList(
+                List<SalesDTO> salesList = salesDAO.getTimeSalesList(
                         start.toString(),
                         end.toString(),
                         startTimeStr,
                         endTimeStr
                 );
 
-                sts.updateTable(salesList,tm);
+                sts.updateTimeTable(salesList,tm);
                 allSales.setText(SalesTableService.getInstance().calculateTotalSales(tm));
             } catch (Exception ex) {
                 ex.printStackTrace();
-                JOptionPane.showMessageDialog(SalesTablePanel.this,
+                JOptionPane.showMessageDialog(TimeSalesTablePanel.this,
                         "매출 조회 중 오류 발생: " + ex.getMessage(),
                         "오류", JOptionPane.ERROR_MESSAGE);
             }
