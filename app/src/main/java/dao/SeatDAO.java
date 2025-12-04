@@ -200,8 +200,9 @@ public class SeatDAO {
         }
     }
 
-    // 회원의 사용 시간 차감 (사용 종료 시)
+    // 회원의 사용 시간 차감 (사용 종료 시만 호출)
     public boolean deductUsedTime(String memberId, int usedMinutes) {
+        // 현재 DB의 remain_time에서 실제 사용 시간만큼만 차감
         String sql = "UPDATE member SET remain_time = GREATEST(remain_time - ?, 0) WHERE m_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -218,14 +219,17 @@ public class SeatDAO {
         }
     }
 
-    // 회원의 남은 시간을 DB에 업데이트 (1분마다 실행)
+    // 회원의 남은 시간을 DB에 직접 업데이트 (1분마다 실행)
     public boolean updateMemberRemainTime(String memberId, int remainMinutes) {
-        String sql = "UPDATE member SET remain_time = GREATEST(?, 0) WHERE m_id = ?";
+        // 절대값으로 설정 (음수 방지)
+        String sql = "UPDATE member SET remain_time = ? WHERE m_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            pstmt.setInt(1, remainMinutes);
+            // 음수 방지
+            int safeRemainTime = Math.max(remainMinutes, 0);
+            pstmt.setInt(1, safeRemainTime);
             pstmt.setString(2, memberId);
 
             int result = pstmt.executeUpdate();

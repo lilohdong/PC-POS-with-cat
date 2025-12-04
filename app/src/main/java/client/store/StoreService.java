@@ -28,10 +28,15 @@ public class StoreService {
         return seatDAO.getSeatMemberInfo(seatNo);
     }
 
-    // 남은 시간 계산
-    public String calculateRemainTimeStr(LocalDateTime startTime, int savedRemainMin) {
+    // 남은 시간 계산 (실시간)
+    public long calculateRemainMinutes(LocalDateTime startTime, int savedRemainMin) {
         long usedMin = Duration.between(startTime, LocalDateTime.now()).toMinutes();
-        long remainMin = savedRemainMin - usedMin;
+        return savedRemainMin - usedMin;
+    }
+
+    // 남은 시간 문자열 포맷
+    public String calculateRemainTimeStr(LocalDateTime startTime, int savedRemainMin) {
+        long remainMin = calculateRemainMinutes(startTime, savedRemainMin);
         return formatTime(remainMin);
     }
 
@@ -54,6 +59,7 @@ public class StoreService {
             return "INVALID_MEMBER";
         }
 
+        // 남은 시간 확인
         int remainTime = memberDAO.getRemainTime(memberId);
         if (remainTime <= 0) {
             return "NO_TIME";
@@ -76,7 +82,7 @@ public class StoreService {
         LocalDateTime startTime = info.getLoginTime().toLocalDateTime();
         long usedMin = Duration.between(startTime, LocalDateTime.now()).toMinutes();
 
-        // 회원 시간 차감
+        // 회원 시간 차감 (최종 사용 시간만큼)
         boolean deducted = seatDAO.deductUsedTime(info.getmId(), (int) usedMin);
         if (!deducted) {
             return "DEDUCT_FAILED";
@@ -92,8 +98,9 @@ public class StoreService {
         return seatDAO.getPricePlans();
     }
 
-    // 시간 충전
+    // 시간 충전 (회원 ID 기반)
     public boolean chargeTime(String mId, int planId, int amount) {
+        // 회원 유효성 검사
         if (!memberDAO.isMemberIdValid(mId)) {
             return false;
         }
@@ -121,26 +128,31 @@ public class StoreService {
         return seat.isUsed() && !seat.isUnavailable();
     }
 
+    // 모든 좌석의 시간 업데이트 및 시간 만료 처리 (1분마다 실행)
     public void updateAllSeatsTime() {
         List<SeatDTO> seats = seatDAO.getAllSeats();
 
         for (SeatDTO seat : seats) {
             if (seat.isUsed() && seat.getMemberId() != null) {
+                // 핵심: DB에서 최신 remain_time 다시 조회!
+                int currentRemainTimeInDB = memberDAO.getRemainTime(seat.getMemberId());
                 SeatMemberInfoDTO info = seatDAO.getSeatMemberInfo(seat.getSeatNo());
 
                 if (info != null) {
                     LocalDateTime startTime = info.getLoginTime().toLocalDateTime();
                     long usedMin = Duration.between(startTime, LocalDateTime.now()).toMinutes();
-                    long remainMin = info.getSavedRemainTime() - usedMin;
 
-                    // DB에 현재 남은 시간 업데이트
-                    seatDAO.updateMemberRemainTime(info.getmId(), (int) remainMin);
+                    // 최신 DB 값에서 사용한 시간만 빼서 현재 남은 시간 계산
+                    long realRemainMin = currentRemainTimeInDB - usedMin;
 
-                    // 시간이 0 이하면 자동 종료
-                    if (remainMin <= 0) {
-                        seatDAO.deductUsedTime(info.getmId(), (int) usedMin);
+                    if (realRemainMin <= 0) {
+                        realRemainMin = 0;
                         seatDAO.endSeat(seat.getSeatNo());
+                        System.out.println("좌석 " + seat.getSeatNo() + "번 시간 만료 자동 종료");
                     }
+
+                    // DB에 실시간 반영
+                    seatDAO.updateMemberRemainTime(seat.getMemberId(), (int) realRemainMin);
                 }
             }
         }

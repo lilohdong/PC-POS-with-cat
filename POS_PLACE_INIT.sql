@@ -15,6 +15,18 @@ create table member(
     join_date datetime not null default current_timestamp
 );
 
+-- 직원 테이블
+CREATE TABLE staff (
+   staff_id INT auto_increment PRIMARY KEY,
+   staff_name VARCHAR(10) NOT NULL, -- 이름
+   birth DATE NOT NULL, -- 생년월일
+   gender ENUM('남','여') NOT NULL, -- 성별
+   salary INT NOT NULL, -- 월급 (원)
+   hire_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- 입사일
+   is_active BOOLEAN DEFAULT TRUE, -- 재직 여부 (퇴사시 FALSE)
+   phone VARCHAR(20)
+);
+
 -- 인수인계 테이블
 CREATE TABLE handover (
     ho_id INT AUTO_INCREMENT PRIMARY KEY,      -- 인수인계 고유 번호

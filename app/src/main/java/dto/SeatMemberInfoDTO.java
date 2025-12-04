@@ -30,6 +30,8 @@ public class SeatMemberInfoDTO {
         return Period.between(birthDate, now).getYears() < 19;
     }
 
+
+
     // Getter methods
     public int getSeatNo() { return seatNo; }
     public String getmId() { return mId; }

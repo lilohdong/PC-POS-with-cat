@@ -11,7 +11,7 @@ public class StorePanel extends JPanel {
     private StoreHeaderPanel headerPanel;
     private SeatGridPanel gridPanel;
     private StoreControlPanel controlPanel;
-    private Timer timer;
+    private Timer timer, secondTimer;
     private int timerTick = 0;
 
     public StorePanel() {
@@ -47,18 +47,15 @@ public class StorePanel extends JPanel {
     }
 
     private void startGlobalTimer() {
-        // 1초마다 실행
-        timer = new Timer(1000, e -> {
-            timerTick++;
-
-            // 매초 시계 갱신
-            headerPanel.updateCurrentTime();
-
-            // 60초마다 좌석 시간 갱신
-            if (timerTick % 60 == 0) {
-                controller.onTimerTick();
-                timerTick = 0;
-            }
+        secondTimer = new Timer(1000, e -> {
+            headerPanel.updateCurrentTime();  // yyyy-MM-dd HH:mm:ss 실시간 갱신
+        });
+        secondTimer.start();
+        // 기존 타이머를 60초(1분) 주기로 통합 + 안정성 강화
+        timer = new Timer(60000, e -> {  // 1000ms → 60000ms (1분)
+            // 1. 매분마다 DB의 remain_time 갱신 + 시간 만료 자동 종료 처리
+            controller.onTimerTick();
+            controller.refreshSeats();
         });
         timer.start();
     }
