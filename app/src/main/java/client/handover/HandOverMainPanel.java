@@ -148,7 +148,7 @@ public class HandOverMainPanel extends JPanel {
         // 인계자/인수자
         leftPanel.add(createInputRow("인계자", giverName)); // 로그인에서 받아온 이름 사용
         leftPanel.add(Box.createVerticalStrut(10));
-        leftPanel.add(createInputRow("인수자", receiverName )); // [수정] 받아온 인수자 이름 사용
+        leftPanel.add(createInputRow("인수자", receiverName )); // 받아온 인수자 이름 사용
         leftPanel.add(Box.createVerticalStrut(30));
 
         // DB에서 매출 데이터 로드
@@ -263,6 +263,7 @@ public class HandOverMainPanel extends JPanel {
         close.addActionListener(e -> parent.dispose());
 
         JButton done = new JButton("완료");
+        done.setForeground(Color.WHITE);
         done.setPreferredSize(new Dimension(100, 40));
         done.setBackground(new Color(50, 100, 255));
 
