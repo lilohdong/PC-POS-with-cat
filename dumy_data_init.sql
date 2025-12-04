@@ -351,7 +351,6 @@ INSERT INTO stock_out (out_id, i_id, out_quantity) VALUES
 
 
 -- 14. Game (게임) 데이터 (20개)
--- 100개까지는 필요 없어 보이나 요청에 의해 최대한 생성하되, 유명 게임 위주로
 INSERT INTO game (g_id, title, publisher) VALUES
                                               ('G001', 'League of Legends', 'Riot Games'),
                                               ('G002', 'PUBG', 'Krafton'),
@@ -373,24 +372,7 @@ INSERT INTO game (g_id, title, publisher) VALUES
                                               ('G018', 'Eternal Return', 'Nimble Neuron'),
                                               ('G019', 'Cyphers', 'Neople'),
                                               ('G020', 'KartRider: Drift', 'Nexon');
--- 나머지 80개는 더미로 채움
-DELIMITER $$
-CREATE PROCEDURE InsertMoreGames()
-BEGIN
-    DECLARE i INT DEFAULT 21;
-    WHILE i <= 100 DO
-            INSERT INTO game (g_id, title, publisher)
-            VALUES (
-                       CONCAT('G', LPAD(i, 3, '0')),
-                       CONCAT('Steam Game ', i),
-                       'Indie Dev'
-                   );
-            SET i = i + 1;
-        END WHILE;
-END$$
-DELIMITER ;
-CALL InsertMoreGames();
-DROP PROCEDURE InsertMoreGames;
+
 
 
 -- 15. Play_Log (게임 플레이 기록) 데이터 (100개)
@@ -400,7 +382,7 @@ CREATE PROCEDURE InsertPlayLog()
 BEGIN
     DECLARE i INT DEFAULT 1;
     DECLARE start_dt DATETIME;
-    WHILE i <= 100 DO
+    WHILE i <= 20 DO
             SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
 
             INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
@@ -414,6 +396,48 @@ BEGIN
                    );
             SET i = i + 1;
         END WHILE;
+    -- 롤 20개
+    While i <= 40 DO
+            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+            INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
+            VALUES (
+                       CONCAT('LOG', LPAD(i, 5, '0')),
+                       CONCAT('member', FLOOR(1 + RAND() * 100)),
+                        "G001", -- 롤
+                       FLOOR(1 + RAND() * 100),
+                       start_dt,
+                       DATE_ADD(start_dt, INTERVAL FLOOR(10 + RAND() * 120) MINUTE) -- 10~130분 플레이
+                   );
+            SET i = i + 1;
+        end while;
+    -- 발로란트 10개
+    While i <= 50 DO
+            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+            INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
+            VALUES (
+                       CONCAT('LOG', LPAD(i, 5, '0')),
+                       CONCAT('member', FLOOR(1 + RAND() * 100)),
+                       "G004", -- 발로란트
+                       FLOOR(1 + RAND() * 100),
+                       start_dt,
+                       DATE_ADD(start_dt, INTERVAL FLOOR(10 + RAND() * 120) MINUTE) -- 10~130분 플레이
+                   );
+            SET i = i + 1;
+        end while;
+    While i <= 100 DO
+            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+
+            INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
+            VALUES (
+                       CONCAT('LOG', LPAD(i, 5, '0')),
+                       CONCAT('member', FLOOR(1 + RAND() * 100)),
+                       CONCAT('G', LPAD(FLOOR(1 + RAND() * 10), 3, '0')), -- 상위 10개 인기게임 위주
+                       FLOOR(1 + RAND() * 100),
+                       start_dt,
+                       DATE_ADD(start_dt, INTERVAL FLOOR(10 + RAND() * 120) MINUTE) -- 10~130분 플레이
+                   );
+            SET i = i + 1;
+        end while;
 END$$
 DELIMITER ;
 CALL InsertPlayLog();
