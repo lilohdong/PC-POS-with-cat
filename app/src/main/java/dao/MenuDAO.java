@@ -42,7 +42,7 @@ public class MenuDAO {
         String sql = "select menu_id, m_name, m_price, c_id from menu where is_soldout = false";
 
         if (cId != null){
-            sql += "and c_id = ?";
+            sql += " and c_id = ?";
         } else if (categoryName.equals("전체") || categoryName.equals("인기메뉴")) {
             // "전체"는 모든 메뉴, "인기메뉴"는 추후 로직 추가 (현재는 전체와 동일 처리)
         } else {

@@ -23,15 +23,15 @@ public class OrderMakePanel extends JPanel{
         int wCenter = (int)(Sizes.PANEL_WIDTH * 0.2);
         int wRight = (int)(Sizes.PANEL_WIDTH * 0.1);
 
-        OMLeft leftPanel = new OMLeft();
-        leftPanel.setPreferredSize(new Dimension(wLeft, Sizes.PANEL_HEIGHT));
-        leftPanel.setBackground(Color.WHITE);
-
-        OMCenter centerPanel = new OMCenter();
+        centerPanel = new OMCenter();
         centerPanel.setPreferredSize(new Dimension(wCenter, Sizes.PANEL_HEIGHT));
         centerPanel.setBackground(Color.LIGHT_GRAY);
 
-        OMRight rightPanel = new OMRight();
+        leftPanel = new OMLeft(centerPanel);
+        leftPanel.setPreferredSize(new Dimension(wLeft, Sizes.PANEL_HEIGHT));
+        leftPanel.setBackground(Color.WHITE);
+
+        rightPanel = new OMRight();
         rightPanel.setPreferredSize(new Dimension(wRight, Sizes.PANEL_HEIGHT)); 
         rightPanel.setBackground(Color.WHITE);
 

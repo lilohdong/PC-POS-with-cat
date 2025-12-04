@@ -15,15 +15,18 @@ import dto.MenuDTO;
 */
 public class OMLeft extends JPanel{
 
+
     private OMLeft self = this;
     private JPanel menuPanel;
     private MenuDAO menuDAO = new MenuDAO();
+    private final OMCenter omCenter;
     private String[] categoryList = {
             "전체", "인기메뉴", "라면", "볶음밥", "덮밥",
             "분식", "사이드", "음료", "과자", "기타/요청"
     };
 
-    public OMLeft() {
+    public OMLeft(OMCenter omCenter) {
+        this.omCenter = omCenter;
         initUI();
         loadMenusByCategory("전체"); // 초기 메뉴 목록 로드
     }
@@ -43,7 +46,7 @@ public class OMLeft extends JPanel{
 
         // 메뉴 리스트 패널
         menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(0, 3, 10, 10)); // 0행 3열 (동적으로 추가)
+        menuPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // 0행 3열 (동적으로 추가)
         JScrollPane scrollPane = new JScrollPane(menuPanel);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -76,6 +79,26 @@ public class OMLeft extends JPanel{
                 menuPanel.add(createMenuBox(menu));
             }
         }
+        // [핵심 수정] 3열 레이아웃을 강제하기 위해 PreferredSize 설정
+        // (메뉴 박스 150px * 3열) + (간격 약 10px * 4개) = 490px
+        int columnCount = 3;
+        int menuWidth = 150;
+        int gap = 10;
+        int preferredWidth = (menuWidth * columnCount) + (gap * (columnCount + 1)) + 5; // 약 500px
+
+        // 메뉴 개수에 따라 세로 높이 계산 (예시: 3열 당 180px)
+        int menuCount = menus.size();
+        int rowCount = (int) Math.ceil((double) menuCount / columnCount);
+        int menuHeight = 180;
+        int preferredHeight = (menuHeight * rowCount) + (gap * rowCount);
+
+        // 데이터가 없을 때 JScrollPane이 찌그러지는 것을 방지
+        if (menuCount == 0) {
+            preferredHeight = 400;
+        }
+
+        // [적용] 메뉴 패널의 크기를 강제하여 가로 스크롤을 방지하고 세로 스크롤을 유도
+        menuPanel.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
 
         // 레이아웃 재계산 및 갱신
         menuPanel.revalidate();
@@ -86,6 +109,9 @@ public class OMLeft extends JPanel{
     private JPanel createMenuBox(MenuDTO menu) {
         JPanel box = new JPanel(new BorderLayout());
         box.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+
+        box.setPreferredSize(new Dimension(150, 150));
+        box.setMinimumSize(new Dimension(150, 150));
 
         JLabel nameLabel = new JLabel(menu.getMName(), SwingConstants.CENTER);
         nameLabel.setFont(new Font("맑은 고딕", Font.BOLD, 18));
@@ -100,24 +126,26 @@ public class OMLeft extends JPanel{
         JLabel imageLabel = new JLabel("이미지 없음", SwingConstants.CENTER);
         imagePlaceholder.add(imageLabel);
 
+        // 클릭 이벤트 로직 정의 (재사용을 위해 별도 객체로 생성)
+        java.awt.event.MouseAdapter clickHandler = new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                // 부모 프레임에서 OMCenter 인스턴스 찾기
+                if (omCenter != null) {
+                    omCenter.addMenuItem(menu);
+                    evt.consume();
+                }
+            }
+        };
+
+        box.addMouseListener(clickHandler);
+        imagePlaceholder.addMouseListener(clickHandler);
+        imageLabel.addMouseListener(clickHandler);
+        nameLabel.addMouseListener(clickHandler);
+        priceLabel.addMouseListener(clickHandler);
+
         box.add(imagePlaceholder, BorderLayout.NORTH);
         box.add(nameLabel, BorderLayout.CENTER);
         box.add(priceLabel, BorderLayout.SOUTH);
-
-        // 클릭 이벤트 추가 (요청 3번)
-        box.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                // 부모 프레임에서 OMCenter 인스턴스 찾기
-                Window window = SwingUtilities.getWindowAncestor(self);
-                if (window instanceof OrderMakeFrame) {
-                    OrderMakeFrame frame = (OrderMakeFrame) window;
-                    OMCenter centerPanel = frame.getOrderMakePanel().getCenterPanel();
-                    if (centerPanel != null) {
-                        centerPanel.addMenuItem(menu);
-                    }
-                }
-            }
-        });
 
         return box;
     }

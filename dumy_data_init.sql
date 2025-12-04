@@ -79,25 +79,19 @@ DELIMITER ;
 CALL InsertSeats();
 DROP PROCEDURE InsertSeats;
 
--- 4. Category (카테고리) 데이터 (요청하신 3개 고정)
-INSERT INTO category (c_id, c_name) VALUES
-                                        ('C001', '음식'),
-                                        ('C002', '음료수'),
-                                        ('C003', '과자');
-
 
 -- 5. Category (메뉴 카테고리) 10개
 INSERT INTO category (c_id, c_name) VALUES
-                                        ('C001', '라면'),
-                                        ('C002', '볶음밥'),
-                                        ('C003', '덮밥'),
-                                        ('C004', '분식'),
-                                        ('C005', '사이드'),
-                                        ('C006', '음료'),
-                                        ('C007', '과자'),
-                                        ('C008', '기타/요청'),
-                                        ('C009', '인기메뉴'),
-                                        ('C010', '전체'); -- 전체 카테고리 (Java 코드에서 필터링에 사용)
+('C001', '라면'),
+('C002', '볶음밥'),
+('C003', '덮밥'),
+('C004', '분식'),
+('C005', '사이드'),
+('C006', '음료'),
+('C007', '과자'),
+('C008', '기타/요청'),
+('C009', '인기메뉴'),
+('C010', '전체'); -- 전체 카테고리 (Java 코드에서 필터링에 사용)
 
 -- 5-1. Menu (메뉴)
 INSERT INTO menu (menu_id, m_name, m_price, c_id, m_description) VALUES

@@ -75,6 +75,7 @@ public class OMCenter extends JPanel{
                 if (confirm == JOptionPane.YES_OPTION) {
                     removeMenuItem(index); // 선택된 메뉴 제거
                 }
+                orderList.clearSelection();
             }
         });
 
