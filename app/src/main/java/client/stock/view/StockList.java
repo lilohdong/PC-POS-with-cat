@@ -41,7 +41,7 @@ public class StockList extends JPanel {
         btnIn.setForeground(Color.WHITE);
         btnOut.setBackground(Color.RED);
         btnOut.setForeground(Color.WHITE);
-        btnAdd.addActionListener((e) -> new AddStockFrame());
+        btnAdd.addActionListener((e) -> new AddStockFrame(this));
         btnIn.addActionListener((e) -> this.handleStockIn());
         btnOut.addActionListener((e) -> this.handleStockOut());
         btnPanel.add(btnIn);

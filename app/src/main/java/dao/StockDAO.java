@@ -105,11 +105,12 @@ public class StockDAO {
     // 기존 메서드들과 용어 통일
     public boolean stockIn(String ingredientId, String stockInfoId, int inQuantity, int unitPrice) {
         // 기존과는 별도로 트랜잭션을 강제하여 입고 로그와 재고 수량 동기화
-        String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price, unit_quantity) VALUES (?, ?, ?, ?, ?, ?)";
+        String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
         String sqlUpdateQty = "UPDATE ingredient SET total_quantity = total_quantity + ?, is_out = CASE WHEN total_quantity + ? > 0 THEN false ELSE true END WHERE i_id = ?";
 
         try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
+
             // 조회하여 unit_quantity를 stock_info에서 가져오자
             int unitQuantity = 1;
             String getUnitSql = "SELECT unit_quantity FROM stock_info WHERE stock_info_id = ?";
@@ -151,22 +152,49 @@ public class StockDAO {
 
     // addStock: 단순 단위(재고 수량) 추가 (UI에서 사용되는 빠른 입고)
     public boolean addStock(String ingredientId, int qty) {
-        String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price, unit_quantity) VALUES (?, ?, ?, ?, 0, 1)";
+        String sqlGetInfoId = "SELECT stock_info_id FROM stock_info WHERE i_id = ? LIMIT 1";
+        String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, 0)";
         String sqlUpdate = "UPDATE ingredient SET total_quantity = total_quantity + ?, is_out = CASE WHEN total_quantity + ? > 0 THEN false ELSE true END WHERE i_id = ?";
 
-        try (Connection conn = DBConnection.getConnection()) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
+
+            String validStockInfoId = null;
+            try(PreparedStatement psGet = conn.prepareStatement(sqlGetInfoId)){
+                psGet.setString(1, ingredientId);
+                try(ResultSet rs = psGet.executeQuery()){
+                    if (rs.next()){
+                        validStockInfoId = rs.getString("stock_info_id");
+                    }
+                }
+            }
+
+            if (validStockInfoId == null) {
+                System.err.println("addStock failed: No valid stock_info found for i_id: " + ingredientId);
+                conn.rollback();
+                return false;
+            }
+
+            if (validStockInfoId == null){
+                System.err.println("addStock failed: No valid stock_info found for i_id: " + ingredientId);
+                conn.rollback();
+                return false;
+            }
             String newInId = generateInId(conn);
 
-            try (PreparedStatement psIns = conn.prepareStatement(sqlInsertIn)) {
+            //stock_in 기록
+            try(PreparedStatement psIns = conn.prepareStatement(sqlInsertIn)){
                 psIns.setString(1, newInId);
                 psIns.setString(2, ingredientId);
-                psIns.setString(3, "N/A"); // stock_info_id를 모르는 경우 N/A
+                psIns.setString(3, validStockInfoId);
                 psIns.setInt(4, qty);
                 psIns.executeUpdate();
             }
 
-            try (PreparedStatement psUpd = conn.prepareStatement(sqlUpdate)) {
+            //ingredient 재고 갱신
+            try(PreparedStatement psUpd = conn.prepareStatement(sqlUpdate)){
                 psUpd.setInt(1, qty);
                 psUpd.setInt(2, qty);
                 psUpd.setString(3, ingredientId);
@@ -175,11 +203,28 @@ public class StockDAO {
 
             conn.commit();
             return true;
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
+            try {
+                if (conn != null) {
+                    conn.rollback();
+                }
+            } catch (SQLException rollcackE) {
+                rollcackE.printStackTrace();
+            }
             return false;
+        }finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }catch (SQLException closeE){
+                    closeE.printStackTrace();
+                }
+            }
         }
     }
+
 
     // subtractStock: 출고. 출고 기록을 stock_out에 남기고 ingredient.total_quantity 갱신
     public boolean subtractStock(String ingredientId, int qty) {
@@ -261,7 +306,7 @@ public class StockDAO {
 
     public boolean insertStockIn(StockInDTO dto) {
         String sqlGetIid = "SELECT i_id, unit_quantity FROM stock_info WHERE stock_info_id = ?";
-        String sqlInsert = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price, unit_quantity) VALUES (?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
             String ingredientId = null;
