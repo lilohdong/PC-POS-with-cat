@@ -13,9 +13,10 @@ public class SideBar extends JPanel implements NowAdminListener {
     public SideBar() {
         initUI();
         NowAdminService.getInstance().addListener(this);
+        // 초기 실행 시, 관리자 아님.
         updateAccess(NowAdminService.getInstance().isAdminMode());
     }
-
+    // 버튼 MainFrame에서 Control 해야하기 때문에 public으로 선언
     public JButton manageBtn;
     public JButton orderBtn;
     public JButton stockBtn;
@@ -29,10 +30,13 @@ public class SideBar extends JPanel implements NowAdminListener {
     private final Color admin = new Color(170,209, 231);
     private final Color noAdmin = new Color(255, 102, 102);
     private void initUI() {
+        // 초기 패널 설정 //
         setPreferredSize(new Dimension(Sizes.SIDEBAR_WIDTH, Sizes.SIDEBAR_HEIGHT));
         setBackground(Color.white);
         setBorder(BorderFactory.createLineBorder(Color.black, 1, true));
         setLayout(new BorderLayout());
+        // 초기 패널 설정 끝 //
+
         // 관리자 모드 변경 버튼
         chmodBtn = new JButton("관리자 모드 변경");
         chmodBtn.setBorder(BorderFactory.createLineBorder(Color.black, 1));
@@ -51,7 +55,7 @@ public class SideBar extends JPanel implements NowAdminListener {
             }
         });
         add(chmodBtn, BorderLayout.NORTH);
-
+        // 관리자 모드 버튼 끝
         JPanel btnSets = new JPanel();
 
         BoxLayout box = new BoxLayout(btnSets, BoxLayout.Y_AXIS);
@@ -79,6 +83,8 @@ public class SideBar extends JPanel implements NowAdminListener {
 
         if (okCxl == JOptionPane.OK_OPTION) {
             String password = new String(pf.getPassword());
+            // 비밀번호는 PasswdUtil 에 상수로 정의되어 있음.
+            // 기본 비밀번호 = manager
             boolean success = NowAdminService.getInstance().authenticate(password);
 
             if (success) {
@@ -88,6 +94,7 @@ public class SideBar extends JPanel implements NowAdminListener {
             }
         }
     }
+    // 접근 권한 업데이트 메소드, 버튼 색 변경까지 처리
     private void updateAccess(boolean isAdminMode) {
         salesBtn.setEnabled(isAdminMode);
         staffBtn.setEnabled(isAdminMode);

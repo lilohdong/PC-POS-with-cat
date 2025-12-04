@@ -9,7 +9,7 @@ public class GameHeaderPanel extends JPanel {
     public GameHeaderPanel() {
         initUI();
     }
-
+    // 단순 헤더 패널 생성
     private void initUI() {
         setPreferredSize(new Dimension(1016, 74));
         setBorder(new MatteBorder(1, 0, 1, 0, Color.BLACK));

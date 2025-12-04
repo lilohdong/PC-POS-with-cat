@@ -13,16 +13,16 @@ import java.time.format.DateTimeFormatter;
 
 
 public class MainGameStatistics extends JPanel {
+    // 표에서 사용할 컬럼명
     private final String[] columnNames = {"순위", "게임 이름", "총 사용 시간", "오늘 이용자 수"};
     private DefaultTableModel tm;
-
+    // 날짜를 Label로 알기 쉽게 표시
     JLabel dateLabel;
     public MainGameStatistics() {
         initUI();
     }
 
     private void initUI() {
-        setBackground(Color.WHITE);
         setBorder(BorderFactory.createMatteBorder(0, 0, 2, 2, Color.BLACK));
         setLayout(new BorderLayout());
 
@@ -31,7 +31,7 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBackground(new Color(234, 191, 255));
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
         LocalDateTime dateTime = LocalDateTime.now();
-
+        // Date formatting을 통해 현재 시간 깔끔하게 표시.
         String formattedDateTime = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         dateLabel = new JLabel("현재 시간 : " + formattedDateTime);
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));

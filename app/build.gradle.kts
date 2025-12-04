@@ -24,14 +24,14 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
     // https://mvnrepository.com/artifact/org.jdatepicker/jdatepicker
-    implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
-    implementation("com.formdev:flatlaf:3.6.2")
+    implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1") // 데이트피커 라이브러리
+    implementation("com.formdev:flatlaf:3.6.2") // flatlaf 외부 라이브러리
     implementation("com.formdev:flatlaf-intellij-themes:3.6.2")
     implementation("mysql:mysql-connector-java:8.0.33") // 커넥터 종속성 추가
 
 }
 
-// Apply a specific Java toolchain to ease working on different environments.
+// 자바 버전 17로 제한, Gradle 9.2.1버전 최소 지원 jdk 버전이 17
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
@@ -39,11 +39,11 @@ java {
 }
 
 application {
-    // Define the main class for the application.
+    // 앱 시작점 지정, ./gradlew run (bash) 명령으로 실행
     mainClass = "org.example.Main"
 }
 
 tasks.named<Test>("test") {
-    // Use JUnit Platform for unit tests.
+    // Use JUnit Platform for unit tests. (테스트 할 일은 없습니다)
     useJUnitPlatform()
 }

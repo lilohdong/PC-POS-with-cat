@@ -14,16 +14,17 @@ import java.awt.*;
 
 public class MainUI extends JPanel {
     private CardLayout cl;
-    private GameMainPanel gameMainPanel;
+
     public MainUI() {
         initUI();
     }
+    // 메인 UI 초기화, 카드 레이아웃
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH,Sizes.PANEL_HEIGHT));
         cl = new CardLayout();
         setLayout(cl);
 
-        gameMainPanel = new GameMainPanel();
+        GameMainPanel gameMainPanel = new GameMainPanel();
         Member memberMainPanel = new Member();
         Order orderMainPanel = new Order();
         SalesMainPanel  salesMainPanel = new SalesMainPanel();
@@ -38,6 +39,7 @@ public class MainUI extends JPanel {
         add(stockMainPanel, "STOCK");
         add(staffPanel, "STAFF");
     }
+    // 카드 레이아웃 변경 메소드 생성, MainFrame에서 컨트롤
     public void showUI(String title) {
         cl.show(this,title);
     }

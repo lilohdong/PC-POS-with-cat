@@ -1,5 +1,4 @@
 package service;
-// service/NowAdminService.java
 
 import util.PasswdUtil;
 
@@ -9,11 +8,10 @@ import java.util.List;
 public class NowAdminService {
     private static NowAdminService instance;
     private boolean isAdminMode = false;
-    // 1. 리스너 목록 필드 추가
-    private final List<NowAdminListener> listeners = new ArrayList<>();
-    // public NowAdminService() {} -> 이 생성자 대신 private NowAdminService() {}를 사용하는 것이 싱글톤 패턴에 더 적합합니다.
 
-    private NowAdminService() {} // private 생성자로 수정
+    private final List<NowAdminListener> listeners = new ArrayList<>();
+    // 싱글톤으로 잠궈버리기
+    private NowAdminService() {}
 
     public static NowAdminService getInstance(){
         if(instance == null){
@@ -41,7 +39,10 @@ public class NowAdminService {
             listeners.add(listener);
         }
     }
-
+    // 모든 Admin 인증 시스템에 권한이 변했다고 뿌려줌
+    // POS_PLACE 프로젝트 내에서는 Admin 권한 사용하는 것이 SideBar밖에 없기 때문에,
+    // SideBar에 알림. 향후 코드 확장성을 위해 이런 방식으로 설계
+    // Observer 패턴
     private void notifyListeners() {
         for (NowAdminListener listener : listeners) {
             listener.onAdminModeChanged(isAdminMode);

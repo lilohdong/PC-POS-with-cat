@@ -10,7 +10,7 @@ public class TimeSalesHeaderPanel extends JPanel {
     public TimeSalesHeaderPanel() {
         initUI();
     }
-
+    // time 탭 헤더
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, Sizes.SALES_HEADER_HEIGHT));
         setBorder(new MatteBorder(0, 0, 2, 0, Color.BLACK));

@@ -89,6 +89,7 @@ public class TimeSalesTablePanel extends JPanel{
         bottomPanel.setMinimumSize(new Dimension(Sizes.PANEL_WIDTH,100));
         add(bottomPanel, BorderLayout.SOUTH);
     }
+    // 날짜 선택 창 만드는 걸 메소드로 만들어 반환, 깔끔한 코드 구조 지향
     private JPanel createMainHeaderPanel() {
         JPanel jp = new JPanel();
         jp.setPreferredSize(new Dimension(Sizes.PANEL_WIDTH, 40));
@@ -96,7 +97,7 @@ public class TimeSalesTablePanel extends JPanel{
 
         selectD = new JComboBox<>(duration);
         selectD.setPreferredSize(new Dimension(248, 35));
-
+        // 일간 주간 월간 선택 ActionListener
         selectD.addActionListener(e -> {
             String selectedDuration = (String) selectD.getSelectedItem();
 
@@ -118,11 +119,11 @@ public class TimeSalesTablePanel extends JPanel{
 
         calBtn = new JButton(cal);
         calBtn.setPreferredSize(new Dimension(24, 24));
-        // 동그래지는거 해결하는 코드
+        // 동그래지는거 해결하는 코드 //
         calBtn.setBorder(BorderFactory.createEmptyBorder());
         calBtn.setContentAreaFilled(false);
         calBtn.setFocusPainted(false);
-        // 동그래지는거 해결하는 코드
+        // 동그래지는거 해결하는 코드 끝//
         calBtn.addActionListener(new TimeCalListener());
 
         period = new JLabel("날짜를 선택하세요");
@@ -155,6 +156,7 @@ public class TimeSalesTablePanel extends JPanel{
         jp.add(searchBtn);
         return jp;
     }
+    // 기간 표현 Label 업데이트 메소드
     private void updatePeriodDisplay(LocalDate selectedDate, String durationType) {
         if (selectedDate == null) {
             period.setText("날짜를 선택하세요");
@@ -225,6 +227,7 @@ public class TimeSalesTablePanel extends JPanel{
             }
             if ("24:00".equals(endTimeStr)) {
                 endTimeStr = "23:59:59"; // HH:mm:ss 형식으로 맞춤
+                // 데이터베이스에서 24:00을 지원안함. 23:59:59가 일의 마지막 시간
             }
 
             SalesDAO salesDAO = SalesDAO.getInstance();

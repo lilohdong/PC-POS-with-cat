@@ -120,11 +120,12 @@ public class SalesTablePanel extends JPanel {
 
         calBtn = new JButton(cal);
         calBtn.setPreferredSize(new Dimension(24, 24));
-        // 동그래지는거 해결하는 코드
+        // 버튼 테두리 동그래지는거 해결하는 코드 //
         calBtn.setBorder(BorderFactory.createEmptyBorder());
         calBtn.setContentAreaFilled(false);
         calBtn.setFocusPainted(false);
-        // 동그래지는거 해결하는 코드
+        // 동그래지는거 해결하는 코드 //
+
         calBtn.addActionListener(new CalListener());
 
         period = new JLabel("날짜를 선택하세요");
@@ -158,7 +159,7 @@ public class SalesTablePanel extends JPanel {
         return jp;
     }
 
-
+    // date 선택된 값으로 Label 업데이트하는 메소드
     private void updatePeriodDisplay(LocalDate selectedDate, String durationType) {
         if (selectedDate == null) {
             period.setText("날짜를 선택하세요");

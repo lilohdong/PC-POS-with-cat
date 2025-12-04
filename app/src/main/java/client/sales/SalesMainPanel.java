@@ -22,8 +22,8 @@ public class SalesMainPanel extends JPanel {
         // 메뉴 탭
         JPanel menuSalesPanel = new JPanel(new BorderLayout());
         SalesHeaderPanel shp = new SalesHeaderPanel();
-        menuSalesPanel.add(shp, BorderLayout.NORTH);
         SalesTablePanel stp = new SalesTablePanel();
+        menuSalesPanel.add(shp, BorderLayout.NORTH);
         menuSalesPanel.add(stp, BorderLayout.CENTER);
 
         // 시간 탭
@@ -33,6 +33,7 @@ public class SalesMainPanel extends JPanel {
         timeSalesPanel.add(tshp, BorderLayout.NORTH);
         timeSalesPanel.add(tstp, BorderLayout.CENTER);
 
+        //Tab에 전부 추가 후, tab 추가
         tabbedPane.addTab("상품매출",menuSalesPanel);
         tabbedPane.addTab("시간충전내역",timeSalesPanel);
         add(tabbedPane, BorderLayout.CENTER);

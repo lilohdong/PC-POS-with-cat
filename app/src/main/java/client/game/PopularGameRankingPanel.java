@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class PopularGameRankingPanel extends JPanel {
-
+    // 단순한 테이블 구조가 아닌, Panel을 쌓아올려 랭킹 표시하는 방식으로, 깔끔한 UI
     private JPanel listPanel;
 
     public PopularGameRankingPanel() {
@@ -26,7 +26,7 @@ public class PopularGameRankingPanel extends JPanel {
         setBorder(new MatteBorder(0, 2, 2, 1, Color.BLACK));
         setLayout(new BorderLayout());
 
-        // 헤더
+        // 헤더 //
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0,0, 10, 0));
         JPanel titleHeaderPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -55,6 +55,8 @@ public class PopularGameRankingPanel extends JPanel {
         headerPanel.add(columnHeader, BorderLayout.SOUTH);
 
         add(headerPanel, BorderLayout.NORTH);
+        // 헤더 끝 //
+
         // 리스트 영역
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
@@ -64,7 +66,12 @@ public class PopularGameRankingPanel extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    // 게임 순위별로 한개씩
+    // 게임 순위별로 한개씩 패널로 생성하여 표시, 패널을 만드는 과정은 똑같기 때문에 메소드로
+    /*
+        @param1 : 랭킹
+        @param2 : 게임 이름
+        @param3 : 점유율(계산은 db의 뷰에서 계산된 걸 가져옴)
+     */
     private JPanel createGameItem(String rank, String name, String share) {
         JPanel panel = new JPanel(new BorderLayout());
         // 길이를 MAX_VALUE로 잡아서 꽉차게
@@ -97,7 +104,7 @@ public class PopularGameRankingPanel extends JPanel {
             listPanel.add(emptyLabel);
         } else {
             for (PopularGameDTO game : games) {
-                // % 단위로 포멧
+                // % 단위로 formatting
                 String rankStr = String.valueOf(game.getRank());
                 String shareStr = String.format("%.2f%%", game.getShare());
 
