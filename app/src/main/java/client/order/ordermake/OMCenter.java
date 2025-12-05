@@ -35,7 +35,8 @@ public class OMCenter extends JPanel{
     private List<MenuDTO> selectedMenus = new ArrayList<>();
     private List<Integer> quantities = new ArrayList<>();
 
-    public OMCenter() {
+    private OMLeft omLeft;
+    public OMCenter(OMLeft omLeft) {
         initUI();
     }
 
@@ -46,13 +47,17 @@ public class OMCenter extends JPanel{
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
-        // ... (검색창 부분은 OMLeft.java와 연동 필요. 여기서는 그대로 둠) ...
-
         JTextField search = new JTextField();
         search.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         search.setAlignmentX(LEFT_ALIGNMENT);
         search.setBorder(BorderFactory.createTitledBorder("메뉴 검색"));
-        // 검색 기능은 OMLeft에서 구현
+
+        search.addActionListener(e -> {
+            if (omLeft != null) {
+                omLeft.searchMenus(search.getText());
+            }
+        });
+
         container.add(search);
         container.add(Box.createVerticalStrut(15));  // 여백
 

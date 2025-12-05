@@ -61,7 +61,9 @@ public class OrderList extends JPanel {
 
         infoPanel.add(new JLabel("좌석: " + order.getSeatNum() + " (" + order.getOId() + ")"));
         infoPanel.add(new JLabel("주문시간: " + order.getOTime().format(timeFormatter)));
-        infoPanel.add(new JLabel("경과시간: " + order.getCookingTime() + "분")); // DB에서 불러올 때 경과 시간 재계산
+        if (currentMode == COOKING_MODE) {
+            infoPanel.add(new JLabel("경과시간: " + order.getCookingTime() + "분"));
+        }
 
         // 주문 내역 (DAO에서 상세 정보 조회)
         String details = OrderController.getOrderDetails(order.getOId());
@@ -127,10 +129,8 @@ public class OrderList extends JPanel {
         panel.add(new JLabel("총 결제액: " + order.getTotalAmount() + "원"));
         panel.add(new JLabel("주문 상태: " + order.getOStatus()));
         panel.add(new JLabel("주문 내역: " + OrderController.getOrderDetails(order.getOId())));
-        // 요청사항과 결제수단 정보가 OrderDataDTO에 부족하므로, OrderDAO에 해당 정보 조회 메서드 추가 필요
-        // 임시로 "DB에서 추가 정보 조회 필요" 메시지 출력
-        panel.add(new JLabel("요청 사항: (DB에서 추가 정보 조회 필요)"));
-        panel.add(new JLabel("결제 수단: (DB에서 추가 정보 조회 필요)"));
+        panel.add(new JLabel("요청 사항: " + (order.getRequestment() != null ? order.getRequestment() : "없음")));
+        panel.add(new JLabel("결제 수단: " + (order.getPayMethod() != null ? order.getPayMethod() : "미지정")));
 
         detailFrame.add(panel);
         detailFrame.setVisible(true);

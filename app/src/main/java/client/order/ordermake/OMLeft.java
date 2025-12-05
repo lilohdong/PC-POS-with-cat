@@ -79,7 +79,6 @@ public class OMLeft extends JPanel{
                 menuPanel.add(createMenuBox(menu));
             }
         }
-        // [핵심 수정] 3열 레이아웃을 강제하기 위해 PreferredSize 설정
         // (메뉴 박스 150px * 3열) + (간격 약 10px * 4개) = 490px
         int columnCount = 3;
         int menuWidth = 150;

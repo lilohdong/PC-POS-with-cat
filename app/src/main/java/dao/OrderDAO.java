@@ -121,10 +121,10 @@ public class OrderDAO {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        String sql = "SELECT o.o_id, o.seat_num, o.o_time, o.complete_time, o.o_status, SUM(om.total_price) as total_amount " +
+        String sql = "SELECT o.o_id, o.seat_num, o.o_time, o.complete_time, o.o_status, o.requestment, o.pay_method, SUM(om.total_price) as total_amount " +
                 "FROM orders o JOIN order_menu om ON o.o_id = om.o_id " +
                 "WHERE o.o_status = ? " +
-                "GROUP BY o.o_id, o.seat_num, o.o_time, o.complete_time, o.o_status " +
+                "GROUP BY o.o_id, o.seat_num, o.o_time, o.complete_time, o.o_status , o.requestment, o.pay_method " +
                 "ORDER BY o.o_time ASC";
 
         try {
@@ -143,7 +143,9 @@ public class OrderDAO {
                         rs.getInt("seat_num"),
                         oTime,
                         rs.getString("o_status"),
-                        rs.getInt("total_amount")
+                        rs.getInt("total_amount"),
+                        rs.getString("requestment"),  // 추가
+                        rs.getString("pay_method")    // 추가
                 );
                 order.setCompleteTime(completeTime);
                 orderList.add(order);

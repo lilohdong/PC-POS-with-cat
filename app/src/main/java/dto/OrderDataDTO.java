@@ -25,12 +25,14 @@ public class OrderDataDTO {
         this.oTime = LocalDateTime.now();
     }
 
-    public OrderDataDTO(String oId, int seatNum, LocalDateTime oTime, String oStatus, int totalAmount){
+    public OrderDataDTO(String oId, int seatNum, LocalDateTime oTime, String oStatus, int totalAmount, String requestment, String payMethod){
         this.oId = oId;
         this.seatNum = seatNum;
         this.oTime = oTime;
         this.oStatus = oStatus;
         this.totalAmount = totalAmount;
+        this.requestment = requestment;
+        this.payMethod = payMethod;
     }
 
     public String getMId() {return mId;}
