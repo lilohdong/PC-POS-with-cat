@@ -36,8 +36,11 @@ public class OMCenter extends JPanel{
     private List<Integer> quantities = new ArrayList<>();
 
     private OMLeft omLeft;
-    public OMCenter(OMLeft omLeft) {
+    public OMCenter() {
         initUI();
+    }
+    public void setOMLeft(OMLeft omLeft) {
+        this.omLeft = omLeft;
     }
 
     private void initUI(){

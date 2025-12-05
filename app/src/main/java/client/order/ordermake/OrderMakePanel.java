@@ -23,7 +23,7 @@ public class OrderMakePanel extends JPanel{
         int wCenter = (int)(Sizes.PANEL_WIDTH * 0.2);
         int wRight = (int)(Sizes.PANEL_WIDTH * 0.1);
 
-        centerPanel = new OMCenter(leftPanel);
+        centerPanel = new OMCenter();
         centerPanel.setPreferredSize(new Dimension(wCenter, Sizes.PANEL_HEIGHT));
         centerPanel.setBackground(Color.LIGHT_GRAY);
 
@@ -38,6 +38,8 @@ public class OrderMakePanel extends JPanel{
         add(leftPanel, BorderLayout.WEST);
         add(centerPanel, BorderLayout.CENTER);
         add(rightPanel, BorderLayout.EAST);
+
+        centerPanel.setOMLeft(leftPanel);
     }
 
     public OMCenter getCenterPanel() {
