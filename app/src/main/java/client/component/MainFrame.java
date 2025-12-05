@@ -38,12 +38,13 @@ public class MainFrame extends JFrame {
             }
         });
         // 다크모드 변경 버튼 람다 리스너
-        sb.darkModeBtn.addActionListener(e-> {
+        sb.getDarkModeBtn().addActionListener(e-> {
             if(e.getActionCommand().equals("DarkMode")) {
                 try {
                     // 다크모드로 전환
                     UIManager.setLookAndFeel(new FlatDarkFlatIJTheme());
-                    sb.darkModeBtn.setText("LightMode");
+                    sb.getDarkModeBtn().setText("LightMode");
+                    sb.getDarkModeBtn().setBackground(Color.WHITE);
                 } catch (Exception ex) {
                     System.out.println("Dark Mode 변환 실패");
                 }
@@ -51,7 +52,8 @@ public class MainFrame extends JFrame {
                 try {
                     //라이트모드 다시 전환
                     UIManager.setLookAndFeel(new FlatIntelliJLaf());
-                    sb.darkModeBtn.setText("DarkMode");
+                    sb.getDarkModeBtn().setText("DarkMode");
+                    sb.getDarkModeBtn().setBackground(Color.DARK_GRAY);
                 } catch (Exception ex) {
                     System.out.println("Light Mode 변환 실패");
                 }

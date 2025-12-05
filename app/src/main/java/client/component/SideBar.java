@@ -17,16 +17,19 @@ public class SideBar extends JPanel implements NowAdminListener {
         updateAccess(NowAdminService.getInstance().isAdminMode());
     }
     // 버튼 MainFrame에서 Control 해야하기 때문에 public으로 선언
-    public JButton manageBtn;
-    public JButton orderBtn;
-    public JButton stockBtn;
-    public JButton memberBtn;
-    public JButton handOverBtn;
-    public JButton salesBtn;
-    public JButton staffBtn;
-    public JButton gameBtn;
+    private JButton manageBtn;
+    private JButton orderBtn;
+    private JButton stockBtn;
+    private JButton memberBtn;
+    private JButton handOverBtn;
+    private JButton salesBtn;
+    private JButton staffBtn;
+    private JButton gameBtn;
     private JButton chmodBtn;
-    protected JButton darkModeBtn;
+    private JButton darkModeBtn;
+    public JButton getDarkModeBtn() {
+        return darkModeBtn;
+    }
     private final Color admin = new Color(170,209, 231);
     private final Color noAdmin = new Color(255, 102, 102);
     private void initUI() {
@@ -66,7 +69,7 @@ public class SideBar extends JPanel implements NowAdminListener {
 
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         darkModeBtn = new JButton("DarkMode");
-
+        darkModeBtn.setBackground(Color.DARK_GRAY);
         bottom.add(darkModeBtn);
         add(bottom, BorderLayout.SOUTH);
     }
