@@ -13,47 +13,44 @@ import java.util.List;
 public class OrderDAO {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    /*
-    새로운 주문 생성 및 주문 메뉴 저장
-    @param orderDTO 주문 정보
-    @param orderMenus 주문 메뉴 리스트 (Map<MenuDTO, Integer> 등 복잡한 구조 필요)
-    @return 성공 시 생성된 o_id, 실패 시 null
-    */
-    // 복잡한 트랜잭션 처리가 필요하므로, 여기서는 간소화하고 Controller에서 처리
-    // 실제로는 orders, order_menu, sales 테이블에 순차적으로 기록해야 함
-    public String insertNewOrder(OrderDataDTO orderDTO, List<MenuDTO> selectedMenu, List<Integer> quantities) {
+    public String insertNewOrder(OrderDataDTO orderDTO, List<MenuDTO> selectedMenus, List<Integer> quantities) {
         Connection conn = null;
         PreparedStatement ordersPstmt = null;
         PreparedStatement orderMenuPstmt = null;
-        PreparedStatement salePstmt = null;
-        String newOId = null;
 
-        try{
+        try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            newOId = getNextOId(conn);
-            // 1. orders 테이블에 주문 정보 삽입
-            // o_id 생성 (임의로 O0001, O0002... 사용 - 실제로는 Auto Increment 또는 시퀀스 사용 권장)
-            String ordersSql = "insert into orders (o_id, m_id, seat_num, requestment, pay_method) values (?, ?, ?, ?, ?)";
+            // 1. 다음 o_id 생성 (O00001 형식)
+            int nextOIdInt = getNextOIdInt(conn);
+            String newOId = String.format("O%05d", nextOIdInt);  // varchar(6)에 맞춤, O00001
+
+            // 2. orders 테이블 insert (o_id 직접 설정)
+            String ordersSql = "INSERT INTO orders (o_id, m_id, seat_num, requestment, pay_method) VALUES (?, ?, ?, ?, ?)";
             ordersPstmt = conn.prepareStatement(ordersSql);
             ordersPstmt.setString(1, newOId);
-            ordersPstmt.setString(2, "MEMBER_ID_PLACEHOLDER"); // 임시 m_id
+            if ("NO_MEMBER".equals(orderDTO.getMId())) {
+                ordersPstmt.setNull(2, Types.VARCHAR);
+            } else {
+                ordersPstmt.setString(2, orderDTO.getMId());
+            }
             ordersPstmt.setInt(3, orderDTO.getSeatNum());
             ordersPstmt.setString(4, orderDTO.getRequestment());
             ordersPstmt.setString(5, orderDTO.getPayMethod());
             ordersPstmt.executeUpdate();
 
-            // 2. order_menu 테이블에 메뉴 정보 삽입 및 총액 계산
+            // 3. order_menu insert
+            int nextOrderMenuIdInt = getNextOrderMenuIdInt(conn);
             int totalOrderAmount = 0;
-            String orderMenuSql = "insert into order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) values (?, ?, ?, ?, ?)";
+            String orderMenuSql = "INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
             orderMenuPstmt = conn.prepareStatement(orderMenuSql);
 
-            for (int i=0; i<quantities.size(); i++) {
-                MenuDTO menu = selectedMenu.get(i);
+            for (int i = 0; i < quantities.size(); i++) {
+                MenuDTO menu = selectedMenus.get(i);
                 int quantity = quantities.get(i);
 
-                String orderMenuId = getNextOrderMenuId(conn);
+                String orderMenuId = String.format("OM%05d", nextOrderMenuIdInt++);  // OM00001 형식, varchar(7)
 
                 orderMenuPstmt.setString(1, orderMenuId);
                 orderMenuPstmt.setString(2, newOId);
@@ -66,15 +63,15 @@ public class OrderDAO {
             }
             orderDTO.setTotalAmount(totalOrderAmount);
 
-            // 3. sales 테이블에 정산 기록 (업데이트)
+            // 4. sales insert/update
             insertOrUpdateSales(conn, orderDTO);
 
-            conn.commit(); // 트랜잭션 완료
+            conn.commit();
             return newOId;
 
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
-            if (conn != null){
+            if (conn != null) {
                 try {
                     conn.rollback();
                 } catch (SQLException rollbackEx) {
@@ -83,33 +80,33 @@ public class OrderDAO {
             }
             return null;
         } finally {
-            DBConnection.close(ordersPstmt, orderMenuPstmt, salePstmt, conn);
+            DBConnection.close(ordersPstmt, orderMenuPstmt, conn);
         }
     }
 
-    // orders 테이블의 다음 o_id를 가져오는 임시 메서드
-    private String getNextOId(Connection conn) throws SQLException {
+    // 신규 메서드: 다음 o_id int max 얻기
+    private int getNextOIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(o_id, 2) AS UNSIGNED)) FROM orders";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                int maxId = rs.getInt(1);
-                return String.format("O%04d", maxId + 1);
+                Object result = rs.getObject(1);
+                return (result == null) ? 0 : rs.getInt(1) + 1;
             }
-            return "O0001";
+            return 1;
         }
     }
 
-    // order_menu 테이블의 다음 order_menu_id를 가져오는 임시 메서드
-    private String getNextOrderMenuId(Connection conn) throws SQLException {
-        String sql = "SELECT MAX(CAST(SUBSTRING(order_menu_id, 2) AS UNSIGNED)) FROM order_menu";
+    // 수정: int maxId 반환
+    private int getNextOrderMenuIdInt(Connection conn) throws SQLException {
+        String sql = "SELECT MAX(CAST(SUBSTRING(order_menu_id, 3) AS UNSIGNED)) FROM order_menu";  // OM00001 -> 00001
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                int maxId = rs.getInt(1);
-                return String.format("OM%03d", maxId + 1); // OM001, OM002...
+                Object result = rs.getObject(1);
+                return (result == null) ? 0 : rs.getInt(1) + 1;
             }
-            return "OM001";
+            return 1;
         }
     }
 
@@ -241,9 +238,12 @@ public class OrderDAO {
             updateOrderStatus(orderDTO.getOId(), "REFUNDED");
 
             // 2. refund 테이블에 기록
+            int nextRefundIdInt = getNextRefundIdInt(conn);
+            String refundId = String.format("R%04d", nextRefundIdInt);  // R0001 형식 (varchar(5))
+
             String refundSql = "INSERT INTO refund (r_id, o_id, r_amount) VALUES (?, ?, ?)";
             refundPstmt = conn.prepareStatement(refundSql);
-            refundPstmt.setString(1, getNextRefundId(conn)); // r_id 생성
+            refundPstmt.setString(1, refundId);
             refundPstmt.setString(2, orderDTO.getOId());
             refundPstmt.setInt(3, orderDTO.getTotalAmount());
             refundPstmt.executeUpdate();
@@ -275,7 +275,6 @@ public class OrderDAO {
         String payMethodField = orderDTO.getPayMethod().equals("CASH") ? "cash_sales" : "card_sales";
 
         String updateSql = "UPDATE sales SET total_sales = total_sales + ?, " + payMethodField + " = " + payMethodField + " + ? WHERE s_date = CURDATE()";
-        String insertSql = "INSERT INTO sales (s_id, s_date, total_sales, card_sales, cash_sales) VALUES (?, CURDATE(), ?, ?, ?)";
 
         try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
             updatePstmt.setInt(1, amount);
@@ -283,8 +282,12 @@ public class OrderDAO {
 
             if (updatePstmt.executeUpdate() == 0) {
                 // 해당 날짜의 기록이 없으면 새로 삽입
+                int nextSalesIdInt = getNextSalesIdInt(conn);
+                String nextSalesId = String.format("S%04d", nextSalesIdInt);  // S0001 형식 (varchar(5))
+
+                String insertSql = "INSERT INTO sales (s_id, s_date, total_sales, card_sales, cash_sales) VALUES (?, CURDATE(), ?, ?, ?)";
                 try (PreparedStatement insertPstmt = conn.prepareStatement(insertSql)) {
-                    insertPstmt.setString(1, getNextSalesId(conn));
+                    insertPstmt.setString(1, nextSalesId);
                     insertPstmt.setInt(2, amount);
                     insertPstmt.setInt(3, payMethodField.equals("card_sales") ? amount : 0);
                     insertPstmt.setInt(4, payMethodField.equals("cash_sales") ? amount : 0);
@@ -312,30 +315,29 @@ public class OrderDAO {
         }
     }
 
-    // refund 테이블의 다음 r_id를 가져오는 임시 메서드
-    private String getNextRefundId(Connection conn) throws SQLException {
+    // refund 테이블의 다음 r_id를 가져오는 int 메서드
+    private int getNextRefundIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(r_id, 2) AS UNSIGNED)) FROM refund";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                int maxId = rs.getInt(1);
-                return String.format("R%04d", maxId + 1);
+                Object result = rs.getObject(1);
+                return (result == null) ? 0 : rs.getInt(1) + 1;
             }
-            return "R0001";
+            return 1;
         }
     }
 
-    // sales 테이블의 다음 s_id를 가져오는 임시 메서드
-    private String getNextSalesId(Connection conn) throws SQLException {
+    // sales 테이블의 다음 s_id를 가져오는 int 메서드
+    private int getNextSalesIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(s_id, 2) AS UNSIGNED)) FROM sales";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
-                int maxId = rs.getInt(1);
-                return String.format("S%04d", maxId + 1);
+                Object result = rs.getObject(1);
+                return (result == null) ? 0 : rs.getInt(1) + 1;
             }
-            return "S0001";
+            return 1;
         }
     }
-
 }

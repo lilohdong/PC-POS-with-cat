@@ -33,6 +33,8 @@ public class OrderDataDTO {
         this.totalAmount = totalAmount;
     }
 
+    public String getMId() {return mId;}
+
     public String getOId() {return oId;}
     public void setOId(String oId) {this.oId = oId;}
 

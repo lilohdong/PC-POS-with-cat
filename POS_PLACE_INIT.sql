@@ -133,7 +133,7 @@ create table menu(
 );
 
 create table orders(
-	o_id int primary key auto_increment,
+	o_id varchar(6) primary key,
     m_id varchar(30), -- 필요에 의한 추가, 누가 주문했는지 알아야 함
     o_time datetime default current_timestamp,
     seat_num int not null,
@@ -145,11 +145,10 @@ create table orders(
 );
 
 create table order_menu(
-	order_menu_id varchar(5) primary key,
-    o_id int not null,
+	order_menu_id varchar(7) primary key,
+    o_id varchar(6) not null,
     menu_id varchar(5) not null,
     quantity int not null,
-    
     unit_price int not null, -- 이 부분은 trigger를 통해 menu.price 가져오기
     total_price int generated always as (unit_price * quantity) stored,
     
@@ -159,7 +158,7 @@ create table order_menu(
 
 create table refund(
 	r_id varchar(5) primary key,
-    o_id int not null,
+    o_id varchar(6) not null,
     r_time datetime default current_timestamp,
     r_amount int not null,
     
