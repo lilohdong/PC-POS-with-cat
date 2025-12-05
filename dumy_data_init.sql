@@ -141,9 +141,8 @@ BEGIN
             -- 날짜 범위 설정 (2025-11-20 ~ 2025-12-02)
             SET rand_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (13 * 24 * 60 * 60)) SECOND);
 
-            INSERT INTO orders (o_id, m_id, o_time, seat_num, complete_time, o_status, requestment, pay_method)
+            INSERT INTO orders (m_id, o_time, seat_num, complete_time, o_status, requestment, pay_method)
             VALUES (
-                       LPAD(i, 5, '0'),
                        CONCAT('member', FLOOR(1 + RAND() * 100)),
                        rand_dt,
                        FLOOR(1 + RAND() * 100),
@@ -173,7 +172,7 @@ BEGIN
 
     WHILE i <= 100 DO
             -- 1. 00001 ~ 00100 사이의 랜덤 메뉴 ID 생성
-            SET v_target_m_id = LPAD(FLOOR(1 + RAND() * 100), 5, '0');
+            SET v_target_m_id = LPAD(FLOOR(1 + RAND() * 21), 5, '0');
 
             -- 2. 변수 초기화 (이전 루프의 값 잔존 방지)
             SET v_price = NULL;
@@ -193,7 +192,7 @@ BEGIN
             INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price)
             VALUES (
                        LPAD(i, 5, '0'),
-                       LPAD(i, 5, '0'), -- orders 테이블의 o_id와 1:1 매칭 가정
+                       i, -- orders 테이블의 o_id와 1:1 매칭 가정
                        v_target_m_id,
                        FLOOR(1 + RAND() * 3),
                        v_price
@@ -216,8 +215,8 @@ SELECT
     om.total_price
 FROM orders o
          JOIN order_menu om ON o.o_id = om.o_id
-WHERE o.o_id <= '00020'; -- 앞쪽 20개 주문에 대해 환불 처리 (예시)
-UPDATE orders SET o_status = 'REFUNDED' WHERE o_id <= '00020';
+WHERE o.o_id <= 20; -- 앞쪽 20개 주문에 대해 환불 처리 (예시)
+UPDATE orders SET o_status = 'REFUNDED' WHERE o_id <= 20;
 
 
 -- DML 데이터 삽입

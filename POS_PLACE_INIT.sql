@@ -133,7 +133,7 @@ create table menu(
 );
 
 create table orders(
-	o_id varchar(5) primary key,
+	o_id int primary key auto_increment,
     m_id varchar(30), -- 필요에 의한 추가, 누가 주문했는지 알아야 함
     o_time datetime default current_timestamp,
     seat_num int not null,
@@ -146,7 +146,7 @@ create table orders(
 
 create table order_menu(
 	order_menu_id varchar(5) primary key,
-    o_id varchar(5) not null,
+    o_id int not null,
     menu_id varchar(5) not null,
     quantity int not null,
     
@@ -159,7 +159,7 @@ create table order_menu(
 
 create table refund(
 	r_id varchar(5) primary key,
-    o_id varchar(5) not null,
+    o_id int not null,
     r_time datetime default current_timestamp,
     r_amount int not null,
     
