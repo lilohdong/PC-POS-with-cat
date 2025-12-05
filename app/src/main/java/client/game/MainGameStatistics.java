@@ -21,6 +21,10 @@ public class MainGameStatistics extends JPanel {
     JLabel dateLabel;
     public MainGameStatistics() {
         initUI();
+        Timer Timer = new Timer(1000, e -> {
+            updateCurrentTime();  // yyyy-MM-dd HH:mm:ss 실시간 갱신
+        });
+        Timer.start();
     }
 
     private void initUI() {
@@ -33,7 +37,7 @@ public class MainGameStatistics extends JPanel {
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
         LocalDateTime dateTime = LocalDateTime.now();
         // Date formatting을 통해 현재 시간 깔끔하게 표시.
-        String formattedDateTime = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        String formattedDateTime = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         dateLabel = new JLabel("현재 시간 : " + formattedDateTime);
         dateLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
         dateLabel.setForeground(Color.BLACK);
@@ -76,5 +80,8 @@ public class MainGameStatistics extends JPanel {
         scrollPane.setBorder(null);
         add(scrollPane, BorderLayout.CENTER);
     }
-
+    public void updateCurrentTime() {
+        dateLabel.setText("현재 시간 : "+LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
 }
