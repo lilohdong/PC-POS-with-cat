@@ -1,5 +1,7 @@
 package client.game;
 
+import client.sales.timesales.TimeSalesTablePanel;
+import com.github.lgooddatepicker.components.DatePicker;
 import dao.GameDAO;
 import dto.PopularGameDTO;
 import font.ClearGodic;
@@ -15,7 +17,9 @@ import java.util.List;
 public class PopularGameRankingPanel extends JPanel {
     // 단순한 테이블 구조가 아닌, Panel을 쌓아올려 랭킹 표시하는 방식으로, 깔끔한 UI
     private JPanel listPanel;
-
+    private final ImageIcon cal = new ImageIcon(getClass().getResource("/imgs/calendar.png"));
+    private JButton calBtn;
+    private DatePicker datePicker;
     public PopularGameRankingPanel() {
         initUI();
         initData(); // UI 생성 후 데이터 로드
@@ -43,8 +47,37 @@ public class PopularGameRankingPanel extends JPanel {
         JLabel dateLabel = new JLabel("기준 : "+ LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
         dateLabel.setFont(new ClearGodic(Font.PLAIN,16));
         dateLabel.setForeground(Color.GRAY);
-        headerPanel.add(dateLabel, BorderLayout.CENTER);
 
+        // 날짜 선택 부분
+        datePicker = new DatePicker();
+        datePicker.setVisible(false);
+
+
+        calBtn = new JButton(cal);
+        calBtn.setPreferredSize(new Dimension(24, 24));
+        // 동그래지는거 해결하는 코드 //
+        calBtn.setBorder(BorderFactory.createEmptyBorder());
+        calBtn.setContentAreaFilled(false);
+        calBtn.setFocusPainted(false);
+        // 동그래지는거 해결하는 코드 끝//
+        calBtn.addActionListener( e-> {
+            boolean currentStatus = datePicker.isVisible();
+            datePicker.setVisible(!currentStatus);
+
+            if (!currentStatus) {
+                datePicker.openPopup();
+            }
+        });
+        datePicker.addDateChangeListener(e -> {
+            LocalDate date = e.getNewDate();
+            if (date != null) {
+                dateLabel.setText("기준 : " + date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                updateData(date); // 날짜 변경 시 데이터 갱신 요청
+            }
+        });
+        headerPanel.add(calBtn, BorderLayout.EAST);
+        headerPanel.add(dateLabel, BorderLayout.CENTER);
+        headerPanel.add(datePicker, BorderLayout.SOUTH);
         JPanel columnHeader = new JPanel(new GridLayout(1, 2));
         JLabel gameLabel = new JLabel("게임 이름");
         gameLabel.setFont(new ClearGodic(12));
@@ -93,9 +126,11 @@ public class PopularGameRankingPanel extends JPanel {
     }
 
     private void initData() {
-        // 기존 내용 초기화
+        updateData(LocalDate.now());
+    }
+    private void updateData(LocalDate date) {
         listPanel.removeAll();
-        List<PopularGameDTO> games = GameDAO.getInstance().getAllPopularGames();
+        List<PopularGameDTO> games = GameDAO.getInstance().getPopularGamesByDate(date);
 
         if (games.isEmpty()) {
             JLabel emptyLabel = new JLabel("데이터 집계 중...");

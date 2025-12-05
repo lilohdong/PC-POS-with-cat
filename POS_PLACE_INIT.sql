@@ -313,36 +313,44 @@ select o.o_id sales_id, o.m_id member_id, o.o_time as o_time, m.m_name as m_name
 from orders o, menu m, order_menu om
 where o.o_id = om.o_id and m.menu_id = om.menu_id and o.o_status = 'COMPLETED';
 -- GameStatics에 사용할 뷰
-create view popular_game_view as
-with today_play_time as (
-    -- 1. 오늘 종료된 게임들의 총 플레이 시간 (분 단위)
-    select
+CREATE OR REPLACE VIEW popular_game_view AS
+WITH raw_play_data AS (
+    -- 1. 모든 플레이 로그의 날짜와 플레이 시간 추출
+    SELECT
         g_id,
+        DATE(start_time) as play_date, -- 날짜 컬럼 생성
         timestampdiff(minute, start_time, coalesce(end_time, current_timestamp())) as play_minutes
-    from play_log
-    where date(start_time) = current_date()
+    FROM play_log
 ),
-     game_total_time as (
-         -- 2. 각 게임별 총 플레이 시간
-         select
+     daily_game_stats AS (
+         -- 2. (날짜, 게임)별 총 플레이 시간 합산
+         SELECT
+             rpd.play_date,
              g.g_id,
              g.title as game_name,
-             sum(tpt.play_minutes) as total_minutes
-         from game g
-                  join today_play_time tpt on g.g_id = tpt.g_id
-         group by g.g_id, g.title
+             SUM(rpd.play_minutes) as total_minutes
+         FROM game g
+                  JOIN raw_play_data rpd ON g.g_id = rpd.g_id
+         GROUP BY rpd.play_date, g.g_id, g.title
      ),
-     total_daily_minutes as (
-         -- 3. 오늘 전체 게임의 총 플레이 시간
-         select sum(total_minutes) as overall_total from game_total_time
+     daily_total_stats AS (
+         -- 3. 날짜별 전체 게임 총 플레이 시간 (분모 계산용)
+         SELECT
+             play_date,
+             SUM(total_minutes) as overall_total
+         FROM daily_game_stats
+         GROUP BY play_date
      )
-select
-    rank() over (order by gtt.total_minutes desc) as ranking, -- 순위
-    gtt.game_name,
-    -- 점유율 계산 (총 플레이 시간 / 전체 시간 * 100)
-    round((gtt.total_minutes / (select overall_total from total_daily_minutes)) * 100, 2) as share_percent
-from game_total_time gtt
-where (select overall_total from total_daily_minutes) > 0;
+SELECT
+    dgs.play_date, -- Java에서 이 컬럼으로 조회할 예정
+    RANK() OVER (PARTITION BY dgs.play_date ORDER BY dgs.total_minutes DESC) as ranking, -- 날짜별로 순위 매기기
+    dgs.game_name,
+    ROUND((dgs.total_minutes / dts.overall_total) * 100, 2) as share_percent
+FROM daily_game_stats dgs
+         JOIN daily_total_stats dts ON dgs.play_date = dts.play_date;
+
+
+select * from popular_game_view;
 
 CREATE OR REPLACE VIEW statistics_view AS
 SELECT
