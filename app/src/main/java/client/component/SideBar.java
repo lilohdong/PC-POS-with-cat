@@ -67,9 +67,10 @@ public class SideBar extends JPanel implements NowAdminListener {
         initReal(btnSets);
         add(btnSets, BorderLayout.CENTER);
 
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.CENTER));
         darkModeBtn = new JButton("DarkMode");
         darkModeBtn.setBackground(Color.DARK_GRAY);
+        darkModeBtn.setForeground(Color.WHITE);
         bottom.add(darkModeBtn);
         add(bottom, BorderLayout.SOUTH);
     }

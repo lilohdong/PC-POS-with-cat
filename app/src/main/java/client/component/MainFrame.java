@@ -45,6 +45,7 @@ public class MainFrame extends JFrame {
                     UIManager.setLookAndFeel(new FlatDarkFlatIJTheme());
                     sb.getDarkModeBtn().setText("LightMode");
                     sb.getDarkModeBtn().setBackground(Color.WHITE);
+                    sb.getDarkModeBtn().setForeground(Color.DARK_GRAY);
                 } catch (Exception ex) {
                     System.out.println("Dark Mode 변환 실패");
                 }
@@ -54,6 +55,7 @@ public class MainFrame extends JFrame {
                     UIManager.setLookAndFeel(new FlatIntelliJLaf());
                     sb.getDarkModeBtn().setText("DarkMode");
                     sb.getDarkModeBtn().setBackground(Color.DARK_GRAY);
+                    sb.getDarkModeBtn().setForeground(Color.WHITE);
                 } catch (Exception ex) {
                     System.out.println("Light Mode 변환 실패");
                 }
