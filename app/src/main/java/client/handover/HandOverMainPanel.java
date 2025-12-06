@@ -14,6 +14,8 @@ import java.util.Map;
 import java.text.DecimalFormat;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.FocusEvent;
 
 public class HandOverMainPanel extends JPanel {
 
@@ -28,8 +30,14 @@ public class HandOverMainPanel extends JPanel {
 
     // 금고 / 차액 관련
     private int prevCashReserve; // 이전까지 누적된 장부상 금고 금액 (금고 amount)
-
     private DecimalFormat df = new DecimalFormat("#,###"); // 금액 콤마 포맷
+
+    // 현금 계산기 관련
+    private JTextField[] countFields = new JTextField[6];
+    private JTextField[] amountFields = new JTextField[6];
+    private JTextField totalCashField;  // 총합 필드
+    private final int[] unit = {50000, 10000, 5000, 1000, 500, 100};
+    private final String[] labels = {"오만원", "만원", "오천원", "천원", "오백원", "백원"};
 
     // UI 필드
     private JTextField pcSalesField, productSalesField, cashDepositField, totalSalesField;
@@ -187,10 +195,13 @@ public class HandOverMainPanel extends JPanel {
             public void changedUpdate(DocumentEvent e) { updateCalculation(); }
         };
 
+        // 출금
         withdrawalField = new JTextField("0");
+        applyZeroClearBehavior(withdrawalField);
         withdrawalField.getDocument().addDocumentListener(dl);
-
+        // 환불
         refundField = new JTextField("0");
+        applyZeroClearBehavior(refundField);
         refundField.getDocument().addDocumentListener(dl);
 
         leftPanel.add(createFieldRow("현금 출금", withdrawalField, true));
@@ -220,6 +231,9 @@ public class HandOverMainPanel extends JPanel {
         diffField = new JTextField();          // 누적 업무 차액 표시
         diffField.setForeground(Color.RED);
 
+        // 클릭하면 0 지워지게 / 포커스 잃으면 0 복원
+        applyZeroClearBehavior(realCashField);
+
         // 실제 금고 금액 입력 리스너
         realCashField.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { updateCalculation(); }
@@ -231,7 +245,9 @@ public class HandOverMainPanel extends JPanel {
         rightPanel.add(createFieldRow("실제 금고 금액", realCashField, true));
         rightPanel.add(Box.createVerticalStrut(10));
         rightPanel.add(createFieldRow("업무 차액", diffField));
-
+        rightPanel.add(Box.createVerticalStrut(30));
+        rightPanel.add(createHeader("현금 계산기"));
+        rightPanel.add(createCashCalcPanel());
         rightPanel.add(Box.createVerticalStrut(30));
 
         // 시간 확인
@@ -241,10 +257,108 @@ public class HandOverMainPanel extends JPanel {
         String endStr = endTime.toLocalDateTime().format(dtf);
 
         rightPanel.add(createLabelRow("이전 인수 시간", startStr));
-        rightPanel.add(createLabelRow("관리자 근무 시간", startStr + " ~ " + endStr));
+        rightPanel.add(createLabelRow("인계 시간", endStr));
 
         rightPanel.add(Box.createVerticalGlue());
         return rightPanel;
+    }
+
+    // 현금 계산기 (따로 생성 후 rightPanel에 추가)
+    private JPanel createCashCalcPanel() {
+        JPanel panel = new JPanel();
+        panel.setBorder(new LineBorder(Color.LIGHT_GRAY));
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        panel.setMaximumSize(new Dimension(350, 300));
+        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // 단위별 줄 (오만원 ~ 100원)
+        for (int i = 0; i < 6; i++) {
+            JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 5));
+
+            JLabel lbl = new JLabel(labels[i]);
+            lbl.setPreferredSize(new Dimension(50, 25));
+
+            // 개수 입력 칸
+            JTextField tfCount = new JTextField("0", 4);
+            applyZeroClearBehavior(tfCount);
+            // 금액 표시 칸
+            JTextField tfAmount = new JTextField("0", 10);
+            tfAmount.setEditable(false);
+
+            countFields[i] = tfCount;
+            amountFields[i] = tfAmount;
+
+            int idx = i;
+            tfCount.getDocument().addDocumentListener(new DocumentListener() {
+                public void insertUpdate(DocumentEvent e) { updateCashCalc(idx); }
+                public void removeUpdate(DocumentEvent e) { updateCashCalc(idx); }
+                public void changedUpdate(DocumentEvent e) { updateCashCalc(idx); }
+            });
+
+            row.add(lbl);
+            row.add(tfCount);
+            row.add(tfAmount);
+
+            panel.add(row);
+        }
+
+        // 총 합계 줄
+        JPanel totalRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 30, 3));
+        JLabel totalLbl = new JLabel("총 합계");
+        totalLbl.setPreferredSize(new Dimension(107, 25));
+
+        totalCashField = new JTextField("0", 10);
+        totalCashField.setEditable(false);
+
+        totalRow.add(totalLbl);
+        totalRow.add(Box.createHorizontalStrut(5));
+        totalRow.add(totalCashField);
+
+        panel.add(totalRow);
+
+        return panel;
+    }
+
+    // 화폐 단위 금액 자동 계산
+    private void updateCashCalc(int index) {
+        try {
+            int count = Integer.parseInt(countFields[index].getText().trim());
+            int amount = count * unit[index];
+            // 콤마 적용
+            amountFields[index].setText(df.format(amount));
+        } catch (Exception ex) {
+            amountFields[index].setText("0");
+        }
+
+        updateTotalCashCalc();
+    }
+
+    // 전체 금액 합산
+    private void updateTotalCashCalc() {
+        int sum = 0;
+        for (int i = 0; i < 6; i++) {
+            try {
+                sum += (int)parseLong(amountFields[i].getText());
+            } catch (Exception ignored) {}
+        }
+        // 콤마 적용
+        totalCashField.setText(df.format(sum));
+    }
+
+    // 텍스트필드 클릭 시 0 제거
+    private void applyZeroClearBehavior(JTextField tf) {
+        tf.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (tf.getText().trim().equals("0")) tf.setText("");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (tf.getText().trim().isEmpty()) tf.setText("0");
+            }
+        });
     }
 
     private JPanel createBottomPanel() {
@@ -289,6 +403,7 @@ public class HandOverMainPanel extends JPanel {
             int accumulatedDiff = realSafeInput - expectedSafe;
 
             dto.setMemo("누적 차액: " + df.format(accumulatedDiff) + " 원");
+            dto.setCashReserve(expectedSafe);
 
             // 저장 성공 시 금고 금액 + 업무 차액 누적 업데이트
             if (service.save(dto)) {
