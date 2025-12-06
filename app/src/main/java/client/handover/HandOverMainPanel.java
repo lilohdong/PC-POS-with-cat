@@ -28,7 +28,6 @@ public class HandOverMainPanel extends JPanel {
 
     // 금고 / 차액 관련
     private int prevCashReserve; // 이전까지 누적된 장부상 금고 금액 (금고 amount)
-    private int prevDiffAcc;     // 이전까지 누적된 업무 차액 (diff_accumulate)
 
     private DecimalFormat df = new DecimalFormat("#,###"); // 금액 콤마 포맷
 
@@ -76,11 +75,8 @@ public class HandOverMainPanel extends JPanel {
         try {
             int[] safeInfo = service.getCashSafeDetail();
             this.prevCashReserve = safeInfo[0]; // 장부상 금고 금액
-            this.prevDiffAcc = safeInfo[1];     // 누적 차액
         } catch (Exception e) {
             e.printStackTrace();
-            this.prevCashReserve = lastData.getCashReserve(); // 실패 시 대체값
-            this.prevDiffAcc = 0;
         }
     }
 

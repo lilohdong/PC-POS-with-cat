@@ -23,7 +23,6 @@ public class HandOverDAO {
                 dto = new HandOverDTO();
                 dto.setReceiverId(rs.getString("receiver_id")); // 전 타임 인수자가 현 타임 인계자
                 dto.setEndTime(rs.getTimestamp("end_time"));    // 전 타임 끝난 시간이 현 타임 시작 시간
-                dto.setCashReserve(rs.getInt("cash_reserve"));  // 전 타임 마감 시재
             }
         } catch (Exception e) { e.printStackTrace(); }
         return dto;
@@ -137,9 +136,6 @@ public class HandOverDAO {
         }
     }
 
-    public void updateCashSafe(int amount) {
-        updateCashSafe(amount, 0);
-    }
 
     // 금고 금액 + 누적 차액 저장 (차액 덮어쓰기 방식)
     public void updateCashSafe(int amount, int accumulatedDiff) {

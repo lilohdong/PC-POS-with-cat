@@ -1,6 +1,5 @@
 package client.handover;
 
-import dto.HandOverDTO;
 import service.HandOverService;
 
 import javax.swing.*;

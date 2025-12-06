@@ -28,8 +28,6 @@ public class HandOverLoginPanel extends JPanel implements ActionListener {
         // 직원 목록 불러오기
         staffList = parent.getService().getStaffNames();
 
-        // 인계자 본인은 인수자 목록에서 제외
-        staffList.remove(currentGiverName);
 
         JPanel loginBox = new JPanel();
         loginBox.setLayout(new BoxLayout(loginBox, BoxLayout.Y_AXIS));

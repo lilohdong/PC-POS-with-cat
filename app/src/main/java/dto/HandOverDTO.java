@@ -3,7 +3,6 @@ package dto;
 import java.sql.Timestamp;
 
 public class HandOverDTO {
-    public String giverName;
     private int hoId;
     private String giverId;
     private String receiverId;

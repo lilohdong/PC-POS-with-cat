@@ -23,12 +23,15 @@ public class HandOverService {
         // 데이터가 없으면(첫 오픈) 기본값 설정
         if (lastDto == null) {
             lastDto = new HandOverDTO();
-            lastDto.setReceiverId("사장님"); // 초기 Giver
-            lastDto.setEndTime(Timestamp.valueOf(LocalDateTime.now().withHour(0).withMinute(0)));
-            lastDto.setCashReserve(0);
+
+            // 초 첫 시작 시간 → 오늘 00:00 같은 의미
+            lastDto.setEndTime(Timestamp.valueOf(
+                    LocalDateTime.now().withHour(0).withMinute(0)
+            ));
         }
         return lastDto;
     }
+
 
     // 매출 데이터
     public Map<String, Integer> getSales(Timestamp start, Timestamp end) {
@@ -38,11 +41,6 @@ public class HandOverService {
     // 저장
     public boolean save(HandOverDTO dto) {
         return dao.insertHandover(dto);
-    }
-
-    // 금고 조회/갱신
-    public int getCashSafe() {
-        return dao.getCashSafe();
     }
 
 
