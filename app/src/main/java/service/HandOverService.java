@@ -51,6 +51,11 @@ public class HandOverService {
         dao.updateCashSafe(amount, diffDelta);
     }
 
+    // 금고 금액 + 누적 차액 함께 조회
+    public int[] getCashSafeDetail() {
+        return dao.getCashSafeDetail();
+    }
+
 
     // 직원 목록 불러오기 (콤보박스용)
     public List<String> getStaffNames() {

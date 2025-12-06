@@ -18,22 +18,26 @@ import javax.swing.event.DocumentEvent;
 public class HandOverMainPanel extends JPanel {
 
     private HandOverFrame parent;
-    private String giverName; // 받아온 인계자 이름
-    private String receiverName;
+    private String giverName;    // 인계자
+    private String receiverName; // 인수자
 
-    //  서비스 객체 및 데이터 처리 변수
+    // 서비스 및 데이터
     private HandOverService service;
     private Timestamp startTime;
     private Timestamp endTime;
-    private int prevCashReserve; // 이전 타임에서 넘겨받은 시재 (인수 금액)
+
+    // 금고 / 차액 관련
+    private int prevCashReserve; // 이전까지 누적된 장부상 금고 금액 (금고 amount)
+    private int prevDiffAcc;     // 이전까지 누적된 업무 차액 (diff_accumulate)
+
     private DecimalFormat df = new DecimalFormat("#,###"); // 금액 콤마 포맷
 
+    // UI 필드
     private JTextField pcSalesField, productSalesField, cashDepositField, totalSalesField;
     private JTextField cashSafeField, realCashField, diffField;
-    // 필드명을 UI 용도에 맞게 매칭 (출금, 환불, 인계금액)
-    private JTextField withdrawalField, refundField, handoverField;
+    private JTextField withdrawalField, refundField;
 
-    // 매출 값 보관용 (PC / 현금 / 카드)
+    // 매출 값 (PC / 현금 / 카드)
     private int pcSalesValue;         // 시간충전 = PC 사용료
     private int cashProductSales;     // 상품 판매 (현금)
     private int cardProductSales;     // 상품 판매 (카드)
@@ -61,60 +65,59 @@ public class HandOverMainPanel extends JPanel {
         updateCalculation();
     }
 
-    // 초기 데이터 로드 메서드
+    // 초기 데이터 로드
     private void initData() {
         // 이전 인수인계 정보(시작시간, 이전 시재) 가져오기
         HandOverDTO lastData = service.getInitialData();
         this.startTime = lastData.getEndTime(); // 이전 끝난 시간이 나의 시작
-        this.prevCashReserve = lastData.getCashReserve(); // 이전 시재가 나의 인수 금액
         this.endTime = Timestamp.valueOf(LocalDateTime.now()); // 현재 시간
 
-        // 금고 금액을 DB로부터 읽어와서 prevCashReserve로 덮어쓸지 결정
+        // cash_safe에서 금고 금액 + 누적 차액 읽어오기
         try {
-            int persistedSafe = service.getCashSafe(); // Service에서 DAO 호출
-            if (persistedSafe > 0) {
-                this.prevCashReserve = persistedSafe; // 우선 DB에 저장된 금고값 사용
-            }
+            int[] safeInfo = service.getCashSafeDetail();
+            this.prevCashReserve = safeInfo[0]; // 장부상 금고 금액
+            this.prevDiffAcc = safeInfo[1];     // 누적 차액
         } catch (Exception e) {
-            // 실패 시 기존값 유지
             e.printStackTrace();
+            this.prevCashReserve = lastData.getCashReserve(); // 실패 시 대체값
+            this.prevDiffAcc = 0;
         }
     }
 
-    // 계산 업데이트 메서드 (리스너 등에서 호출)
+    // 계산 업데이트 (리스너 등에서 호출)
     private void updateCalculation() {
         try {
-            long cashSales = parseLong(cashDepositField.getText());
-            long withdraw = parseLong(withdrawalField.getText());
-            long refund = parseLong(refundField.getText());
+            long cashSales = parseLong(cashDepositField.getText()); // 이번 근무 현금 매출
+            long withdraw  = parseLong(withdrawalField.getText());  // 출금
+            long refund    = parseLong(refundField.getText());      // 환불
 
-            // 장부상 금고 금액 = 이전시재(인수금액) + 현금매출 - 출금 - 환불
+            // 장부상 금고 금액 = 이전 금고 + 현금 매출 - 출금 - 환불
             long expected = prevCashReserve + cashSales - withdraw - refund;
             cashSafeField.setText(df.format(expected) + " 원");
 
             // 실제 금고 금액 (사용자 입력)
             long real = parseLong(realCashField.getText());
 
-            // 차액
-            long diff = real - expected;
-            diffField.setText(df.format(diff) + " 원");
-            if(diff < 0) diffField.setForeground(Color.RED);
+            // 누적 차액 = 실제 금고 - 장부 금고
+            long accumulatedDiff = real - expected;
+
+
+            diffField.setText(df.format(accumulatedDiff) + " 원");
+            if (accumulatedDiff < 0) diffField.setForeground(Color.RED);
             else diffField.setForeground(Color.BLUE);
 
-            // 인계 금액 = 실제 금고 금액 (다음 사람에게 넘겨줄 돈)
-            handoverField.setText(df.format(real) + " 원");
+        } catch (Exception e) {
 
-        } catch (Exception e) {}
+        }
     }
 
-    // 문자열 금액 파싱 헬퍼
+    // 문자열 금액 파싱
     private long parseLong(String text) {
-        // 음수도 제대로 파싱되도록 변경 (업무차액이 -일 수 있음)
         if (text == null) return 0;
         String trimmed = text.trim();
         if (trimmed.isEmpty()) return 0;
 
-        // "원", 콤마, 공백 등 제거하되, 맨 앞의 음수 기호는 살림
+        // 숫자/마이너스만 남기기 ("원", 콤마 등 제거)
         String cleaned = trimmed.replaceAll("[^0-9\\-]", "");
         if (cleaned.equals("") || cleaned.equals("-")) return 0;
 
@@ -139,7 +142,6 @@ public class HandOverMainPanel extends JPanel {
         JPanel centerPanel = new JPanel(new GridLayout(1, 2, 40, 0));
         centerPanel.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
 
-        // 내부 패딩
         JPanel content = new JPanel(new GridLayout(1, 2, 40, 0));
         content.setBorder(new EmptyBorder(30, 30, 30, 30));
 
@@ -152,26 +154,26 @@ public class HandOverMainPanel extends JPanel {
 
     private JPanel createLeftColumn() {
         JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS)); // 세로 정렬
-        leftPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 왼쪽 정렬
+        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // 인계자/인수자
-        leftPanel.add(createInputRow("인계자", giverName)); // 로그인에서 받아온 이름 사용
+        leftPanel.add(createInputRow("인계자", giverName));
         leftPanel.add(Box.createVerticalStrut(10));
-        leftPanel.add(createInputRow("인수자", receiverName )); // 받아온 인수자 이름 사용
+        leftPanel.add(createInputRow("인수자", receiverName));
         leftPanel.add(Box.createVerticalStrut(30));
 
-        // DB에서 매출 데이터 로드
-        // PC / 현금 / 카드 / 합계 분리해서 사용
+        // 매출 데이터 로드
         Map<String, Integer> sales = service.getSales(startTime, endTime);
-        pcSalesValue      = sales.getOrDefault("pc", 0);
-        cashProductSales  = sales.getOrDefault("cash", 0);
-        cardProductSales  = sales.getOrDefault("card", 0);
-        int totalSalesVal = sales.getOrDefault("total", pcSalesValue + cashProductSales + cardProductSales);
+        pcSalesValue     = sales.getOrDefault("pc", 0);
+        cashProductSales = sales.getOrDefault("cash", 0);
+        cardProductSales = sales.getOrDefault("card", 0);
+        int totalSalesVal = sales.getOrDefault("total",
+                pcSalesValue + cashProductSales + cardProductSales);
 
         leftPanel.add(createHeader("매출"));
         pcSalesField = new JTextField(df.format(pcSalesValue) + " 원");
-        productSalesField = new JTextField(df.format(cashProductSales + cardProductSales) + " 원"); // 상품 총액
+        productSalesField = new JTextField(df.format(cashProductSales + cardProductSales) + " 원");
         cashDepositField = new JTextField(df.format(cashProductSales) + " 원"); // 현금 매출
 
         leftPanel.add(createFieldRow("PC 사용료", pcSalesField));
@@ -183,31 +185,30 @@ public class HandOverMainPanel extends JPanel {
         // 출금
         leftPanel.add(createHeader("출금"));
 
-        // 입력 감지를 위한 리스너 생성
         DocumentListener dl = new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { updateCalculation(); }
             public void removeUpdate(DocumentEvent e) { updateCalculation(); }
             public void changedUpdate(DocumentEvent e) { updateCalculation(); }
         };
 
-        withdrawalField = new JTextField("0"); // 현금 출금
+        withdrawalField = new JTextField("0");
         withdrawalField.getDocument().addDocumentListener(dl);
 
-        refundField = new JTextField("0");     // 환불 금액
+        refundField = new JTextField("0");
         refundField.getDocument().addDocumentListener(dl);
 
-        leftPanel.add(createFieldRow("현금 출금", withdrawalField, true)); // 입력 가능하도록 true
-        leftPanel.add(createFieldRow("환불 금액", refundField, true));     // 입력 가능하도록 true
+        leftPanel.add(createFieldRow("현금 출금", withdrawalField, true));
+        leftPanel.add(createFieldRow("환불 금액", refundField, true));
 
         leftPanel.add(Box.createVerticalStrut(30));
 
-        // 합계 (PC + 상품(현금/카드) 전체)
+        // 합계 (PC + 상품 전체)
         totalSalesField = new JTextField(df.format(totalSalesVal) + " 원");
         totalSalesField.setFont(new Font("맑은 고딕", Font.BOLD, 16));
-        totalSalesField.setForeground(new Color(50, 100, 255)); // 파란색 강조
+        totalSalesField.setForeground(new Color(50, 100, 255));
         leftPanel.add(createFieldRow("매출 합계", totalSalesField));
 
-        leftPanel.add(Box.createVerticalGlue()); // 남는 공간 채움
+        leftPanel.add(Box.createVerticalGlue());
         return leftPanel;
     }
 
@@ -218,12 +219,12 @@ public class HandOverMainPanel extends JPanel {
 
         // 금고
         rightPanel.add(createHeader("금고 금액 현황"));
-        cashSafeField = new JTextField(); // 전산상 금액 (계산됨)
-        realCashField = new JTextField("0"); // 실제 금액 (입력)
-        diffField = new JTextField();
-        diffField.setForeground(Color.RED); // 차액 빨간색
+        cashSafeField = new JTextField();      // 장부상 금고 금액(계산)
+        realCashField = new JTextField("0");   // 실제 금고 금액(입력)
+        diffField = new JTextField();          // 누적 업무 차액 표시
+        diffField.setForeground(Color.RED);
 
-        // 실제 금고 금액 입력 시 리스너 연결
+        // 실제 금고 금액 입력 리스너
         realCashField.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { updateCalculation(); }
             public void removeUpdate(DocumentEvent e) { updateCalculation(); }
@@ -231,34 +232,18 @@ public class HandOverMainPanel extends JPanel {
         });
 
         rightPanel.add(createFieldRow("금고 금액", cashSafeField));
-        rightPanel.add(createFieldRow("실제 금고 금액", realCashField, true)); // [수정] 입력 가능
+        rightPanel.add(createFieldRow("실제 금고 금액", realCashField, true));
         rightPanel.add(Box.createVerticalStrut(10));
         rightPanel.add(createFieldRow("업무 차액", diffField));
 
         rightPanel.add(Box.createVerticalStrut(30));
 
-
-        rightPanel.add(createHeader("인수 / 인계 금액"));
-
-        // 인수 금액 = 이전 타임에서 받은 돈
-        JTextField insuField = new JTextField(df.format(prevCashReserve) + " 원");
-
-        // 인계 금액 = 다음 사람에게 줄 돈
-        handoverField = new JTextField("0 원");
-
-        rightPanel.add(createFieldRow("인수 금액", insuField));
-        rightPanel.add(createFieldRow("인계 금액", handoverField));
-
-        rightPanel.add(Box.createVerticalStrut(30));
-
         // 시간 확인
         rightPanel.add(createHeader("근무 시간 확인"));
-        // 현재 시간 포맷팅
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         String startStr = startTime.toLocalDateTime().format(dtf);
         String endStr = endTime.toLocalDateTime().format(dtf);
 
-        // 실제 DB 시간 데이터 반영
         rightPanel.add(createLabelRow("이전 인수 시간", startStr));
         rightPanel.add(createLabelRow("관리자 근무 시간", startStr + " ~ " + endStr));
 
@@ -279,7 +264,7 @@ public class HandOverMainPanel extends JPanel {
         done.setPreferredSize(new Dimension(100, 40));
         done.setBackground(new Color(50, 100, 255));
 
-        // 완료 버튼 클릭 시 DB 저장 로직
+        // 완료 버튼 클릭 시 DB 저장
         done.addActionListener(e -> {
             HandOverDTO dto = new HandOverDTO();
             dto.setGiverId(giverName);
@@ -287,35 +272,32 @@ public class HandOverMainPanel extends JPanel {
             dto.setStartTime(startTime);
             dto.setEndTime(Timestamp.valueOf(LocalDateTime.now()));
 
-            // PC / 상품(현금/카드) 분리해서 DTO에 정확히 저장
             int pc   = pcSalesValue;
             int cash = cashProductSales;
             int card = cardProductSales;
 
-            dto.setTotalSales(pc + cash + card);   // 매출 합계 (PC + 상품 전체)
-            dto.setCashSales(cash);                // 상품 판매 현금
-            dto.setCardSales(card);                // 상품 판매 카드
+            dto.setTotalSales(pc + cash + card); // 전체 매출
+            dto.setCashSales(cash);              // 현금 매출
+            dto.setCardSales(card);              // 카드 매출
 
-            dto.setCashReserve((int)parseLong(handoverField.getText())); // 인계 금액 저장 (실제 금고 금액)
-            dto.setMemo("업무차액: " + diffField.getText());
+            // 장부상 금고 금액/차액 계산
+            int previousSafe  = prevCashReserve;
+            int withdraw      = (int)parseLong(withdrawalField.getText());
+            int refund        = (int)parseLong(refundField.getText());
+            int cashSalesNow  = cashProductSales;
 
-            // 저장 성공 시 금고 금액 + 업무차액 누적 업데이트
-            if(service.save(dto)) {
+            int expectedSafe  = previousSafe + cashSalesNow - withdraw - refund; // 장부 금고
+            int realSafeInput = (int)parseLong(realCashField.getText());         // 실제 금고
+
+            // 이번 누적 차액 = 실제 금고 - 장부 금고
+            int accumulatedDiff = realSafeInput - expectedSafe;
+
+            dto.setMemo("누적 차액: " + df.format(accumulatedDiff) + " 원");
+
+            // 저장 성공 시 금고 금액 + 업무 차액 누적 업데이트
+            if (service.save(dto)) {
                 try {
-                    // 현재 금고 누적 값 (DB)
-                    int previousSafe = service.getCashSafe();
-
-                    // 이번 인수인계 매출 전체
-                    int totalSales = dto.getTotalSales();
-
-                    // 금고 누적 = 기존 + 매출
-                    int newSafe = previousSafe + totalSales;
-
-                    // 업무 차액
-                    int diffDelta = (int)parseLong(diffField.getText());
-
-                    // 금고 + 차액 누적 저장
-                    service.updateCashSafe(newSafe, diffDelta);
+                    service.updateCashSafe(expectedSafe, accumulatedDiff);
 
                     JOptionPane.showMessageDialog(this, "인수인계가 완료되었습니다.");
                     parent.dispose();
@@ -332,56 +314,50 @@ public class HandOverMainPanel extends JPanel {
         return bottomPanel;
     }
 
-    // 섹션 제목 (굵은 글씨, 왼쪽 정렬)
+    // 공통 UI 헬퍼
+
     private JLabel createHeader(String text) {
         JLabel headerPanel = new JLabel(text);
         headerPanel.setFont(new Font("맑은 고딕", Font.BOLD, 14));
-        headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 왼쪽 정렬
+        headerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         return headerPanel;
     }
 
-    // 라벨 + 텍스트필드 (기존 메서드 오버로딩하여 수정 가능 여부 처리)
     private JPanel createFieldRow(String title, JTextField field) {
         return createFieldRow(title, field, false);
     }
 
-    // 수정 가능 여부를 파라미터로 받는 메서드 오버로딩
     private JPanel createFieldRow(String title, JTextField field, boolean isEditable) {
         JPanel rowPanel = new JPanel(new BorderLayout());
-        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35)); // 높이 제한
-        rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // 박스 전체 왼쪽 정렬
+        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel rowLable= new JLabel(title);
-        rowLable.setPreferredSize(new Dimension(100, 30));
-        rowLable.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
+        JLabel rowLabel = new JLabel(title);
+        rowLabel.setPreferredSize(new Dimension(100, 30));
+        rowLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 12));
 
-        // 파라미터에 따라 수정 가능 여부 설정
         field.setEditable(isEditable);
-        field.setHorizontalAlignment(JTextField.RIGHT); // 숫자는 우측 정렬
-        field.setBorder(BorderFactory.createMatteBorder(0,0,1,0, Color.LIGHT_GRAY)); // 밑줄만
+        field.setHorizontalAlignment(JTextField.RIGHT);
+        field.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
 
-        rowPanel.add(rowLable, BorderLayout.WEST);
+        rowPanel.add(rowLabel, BorderLayout.WEST);
         rowPanel.add(field, BorderLayout.CENTER);
 
-        // 간격 띄우기용 패널
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.add(rowPanel, BorderLayout.CENTER);
-        wrapper.setBorder(new EmptyBorder(0,0,5,0)); // 아래로 5px 간격
+        wrapper.setBorder(new EmptyBorder(0, 0, 5, 0));
         wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         return wrapper;
     }
 
-    // 단순 텍스트 표시용
     private JPanel createInputRow(String title, String value) {
         JTextField tf = new JTextField(value);
-        tf.setBorder(new LineBorder(Color.LIGHT_GRAY)); // 박스 테두리
+        tf.setBorder(new LineBorder(Color.LIGHT_GRAY));
         tf.setHorizontalAlignment(JTextField.CENTER);
-        //  인계자/인수자 이름은 자동 입력되므로 수정 불가
         return createFieldRow(title, tf, false);
     }
 
-    // 시간 표시용
     private JPanel createLabelRow(String title, String value) {
         JPanel p = new JPanel(new BorderLayout());
 

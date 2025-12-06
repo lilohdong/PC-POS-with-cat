@@ -138,30 +138,43 @@ public class HandOverDAO {
     }
 
     public void updateCashSafe(int amount) {
-        // diff 누적 없이 금고 금액만 바꾸고 싶을 때는 diffDelta=0으로 통일
         updateCashSafe(amount, 0);
     }
 
-    // 금고 금액 + 업무 차액(diff) 누적 업데이트
-    public void updateCashSafe(int amount, int diffDelta) {
-        String sql = "UPDATE cash_safe SET amount = ?, diff_accumulate = diff_accumulate + ? WHERE id = 1";
+    // 금고 금액 + 누적 차액 저장 (차액 덮어쓰기 방식)
+    public void updateCashSafe(int amount, int accumulatedDiff) {
+
+        String sql = "UPDATE cash_safe SET amount = ?, diff_accumulate = ? WHERE id = 1";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
             ps.setInt(1, amount);
-            ps.setInt(2, diffDelta);
-            int updated = ps.executeUpdate();
-            if (updated == 0) {
-                // 만약 행이 없다면 insert 시도 (안정성)
-                String ins = "INSERT INTO cash_safe(id, amount, diff_accumulate) VALUES(1, ?, ?)";
-                try (PreparedStatement ps2 = conn.prepareStatement(ins)) {
-                    ps2.setInt(1, amount);
-                    ps2.setInt(2, diffDelta);
-                    ps2.executeUpdate();
-                } catch (Exception ex) { ex.printStackTrace(); }
+            ps.setInt(2, accumulatedDiff);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 금고 금액과 누적 업무 차액 조회
+    public int[] getCashSafeDetail() {
+        String sql = "SELECT amount, diff_accumulate FROM cash_safe WHERE id = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            if (rs.next()) {
+                int amount = rs.getInt("amount");
+                int diffAcc = rs.getInt("diff_accumulate");
+                return new int[]{amount, diffAcc};
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // 없으면 0,0
+        return new int[]{0, 0};
     }
 
     // 직원 목록 가져오기
