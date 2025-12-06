@@ -299,7 +299,6 @@ class JoinDialog extends JDialog {
         panel.add(comp, BorderLayout.CENTER);
         parent.add(panel);
     }
-    // 그리드임? Parent Panel이 그리드냐고 bo
     // 라벨 + 컴포넌트 + 메시지라벨 추가 (아이디)
     private void addLabelComponentAndMsg(JPanel parent, String labelText, Component comp, JLabel msgLabel) {
         JPanel panel = new JPanel(new BorderLayout(0, 5));

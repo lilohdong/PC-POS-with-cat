@@ -2,9 +2,8 @@ DROP DATABASE IF EXISTS POS_PLACE;
 create database POS_PLACE;
 use POS_PLACE;
 
--- 기본: 회원 테이블
+-- 회원 테이블
 create table member(
-    -- 멤버 no 뺐습니다
     m_id VARCHAR(30) unique not null PRIMARY KEY,
     passwd varchar(30) not null,
     name VARCHAR(10) NOT NULL,

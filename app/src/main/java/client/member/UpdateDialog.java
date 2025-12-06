@@ -232,7 +232,6 @@ public class UpdateDialog extends JDialog {
                 return;
             }
 
-            // 성공 시 DB 업데이트 로직 추가
             // MemberDTO 생성 및 값 설정
             MemberDTO updateDto = new MemberDTO();
             updateDto.setmId(tid.getText());

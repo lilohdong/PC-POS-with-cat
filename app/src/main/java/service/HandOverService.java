@@ -16,7 +16,7 @@ public class HandOverService {
         this.dao = new HandOverDAO();
     }
 
-    // 내부 클래스 삭제하고 DTO를 바로 리턴하도록 수정
+    // 내부 클래스 삭제하고 DTO를 바로 리턴
     public HandOverDTO getInitialData() {
         HandOverDTO lastDto = dao.getLastHandoverData();
 
