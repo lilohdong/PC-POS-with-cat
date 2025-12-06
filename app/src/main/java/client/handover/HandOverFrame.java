@@ -20,7 +20,6 @@ public class HandOverFrame extends JFrame {
         setLayout(new BorderLayout());
 
         // 현재 근무자 정보 가져오기
-        // getInitialGiver()는 DAO에서 마지막 receiver_id를 가져오거나 "사장님" 반환
         this.currentGiver = service.getInitialData().getReceiverId();
 
         // 로그인 패널에 현재 근무자 이름 전달 (한 번만 추가)
@@ -35,12 +34,10 @@ public class HandOverFrame extends JFrame {
 
     // 화면 전환 메서드
     public void changeToMain(String giverName,String receiverName) {
-        // 기존 센터 패널(로그인) 제거
         Component centerComp = ((BorderLayout)getContentPane().getLayout()).getLayoutComponent(BorderLayout.CENTER);
         if (centerComp != null) {
             remove(centerComp);
         }
-
         add(new HandOverMainPanel(this, service, giverName, receiverName), BorderLayout.CENTER);
 
         // 화면 갱신

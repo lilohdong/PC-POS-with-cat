@@ -149,7 +149,7 @@ public class SearchMember extends JPanel implements ActionListener {
         return null;
     }
 
-    // 선택된 회원 DTO 가져오는 메서드 (수정)
+    // 선택된 회원 DTO 가져오는 메서드
     public MemberDTO getSelectedMemberDTO() {
         String id = getSelectedMemberId();
         if(id != null) {
