@@ -89,11 +89,9 @@ public class AddStockFrame extends JFrame {
                 //int result = inDAO.insertStockIn(inDTO);
 
                 boolean success = stockDAO.insertStockIn(inDTO);
-
                 if (success){
                     JOptionPane.showMessageDialog(this, "입고 등록 및 재고 갱신 완료!");
                     parentStockList.refreshTable();
-
                     dispose();
                 }else {
                     JOptionPane.showMessageDialog(this, "재고 기록 등록 중 오류 발생!", "오류", JOptionPane.ERROR_MESSAGE);

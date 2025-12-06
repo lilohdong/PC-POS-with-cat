@@ -269,6 +269,19 @@ END$$
 DELIMITER ;
 
 
+DELIMITER $$
+CREATE TRIGGER trg_stock_in_after_insert
+    AFTER INSERT ON stock_in
+    FOR EACH ROW
+BEGIN
+    UPDATE ingredient
+    SET total_quantity = total_quantity + NEW.total_added,
+        is_out = CASE WHEN total_quantity + NEW.total_added > 0 THEN false ELSE true END
+    WHERE i_id = NEW.i_id;
+END$$
+DELIMITER ;
+
+
 CREATE TABLE stock_out (
     out_id VARCHAR(8) PRIMARY KEY,
     i_id  VARCHAR(5),

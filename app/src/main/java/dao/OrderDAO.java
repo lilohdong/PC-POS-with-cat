@@ -13,6 +13,8 @@ import java.util.List;
 public class OrderDAO {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private StockDAO stockDAO = new StockDAO();  // 추가: StockDAO 인스턴스
+
     public String insertNewOrder(OrderDataDTO orderDTO, List<MenuDTO> selectedMenus, List<Integer> quantities) {
         Connection conn = null;
         PreparedStatement ordersPstmt = null;
@@ -66,6 +68,9 @@ public class OrderDAO {
             // 4. sales insert/update
             insertOrUpdateSales(conn, orderDTO);
 
+            // 신규: 주문 접수 후 재료 차감
+            deductIngredientsForOrder(conn, newOId);
+
             conn.commit();
             return newOId;
 
@@ -81,6 +86,58 @@ public class OrderDAO {
             return null;
         } finally {
             DBConnection.close(ordersPstmt, orderMenuPstmt, conn);
+        }
+    }
+
+    // 신규: 주문(o_id) 기반 재료 차감 (conn 전달받음)
+    private void deductIngredientsForOrder(Connection conn, String oId) throws SQLException {
+        String sql = "SELECT menu_id, quantity FROM order_menu WHERE o_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, oId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String menuId = rs.getString("menu_id");
+                    int menuQty = rs.getInt("quantity");
+                    deductIngredientsForMenu(conn, menuId, menuQty);
+                }
+            }
+        }
+    }
+
+    // 신규: 메뉴 단위 재료 차감 (conn 전달받음)
+    private void deductIngredientsForMenu(Connection conn, String menuId, int menuQty) throws SQLException {
+        List<IngredientUsage> usages = getIngredientsForMenu(conn, menuId);
+        for (IngredientUsage usage : usages) {
+            String iId = usage.iId;
+            int required = usage.requiredQuantity * menuQty;
+            stockDAO.subtractStock(iId, required);
+            // StockBottom 로그는 UI(OrderController)에서 처리
+        }
+    }
+
+    // 신규: 메뉴에 사용되는 재료 목록 조회 (conn 전달받음)
+    private List<IngredientUsage> getIngredientsForMenu(Connection conn, String menuId) throws SQLException {
+        List<IngredientUsage> list = new ArrayList<>();
+        String sql = "SELECT i_id, required_quantity FROM menu_ingredient WHERE m_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, menuId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new IngredientUsage(rs.getString("i_id"), rs.getInt("required_quantity")));
+                }
+            }
+        }
+        return list;
+    }
+
+    // 신규 내부 클래스: 재료 사용량
+    private static class IngredientUsage {
+        String iId;
+        int requiredQuantity;
+
+        IngredientUsage(String iId, int requiredQuantity) {
+            this.iId = iId;
+            this.requiredQuantity = requiredQuantity;
         }
     }
 

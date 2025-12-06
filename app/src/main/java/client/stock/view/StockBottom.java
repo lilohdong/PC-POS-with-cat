@@ -34,10 +34,9 @@ public class StockBottom extends JPanel {
         topPanel.add(btnOutHistory);
         topPanel.add(btnLack);
 
-        // 테이블 컬럼에 TYPE 추가 (IN, OUT, ALARM)
+        // 컬럼: TYPE, 코드, 이름, 수량, 시간
         String[] cols = new String[]{"TYPE", "코드", "이름", "수량", "시간"};
         this.alarmModel = new DefaultTableModel(cols, 0) {
-            // 생성 이후 TYPE 컬럼이 보이지 않게 할 것
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -45,24 +44,22 @@ public class StockBottom extends JPanel {
         };
         this.alarmTable = new JTable(this.alarmModel);
 
-        // TYPE 컬럼은 숨김 (폭 0)
         this.alarmTable.getColumnModel().getColumn(0).setMinWidth(0);
         this.alarmTable.getColumnModel().getColumn(0).setMaxWidth(0);
         this.alarmTable.getColumnModel().getColumn(0).setWidth(0);
 
-        // 커스텀 렌더러로 행 배경색 설정
         this.alarmTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                Object type = table.getModel().getValueAt(row, 0); // TYPE
+                Object type = table.getModel().getValueAt(row, 0);
                 if (!isSelected) {
                     if ("IN".equals(type)) {
-                        c.setBackground(new Color(200, 255, 200)); // 연두
+                        c.setBackground(new Color(200, 255, 200));
                     } else if ("OUT".equals(type)) {
-                        c.setBackground(new Color(255, 230, 180)); // 주황
+                        c.setBackground(new Color(255, 230, 180));
                     } else if ("ALARM".equals(type)) {
-                        c.setBackground(new Color(255, 200, 200)); // 빨강
+                        c.setBackground(new Color(255, 200, 200));
                     } else {
                         c.setBackground(Color.WHITE);
                     }
@@ -75,27 +72,20 @@ public class StockBottom extends JPanel {
         this.add(topPanel, "North");
         this.add(scrollbar, "Center");
 
-        // 버튼 리스너
         btnAlarm.addActionListener(e -> refreshAllRecords());
         btnInHistory.addActionListener(e -> refreshInRecords());
         btnOutHistory.addActionListener(e -> refreshOutRecords());
         btnLack.addActionListener(e -> refreshAlarmRecords());
 
-        // 초기 로드
         refreshAllRecords();
     }
 
-    // Bottom에 새로운 기록 추가 (UI에서 호출)
-    // type: "IN" or "OUT"
     public void addRecord(String type, String code, String name, int qty) {
-        // 시간은 현재 시간 문자열로 표기
         String time = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
         this.alarmModel.addRow(new Object[]{type, code, name, qty, time});
     }
 
-    // DB에서 입출고/부족 기록을 로드하는 함수들
     public void refreshAllRecords() {
-        // 전체: 입고(in) + 출고(out) + 부족 알람
         alarmModel.setRowCount(0);
         loadHistoryRecords(null);
         loadAlarmRecords();
@@ -117,7 +107,6 @@ public class StockBottom extends JPanel {
     }
 
     private void loadHistoryRecords(String filter) {
-
         String baseSql = "SELECT * FROM (" +
                 "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
                 "UNION ALL " +
@@ -129,11 +118,10 @@ public class StockBottom extends JPanel {
         if (filter != null) {
             sqlBuilder.append(" WHERE type = ?");
         }
-
         sqlBuilder.append("ORDER BY time DESC LIMIT 100");
 
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())){
+             PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())){
 
             if (filter != null){
                 ps.setString(1, filter);
@@ -147,28 +135,15 @@ public class StockBottom extends JPanel {
                     Timestamp t = rs.getTimestamp("time");
                     String time = t == null ? "": t.toString();
                     String name = getIngredientName(code);
-                    alarmModel.addRow(new Object[]{type, code, qty, name, time});
+
+                    // 수정 4: 이름과 수량의 순서를 TableModel 컬럼 순서(TYPE,코드,이름,수량,시간)에 맞춤
+                    alarmModel.addRow(new Object[]{type, code, name, qty, time});
                 }
             }
         }catch (Exception e){
             e.printStackTrace();
         }
     }
-
-    /* 사용 중단 - 쿼리를 나누지 않고 하나로 명확하게 구성
-    private static String getString(String filter) {
-        String unionSql = "SELECT * FROM (" +
-                            "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
-                            "UNION ALL " +
-                            "SELECT out_time AS time, 'OUT' AS type, i_id, out_quantity AS quantity FROM stock_out" +
-                            ") AS history_records ";
-
-        if (filter == null){
-            unionSql += "WHERE type = ? ";
-        }
-        unionSql += "ORDER BY time DESC LIMIT 100";
-        return unionSql;
-    } */
 
     private void loadAlarmRecords() {
         String sql = "SELECT i_id, i_name, total_quantity, min_quantity FROM ingredient WHERE total_quantity < min_quantity ORDER BY total_quantity ASC";
@@ -179,6 +154,7 @@ public class StockBottom extends JPanel {
                 String code = rs.getString("i_id");
                 String name = rs.getString("i_name");
                 int qty = rs.getInt("total_quantity");
+                // 여기도 순서 맞춤
                 alarmModel.addRow(new Object[]{"ALARM", code, name, qty, ""});
             }
         } catch (Exception e) {
