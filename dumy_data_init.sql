@@ -130,10 +130,52 @@ INSERT INTO menu (menu_id, m_name, m_price, c_id, m_description) VALUES
 ('00020', '새우깡', 1500, 'C007', '새우 맛'),
 ('00021', '감자깡', 1500, 'C007', '감자 맛');
 
--- 6. Orders (주문) 데이터 (100개)
+-- 6. Orders (주문) 데이터
+delimiter $$
+create procedure InsertDummyOrders()
+begin
+    declare i int default 1;
+    declare oId Varchar(6);
+    while i <= 100 do
+        set oId = concat('O', lpad(i, 5, '0'));
+        insert into orders(o_id, seat_num, o_status, pay_method, requestment)
+            values (oId, floor(1 + rand() * 100), 'PREPARING', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
+            set i = i + 1;
+    end while;
+end $$
+delimiter ;
+call InsertDummyOrders();
+drop procedure InsertDummyOrders;
 
--- 7. Order_Menu (주문 상세) 데이터 (100개)
-
+-- 7. Order_Menu (주문 상세) 데이터
+delimiter $$
+create procedure InsertDummyOrderMenus()
+begin
+    declare i int default 1;
+    declare j int;
+    declare omId varchar(7);
+    declare oId varchar(6);
+    declare menuId varchar(5);
+    declare qty int;
+    declare nextOmId int default 1;
+    while i <= 100 do
+            SET oId = CONCAT('O', LPAD(i, 5, '0'));
+            SET j = 1;
+            WHILE j <= FLOOR(1 + RAND() * 3) DO  -- 1~3 메뉴
+            SET omId = CONCAT('OM', LPAD(nextOmId, 5, '0'));
+            SET menuId = LPAD(FLOOR(1 + RAND() * 21), 5, '0');  -- '00001' ~ '00021' (기존 메뉴 수 맞춤)
+            SET qty = FLOOR(1 + RAND() * 3);
+            INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price)
+            SELECT omId, oId, menuId, qty, m.m_price FROM menu m WHERE m.menu_id = menuId;
+            SET nextOmId = nextOmId + 1;
+            SET j = j + 1;
+                END WHILE;
+            SET i = i + 1;
+        end while ;
+end$$
+delimiter ;
+call InsertDummyOrderMenus();
+drop procedure InsertDummyOrderMenus;
 -- 8. Refund (환불) 데이터 (20개 정도만 생성)
 
 
