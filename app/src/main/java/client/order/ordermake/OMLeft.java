@@ -7,6 +7,7 @@ import java.awt.*;
 
 import dao.MenuDAO;
 import dto.MenuDTO;
+import dao.OrderDAO;
 
 /*
 주문하기 창의 좌측 영역: 메뉴 선택 패널
@@ -21,6 +22,7 @@ public class OMLeft extends JPanel{
     private JPanel menuPanel;
     private MenuDAO menuDAO = new MenuDAO();
     private final OMCenter omCenter;
+    private OrderDAO orderDAO = new OrderDAO();
     // 메뉴 추가를 위해 참조 보관
     private String[] categoryList = {
             "전체", "인기메뉴", "라면", "볶음밥", "덮밥",
@@ -132,20 +134,30 @@ public class OMLeft extends JPanel{
         imagePlaceholder.add(imageLabel);
 
         //모든 영역에 동일한 클릭 리스너 부착
-        java.awt.event.MouseAdapter clickHandler = new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (omCenter != null) {
-                    omCenter.addMenuItem(menu);
-                    evt.consume();
-                }
-            }
-        };
+        boolean available = orderDAO.isMenuAvailable(menu.getMenuId());
 
-        box.addMouseListener(clickHandler);
-        imagePlaceholder.addMouseListener(clickHandler);
-        imageLabel.addMouseListener(clickHandler);
-        nameLabel.addMouseListener(clickHandler);
-        priceLabel.addMouseListener(clickHandler);
+        if (!available) {
+            // 품절 시: 붉은색 배경 + 툴팁 + 클릭 불가 (리스너 추가 안 함)
+            box.setBackground(Color.RED.brighter());
+            box.setToolTipText("재고 부족으로 주문 불가");
+            // 클릭 리스너 추가하지 않음 → 클릭 무시
+        } else {
+            // 정상: 클릭 시 장바구니 추가
+            java.awt.event.MouseAdapter clickHandler = new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (omCenter != null) {
+                        omCenter.addMenuItem(menu);
+                        evt.consume();
+                    }
+                }
+            };
+
+            box.addMouseListener(clickHandler);
+            imagePlaceholder.addMouseListener(clickHandler);
+            imageLabel.addMouseListener(clickHandler);
+            nameLabel.addMouseListener(clickHandler);
+            priceLabel.addMouseListener(clickHandler);
+        }
 
         box.add(imagePlaceholder, BorderLayout.NORTH);
         box.add(nameLabel, BorderLayout.CENTER);

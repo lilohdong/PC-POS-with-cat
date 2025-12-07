@@ -406,4 +406,29 @@ public class OrderDAO {
             return 1;
         }
     }
+
+    public boolean isMenuAvailable(String menuId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        String sql = "SELECT COUNT(*) FROM menu_ingredient mi JOIN ingredient i ON mi.i_id = i.i_id WHERE mi.m_id = ? AND i.total_quantity <= 0";
+
+        try {
+            conn = DBConnection.getConnection();
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, menuId);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) == 0;  // 부족 재료 0개 → true (주문 가능)
+            }
+            return true;  // 재료 없는 메뉴는 가능 가정
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;  // 오류 시 주문 불가
+        } finally {
+            DBConnection.close(rs, pstmt, conn);
+        }
+    }
 }
