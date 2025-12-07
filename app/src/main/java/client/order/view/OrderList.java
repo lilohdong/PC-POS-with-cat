@@ -36,8 +36,11 @@ public class OrderList extends JPanel {
         listAreaPanel.setLayout(new BoxLayout(listAreaPanel, BoxLayout.Y_AXIS));
         listAreaPanel.setBackground(Color.WHITE);
 
+        JScrollPane scrollPane = new JScrollPane(listAreaPanel);
+        JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+        verticalBar.setUnitIncrement(50);  // 스크롤 감도 증가
         // 스크롤 가능하도록 JScrollPane으로 감쌈
-        add(new JScrollPane(listAreaPanel), BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     //OrderController에서 호출: DB에서 가져온 주문 리스트를 화면에 표시

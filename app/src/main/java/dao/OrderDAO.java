@@ -412,7 +412,7 @@ public class OrderDAO {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
-        String sql = "SELECT COUNT(*) FROM menu_ingredient mi JOIN ingredient i ON mi.i_id = i.i_id WHERE mi.m_id = ? AND i.total_quantity <= 0";
+        String sql = "SELECT COUNT(*) FROM menu_ingredient mi JOIN ingredient i ON mi.i_id = i.i_id WHERE mi.m_id = ? AND i.total_quantity <= i.min_quantity";
 
         try {
             conn = DBConnection.getConnection();
