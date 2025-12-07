@@ -41,58 +41,15 @@ public class StaffPanel extends JPanel {
     public StaffPanel() {
         staffDAO = StaffDAO.getInstance();
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
 
         initComponents();
         loadStaffData();
     }
 
     private void initComponents() {
-        // 상단 탭 패널
-        JPanel tabPanel = createTabPanel();
-        add(tabPanel, BorderLayout.NORTH);
-
         // 중앙 컨텐츠 패널
         JPanel contentPanel = createContentPanel();
         add(contentPanel, BorderLayout.CENTER);
-    }
-
-    private JPanel createTabPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
-
-        staffInfoBtn = createTabButton("직원 정보", true);
-        attendanceBtn = createTabButton("근태 관리", false);
-
-        staffInfoBtn.addActionListener(e -> selectTab(true));
-        attendanceBtn.addActionListener(e -> selectTab(false));
-
-        panel.add(staffInfoBtn);
-        panel.add(attendanceBtn);
-
-        return panel;
-    }
-
-    private JButton createTabButton(String text, boolean selected) {
-        JButton button = new JButton(text);
-        button.setPreferredSize(new Dimension(100, 40));
-        button.setFont(new Font("맑은 고딕", Font.BOLD, 13));
-        button.setFocusPainted(false);
-        button.setBorderPainted(true);
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        if (selected) {
-            button.setBackground(Color.WHITE);
-            button.setForeground(Color.BLACK);
-            button.setBorder(BorderFactory.createMatteBorder(0, 0, 3, 0, new Color(70, 130, 255)));
-        } else {
-            button.setBackground(new Color(245, 245, 245));
-            button.setForeground(Color.GRAY);
-            button.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
-        }
-
-        return button;
     }
 
     private void selectTab(boolean isStaffInfo) {
@@ -119,7 +76,6 @@ public class StaffPanel extends JPanel {
 
     private JPanel createContentPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         // 검색 패널
@@ -139,7 +95,6 @@ public class StaffPanel extends JPanel {
 
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
-        panel.setBackground(Color.WHITE);
 
         searchField = new JTextField(30);
         searchField.setPreferredSize(new Dimension(300, 35));
@@ -172,7 +127,6 @@ public class StaffPanel extends JPanel {
         searchBtn.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
         searchBtn.setFocusPainted(false);
         searchBtn.setBorderPainted(false);
-        searchBtn.setBackground(Color.WHITE);
         searchBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         searchBtn.addActionListener(e -> searchStaff());
 
@@ -187,7 +141,6 @@ public class StaffPanel extends JPanel {
 
     private JPanel createTablePanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(Color.WHITE);
 
         // 테이블 모델 생성 - Staff 테이블 구조에 맞춤
         String[] columnNames = {"이름", "생년월일", "월급", "고용일"};
@@ -210,8 +163,6 @@ public class StaffPanel extends JPanel {
         // 헤더 스타일
         JTableHeader header = staffTable.getTableHeader();
         header.setFont(new Font("맑은 고딕", Font.BOLD, 13));
-        header.setBackground(new Color(250, 250, 250));
-        header.setForeground(Color.BLACK);
         header.setPreferredSize(new Dimension(header.getPreferredSize().width, 40));
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(220, 220, 220)));
 
@@ -244,7 +195,6 @@ public class StaffPanel extends JPanel {
 
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        panel.setBackground(Color.WHITE);
 
         addBtn = createActionButton("추가", new Color(70, 130, 255));
         editBtn = createActionButton("수정", new Color(100, 180, 100));
@@ -266,7 +216,7 @@ public class StaffPanel extends JPanel {
         button.setPreferredSize(new Dimension(80, 35));
         button.setFont(new Font("맑은 고딕", Font.BOLD, 13));
         button.setBackground(bgColor);
-        button.setForeground(Color.WHITE);
+        button.setForeground(Color.GRAY);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));

@@ -71,6 +71,7 @@ public class SeatButton extends JPanel {
     private JLabel createLabel(String text, int style, int size) {
         JLabel lbl = new JLabel(text, JLabel.CENTER);
         lbl.setFont(new Font("맑은 고딕", style, size));
+        lbl.setForeground(Color.BLACK);
         return lbl;
     }
 
