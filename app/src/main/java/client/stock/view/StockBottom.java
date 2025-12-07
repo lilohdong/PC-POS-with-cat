@@ -122,38 +122,51 @@ public class StockBottom extends JPanel {
 
     //입고/출고 내역을 DB에서 가져와 테이블에 추가
     private void loadHistoryRecords(String filter) {
-        String baseSql = "SELECT * FROM (" +
-                "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
-                "UNION ALL " +
-                "SELECT out_time AS time, 'OUT' AS type, i_id, out_quantity AS quantity FROM stock_out" +
-                ") AS history_records ";
+        // 기존 쿼리: stock_in + stock_out 전체 UNION
+        // 문제: 주문으로 인한 stock_out 기록도 포함됨
+
+        // 수정된 쿼리: 수동 출고만 가져오고, 주문 출고는 제외
+        String baseSql = """
+        SELECT 'IN' AS type, si.in_time AS time, si.i_id, si.in_quantity AS quantity, i.i_name
+        FROM stock_in si
+        JOIN ingredient i ON si.i_id = i.i_id
+        
+        UNION ALL
+        
+        -- 수동 출고만 포함 (주문 출고는 제외!)
+        SELECT 'OUT' AS type, so.out_time AS time, so.i_id, so.out_quantity AS quantity, i.i_name
+        FROM stock_out so
+        JOIN ingredient i ON so.i_id = i.i_id
+        WHERE so.out_id LIKE 'OUT%'  -- 수동 출고는 OUT001 형식
+          AND so.out_id NOT LIKE 'ORDER_%'  -- 주문 출고는 ORDER_ 접두사로 구분 (추후 권장)
+        """;
 
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
         if (filter != null) {
             sqlBuilder.append(" WHERE type = ?");
         }
-        sqlBuilder.append("ORDER BY time DESC LIMIT 100");
+        sqlBuilder.append(" ORDER BY time DESC LIMIT 100");
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())){
+             PreparedStatement ps = conn.prepareStatement(sqlBuilder.toString())) {
 
-            if (filter != null){
+            if (filter != null) {
                 ps.setString(1, filter);
             }
 
-            try(ResultSet rs = ps.executeQuery()){
-                while (rs.next()){
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
                     String type = rs.getString("type");
                     String code = rs.getString("i_id");
+                    String name = rs.getString("i_name");
                     int qty = rs.getInt("quantity");
                     Timestamp t = rs.getTimestamp("time");
-                    String time = t == null ? "": t.toString();
-                    String name = getIngredientName(code);
+                    String time = t != null ? t.toString().substring(0, 19) : "";
 
                     alarmModel.addRow(new Object[]{type, code, name, qty, time});
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
