@@ -12,6 +12,14 @@ import java.util.Vector;
 
 import db.DBConnection;
 
+/*
+재고 관리 화면 하단 영역
+
+기능:
+입고/출고 실시간 기록 표시
+재고 부족 알림 표시
+버튼으로 입고내역, 출고내역, 부족재고 필터링 가능
+*/
 public class StockBottom extends JPanel {
     private JTable alarmTable;
     private DefaultTableModel alarmModel;
@@ -23,6 +31,8 @@ public class StockBottom extends JPanel {
     public StockBottom() {
         this.setLayout(new BorderLayout());
         this.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+
+        //상단 버튼 패널
         JPanel topPanel = new JPanel(new FlowLayout(0));
         btnAlarm = new JButton("알림");
         btnInHistory = new JButton("입고내역");
@@ -34,20 +44,22 @@ public class StockBottom extends JPanel {
         topPanel.add(btnOutHistory);
         topPanel.add(btnLack);
 
-        // 컬럼: TYPE, 코드, 이름, 수량, 시간
+        //기록 테이블: TYPE, 코드, 이름, 수량, 시간
         String[] cols = new String[]{"TYPE", "코드", "이름", "수량", "시간"};
         this.alarmModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;
+                return false;   //편집 불가
             }
         };
         this.alarmTable = new JTable(this.alarmModel);
 
+        //TYPE 컬럼 숨기기
         this.alarmTable.getColumnModel().getColumn(0).setMinWidth(0);
         this.alarmTable.getColumnModel().getColumn(0).setMaxWidth(0);
         this.alarmTable.getColumnModel().getColumn(0).setWidth(0);
 
+        //행 배경색을 TYPE에 따라 다르게 표시
         this.alarmTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int column) {
@@ -72,14 +84,16 @@ public class StockBottom extends JPanel {
         this.add(topPanel, "North");
         this.add(scrollbar, "Center");
 
+        //버튼 액션 연결
         btnAlarm.addActionListener(e -> refreshAllRecords());
         btnInHistory.addActionListener(e -> refreshInRecords());
         btnOutHistory.addActionListener(e -> refreshOutRecords());
         btnLack.addActionListener(e -> refreshAlarmRecords());
 
-        refreshAllRecords();
+        refreshAllRecords();    //초기 로드
     }
 
+    //StockList에서 입출고 발생 시 호출 -> 실시간 기록 추가
     public void addRecord(String type, String code, String name, int qty) {
         String time = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
         this.alarmModel.addRow(new Object[]{type, code, name, qty, time});
@@ -106,6 +120,7 @@ public class StockBottom extends JPanel {
         loadAlarmRecords();
     }
 
+    //입고/출고 내역을 DB에서 가져와 테이블에 추가
     private void loadHistoryRecords(String filter) {
         String baseSql = "SELECT * FROM (" +
                 "SELECT in_time AS time, 'IN' AS type, i_id, in_quantity AS quantity FROM stock_in " +
@@ -114,7 +129,6 @@ public class StockBottom extends JPanel {
                 ") AS history_records ";
 
         StringBuilder sqlBuilder = new StringBuilder(baseSql);
-
         if (filter != null) {
             sqlBuilder.append(" WHERE type = ?");
         }
@@ -136,7 +150,6 @@ public class StockBottom extends JPanel {
                     String time = t == null ? "": t.toString();
                     String name = getIngredientName(code);
 
-                    // 수정 4: 이름과 수량의 순서를 TableModel 컬럼 순서(TYPE,코드,이름,수량,시간)에 맞춤
                     alarmModel.addRow(new Object[]{type, code, name, qty, time});
                 }
             }
@@ -145,6 +158,7 @@ public class StockBottom extends JPanel {
         }
     }
 
+    //재고 부족 항목만 가져와 표시
     private void loadAlarmRecords() {
         String sql = "SELECT i_id, i_name, total_quantity, min_quantity FROM ingredient WHERE total_quantity < min_quantity ORDER BY total_quantity ASC";
         try (Connection conn = DBConnection.getConnection();
@@ -162,6 +176,7 @@ public class StockBottom extends JPanel {
         }
     }
 
+    //재료 코드로 이름 조회
     private String getIngredientName(String code) {
         String sql = "SELECT i_name FROM ingredient WHERE i_id = ?";
         try (Connection conn = DBConnection.getConnection();

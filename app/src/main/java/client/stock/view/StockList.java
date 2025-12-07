@@ -14,11 +14,19 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
+/*
+재고 목록을 테이블 형태로 표시하는 패널
+
+기능:
+전체 재고 또는 검색/필터 결과 표시
+선택한 항목 입고/출고 처리
+입출고 기록을 StockBottom에 실시간 전달
+*/
 public class StockList extends JPanel {
     private JTable stockTable;
     private DefaultTableModel stockModel;
     private StockDAO dao;
-    private StockBottom bottom;
+    private StockBottom bottom;     // 입출고 기록을 추가하기 위한 참조
 
     public StockList(StockBottom bottom) {
         this.bottom = bottom;
@@ -26,18 +34,18 @@ public class StockList extends JPanel {
 
         this.setLayout(new BorderLayout());
 
-        // 수정 2: '단가' 컬럼 제거
+        //테이블 컬럼
         String[] cols = new String[]{"코드", "이름", "카테고리", "현재 재고", "최소 재고", "위치"};
         this.stockModel = new DefaultTableModel(cols, 0);
         this.stockTable = new JTable(this.stockModel);
 
-        refreshTable();
+        refreshTable(); // 초기 데이터 로드
 
+        // 입고/출고 버튼 패널
         JScrollPane scrollBar = new JScrollPane(this.stockTable);
         JPanel btnPanel = new JPanel(new FlowLayout(2));
         JButton btnIn = new JButton("입고");
         JButton btnOut = new JButton("출고");
-        // 수정 2: '입고등록' 버튼 제거
 
         btnIn.setBackground(Color.BLUE);
         btnIn.setForeground(Color.WHITE);
@@ -49,31 +57,32 @@ public class StockList extends JPanel {
 
         btnPanel.add(btnIn);
         btnPanel.add(btnOut);
-        // btnPanel.add(btnAdd); // 제거됨
 
         this.add(scrollBar, "Center");
         this.add(btnPanel, "East");
     }
 
+    //검색 조건에 맞는 재고 목록 표시
     public void performSearch(String name, String code, String category) {
         List<IngredientDTO> results = dao.getStocks(name, code, category, "ALL");
         updateTable(results);
     }
 
+    //상태별 필터링 (NORMAL / LACK / SOLDOUT)
     public void performFilter(String filterType) {
         List<IngredientDTO> results = dao.getStocks(null, null, null, filterType);
         updateTable(results);
     }
 
+    //테이블 데이터 갱신 공통 메서드
     private void updateTable(List<IngredientDTO> list) {
         stockModel.setRowCount(0);
         for (IngredientDTO dto : list) {
-            // 수정 2: 단가(dto.getUnitPrice()) 제외하고 Row 추가
             stockModel.addRow(new Object[]{
                     dto.getId(),
                     dto.getName(),
                     dto.getCategory(),
-                    // dto.getUnitPrice(), // 제거됨
+                    // dto.getUnitPrice(), // 관련없음: 제거됨
                     dto.getTotalQuantity(),
                     dto.getMinQuantity(),
                     dto.getLocation()
@@ -81,11 +90,13 @@ public class StockList extends JPanel {
         }
     }
 
+    //전체 재고 다시 불러오기 (초기화용)
     public void refreshTable() {
         updateTable(dao.getAllStock());
         bottom.refreshAllRecords();
     }
 
+    //입고 처리: 선택한 재료에 박스 단위 입고 -> 개수로 변환되어 DB 반영
     private void handleStockIn() {
         int row = this.stockTable.getSelectedRow();
         if (row == -1) {
@@ -104,8 +115,6 @@ public class StockList extends JPanel {
                 boolean result = dao.addStock(id, inputQty);
 
                 if (result) {
-                    // 이제 트리거가 처리하므로 실제 추가 갯수는 재조회해야 정확하지만,
-                    // 사용자 피드백 용도로만 계산해서 보여줌
                     int unitQty = dao.getUnitQuantityByIngredientId(id);
                     int actualAdded = inputQty * unitQty;
 
@@ -121,6 +130,7 @@ public class StockList extends JPanel {
         }
     }
 
+    //출고 처리: 박스, 팩 등등의 재고 단위 입력 -> 개수로 변환 후 재고 차감
     private void handleStockOut() {
         int row = this.stockTable.getSelectedRow();
         if (row == -1) {
@@ -130,7 +140,6 @@ public class StockList extends JPanel {
 
         String id = this.stockModel.getValueAt(row, 0).toString();
         String name = this.stockModel.getValueAt(row, 1).toString();
-        // 컬럼 인덱스가 바뀌었으므로(단가 삭제됨) 현재재고는 index 3
         int current = Integer.parseInt(this.stockModel.getValueAt(row, 3).toString());
 
         String input = JOptionPane.showInputDialog(name + " 출고 수량 입력(재고 단위):");
