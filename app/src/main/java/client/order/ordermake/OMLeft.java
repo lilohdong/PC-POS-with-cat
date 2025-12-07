@@ -7,19 +7,21 @@ import java.awt.*;
 
 import dao.MenuDAO;
 import dto.MenuDTO;
-/*
-좌측 메뉴 선택 패널
 
--카테고리 버튼 10개
--메뉴 아이템 목록 (GridLayout로)
+/*
+주문하기 창의 좌측 영역: 메뉴 선택 패널
+
+상단: 카테고리 버튼 10개 (2행 5열)
+하단: 선택된 카테고리의 메뉴들을 3열 그리드로 표시
+메뉴 클릭 -> OMCenter의 장바구니에 추가
 */
 public class OMLeft extends JPanel{
 
-
-    private OMLeft self = this;
+    //메뉴 아이템들이 들어갈 동적 패널
     private JPanel menuPanel;
     private MenuDAO menuDAO = new MenuDAO();
     private final OMCenter omCenter;
+    // 메뉴 추가를 위해 참조 보관
     private String[] categoryList = {
             "전체", "인기메뉴", "라면", "볶음밥", "덮밥",
             "분식", "사이드", "음료", "과자", "기타/요청"
@@ -31,10 +33,11 @@ public class OMLeft extends JPanel{
         loadMenusByCategory("전체"); // 초기 메뉴 목록 로드
     }
 
+    //좌측 패널 UI 구성: 카테고리 영역 + 스크롤 가능한 메뉴 영역
     private void initUI(){
         setLayout(new BorderLayout());
 
-        // 상단 카테고리
+        //상단: 카테고리 버튼들
         JPanel category = new JPanel();
         category.setLayout(new GridLayout(2, 5, 5, 5));
 
@@ -44,9 +47,10 @@ public class OMLeft extends JPanel{
             category.add(btn);
         }
 
-        // 메뉴 리스트 패널
+        //중앙: 메뉴 아이템들이 들어갈 패널 (FlowLayout으로 동적 배치)
         menuPanel = new JPanel();
-        menuPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10)); // 0행 3열 (동적으로 추가)
+        menuPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+
         JScrollPane scrollPane = new JScrollPane(menuPanel);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -54,21 +58,22 @@ public class OMLeft extends JPanel{
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    // 카테고리별 메뉴 로드 (요청 2번)
+    //카테고리 클릭 또는 검색 시 호출 -> 해당 메뉴들만 표시
     public void loadMenusByCategory(String categoryName) {
         List<MenuDTO> menus = menuDAO.getMenusByCategory(categoryName);
         updateMenuPanel(menus);
     }
 
-
-    // 메뉴 이름 검색 (요청 2번) - OMCenter의 검색창과 연결 필요 (Search 버튼 없으므로 Enter 키 또는 별도 버튼 필요)
-    // OMCenter에서 검색 이벤트가 발생하면 이 메서드를 호출하도록 구현되어야 함.
+    //중앙 패널의 검색창에서 Enter 입력 시 호출
     public void searchMenus(String keyword) {
         List<MenuDTO> menus = menuDAO.searchMenus(keyword);
         updateMenuPanel(menus);
     }
 
-    // 메뉴 패널 UI 업데이트
+    /*
+    메뉴 목록을 새로 그리기 위한 핵심 메서드
+    3열 고정, 세로 스크롤 유도, 빈 화면 방지 처리 포함
+    */
     private void updateMenuPanel(List<MenuDTO> menus) {
         menuPanel.removeAll();
 
@@ -79,32 +84,33 @@ public class OMLeft extends JPanel{
                 menuPanel.add(createMenuBox(menu));
             }
         }
-        // (메뉴 박스 150px * 3열) + (간격 약 10px * 4개) = 490px
+
+        //고정 너비 계산: (메뉴 박스 150px * 3열) + (간격 약 10px * 4개) = 490px
         int columnCount = 3;
         int menuWidth = 150;
         int gap = 10;
         int preferredWidth = (menuWidth * columnCount) + (gap * (columnCount + 1)) + 5; // 약 500px
 
-        // 메뉴 개수에 따라 세로 높이 계산 (예시: 3열 당 180px)
+        //동적 높이 계산 (행 수에 따라 자동 조정 - ex: 3열 당 180px)
         int menuCount = menus.size();
         int rowCount = (int) Math.ceil((double) menuCount / columnCount);
         int menuHeight = 180;
         int preferredHeight = (menuHeight * rowCount) + (gap * rowCount);
 
-        // 데이터가 없을 때 JScrollPane이 찌그러지는 것을 방지
+        // 데이터가 없을 때 빈 화면 방지
         if (menuCount == 0) {
             preferredHeight = 400;
         }
 
-        // [적용] 메뉴 패널의 크기를 강제하여 가로 스크롤을 방지하고 세로 스크롤을 유도
         menuPanel.setPreferredSize(new Dimension(preferredWidth, preferredHeight));
-
-        // 레이아웃 재계산 및 갱신
         menuPanel.revalidate();
         menuPanel.repaint();
     }
 
-    // 단일 메뉴 아이템 패널 생성
+    /*
+    단일 메뉴를 시각적으로 표현하는 박스 생성
+    클릭 시 OMCenter.addMenuItem() 호출
+    */
     private JPanel createMenuBox(MenuDTO menu) {
         JPanel box = new JPanel(new BorderLayout());
         box.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
@@ -125,10 +131,9 @@ public class OMLeft extends JPanel{
         JLabel imageLabel = new JLabel("이미지 없음", SwingConstants.CENTER);
         imagePlaceholder.add(imageLabel);
 
-        // 클릭 이벤트 로직 정의 (재사용을 위해 별도 객체로 생성)
+        //모든 영역에 동일한 클릭 리스너 부착
         java.awt.event.MouseAdapter clickHandler = new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                // 부모 프레임에서 OMCenter 인스턴스 찾기
                 if (omCenter != null) {
                     omCenter.addMenuItem(menu);
                     evt.consume();
