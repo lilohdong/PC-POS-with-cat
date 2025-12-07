@@ -7,6 +7,10 @@ import dto.StockInDTO;
 
 import db.DBConnection;
 
+/*
+입고 전용 DAO (현재는 StockDAO로 통합 추천)
+추후 StockDAO와 통합하거나 제거 고려
+*/
 public class StockInDAO {
     public int insertStockIn(StockInDTO dto) {
         String sql = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price) "
@@ -34,7 +38,7 @@ public class StockInDAO {
     }
 
     private String getIngredientId(String stockInfoId) {
-        //stock_info → ingredient FK 조회 (SELECT i_id FROM stock_info WHERE stock_info_id = ?)
-        return stockInfoId.substring(0, 3); //예시: 코드 앞 3자리 → 실제 DB 조회로 변경해야 함
+        //stock_info -> ingredient FK 조회 (SELECT i_id FROM stock_info WHERE stock_info_id = ?)
+        return stockInfoId.substring(0, 3); //예시: 코드 앞 3자리 -> 실제 DB 조회로 변경해야 함
     }
 }

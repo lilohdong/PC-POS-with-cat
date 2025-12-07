@@ -9,6 +9,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+재고 관리의 핵심 DAO
+
+전체 재고 조회
+검색 및 상태 필터링 (정상/부족/품절)
+입고/출고 처리 (트리거 기반 + 수동 처리 혼용)
+재고 단위 변환 (박스 → 개수) 처리
+*/
 public class StockDAO {
     private Connection conn;
 
@@ -93,14 +101,10 @@ public class StockDAO {
 
         return list;
     }
-
-    // 수정 3: 트리거 도입으로 인해 Java에서의 수동 업데이트 제거
     public boolean stockIn(String ingredientId, String stockInfoId, int inQuantity, int unitPrice) {
         String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection()) {
-            // 트리거가 작동하므로 별도의 트랜잭션 제어가 필수적이지 않지만 안전을 위해 유지 가능
-            // 여기서는 단순화하여 Insert만 수행
 
             String newInId = generateInId(conn);
 
@@ -112,7 +116,6 @@ public class StockDAO {
                 psIns.setInt(5, unitPrice);
                 psIns.executeUpdate();
             }
-            // UPDATE ingredient 쿼리 제거됨 (DB Trigger가 수행)
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -120,7 +123,6 @@ public class StockDAO {
         }
     }
 
-    // 수정 3: addStock 역시 Insert만 수행하도록 변경
     public boolean addStock(String ingredientId, int inputQty) {
         String sqlGetInfo = "SELECT stock_info_id FROM stock_info WHERE i_id = ? LIMIT 1";
         String sqlInsertIn = "INSERT INTO stock_in(in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, 0)";
@@ -153,7 +155,6 @@ public class StockDAO {
         }
     }
 
-    // 출고는 트리거를 만들지 않았으므로 기존 로직 유지 (Java에서 차감)
     public boolean subtractStock(String ingredientId, int delta) {
         String sqlCheck = "SELECT total_quantity FROM ingredient WHERE i_id = ?";
         String sqlUpdate = "UPDATE ingredient SET total_quantity = total_quantity - ?, is_out = CASE WHEN total_quantity - ? <= 0 THEN true ELSE false END WHERE i_id = ? AND total_quantity >= ?";
@@ -243,7 +244,6 @@ public class StockDAO {
         }
     }
 
-    // 수정 3: Insert만 수행
     public boolean insertStockIn(StockInDTO dto) {
         String sqlGetIid = "SELECT i_id FROM stock_info WHERE stock_info_id = ?";
         String sqlInsert = "INSERT INTO stock_in (in_id, i_id, stock_info_id, in_quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
