@@ -74,8 +74,8 @@ select
     s.login_time,
     m.m_id,
     m.name,
-    m.birth, -- 미성년자 판단용
-    m.remain_time -- 회원의 잔여 시간 (초 또는 분 단위, 여기선 분으로 가정)
+    m.birth,
+    m.remain_time
 from seat s
     left join member m on s.m_id = m.m_id
 where s.is_used = 1;
@@ -83,7 +83,7 @@ where s.is_used = 1;
 -- 요금제 테이블
 create table price_plan (
     plan_id int auto_increment primary key,
-    plan_name varchar(20) not null, -- 예: 1시간, 5시간
+    plan_name varchar(20) not null,
     duration_min int not null,      -- 분 단위 (60, 300, 600)
     price int not null              -- 가격 (1500, 6000, 10000)
 );
@@ -98,6 +98,7 @@ create table time_payment_log (
     foreign key (m_id) references member(m_id) on update cascade on delete set null,
     foreign key (plan_id) references price_plan(plan_id)
 );
+
 -- Sales에서 사용할 time 계산 뷰
 create or replace view time_sales_view as
     select tpl.log_id as log_id, tpl.m_id as m_id, pp.plan_name,tpl.pay_time as time,tpl.amount as amount, pp.price * tpl.amount as total_price
