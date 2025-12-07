@@ -27,7 +27,7 @@ public class PopularGameRankingPanel extends JPanel {
 
     private void initUI() {
         setPreferredSize(new Dimension(Sizes.GAME_POPULAR_WIDTH, 758));
-        setBorder(new MatteBorder(0, 2, 2, 1, Color.BLACK));
+        setBorder(new MatteBorder(0, 0, 0, 1, Color.BLACK));
         setLayout(new BorderLayout());
 
         // 헤더 //

@@ -136,12 +136,21 @@ create procedure InsertDummyOrders()
 begin
     declare i int default 1;
     declare oId Varchar(6);
+    DECLARE rand_dt DATETIME;
+
     while i <= 100 do
         set oId = concat('O', lpad(i, 5, '0'));
-        insert into orders(o_id, seat_num, o_status, pay_method, requestment)
-            values (oId, floor(1 + rand() * 100), 'PREPARING', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
+        insert into orders(o_id, m_id,seat_num, o_status, pay_method, requestment)
+            values (oId,CONCAT('member', FLOOR(1 + RAND() * 100)), floor(1 + rand() * 100), 'PREPARING', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
             set i = i + 1;
     end while;
+    while i <= 200 do
+            set oId = concat('O', lpad(i, 5, '0'));
+            SET rand_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (13 * 24 * 60 * 60)) SECOND);
+            insert into orders(o_id, m_id,o_time,complete_time,seat_num, o_status, pay_method, requestment)
+            values (oId,CONCAT('member', FLOOR(1 + RAND() * 100)), rand_dt,DATE_ADD(rand_dt, INTERVAL 10 MINUTE),floor(1 + rand() * 100), 'COMPLETED', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
+            set i = i + 1;
+        end while;
 end $$
 delimiter ;
 call InsertDummyOrders();
@@ -158,7 +167,7 @@ begin
     declare menuId varchar(5);
     declare qty int;
     declare nextOmId int default 1;
-    while i <= 100 do
+    while i <= 200 do
             SET oId = CONCAT('O', LPAD(i, 5, '0'));
             SET j = 1;
             WHILE j <= FLOOR(1 + RAND() * 3) DO  -- 1~3 메뉴

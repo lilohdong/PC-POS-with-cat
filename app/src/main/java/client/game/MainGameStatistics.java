@@ -28,7 +28,6 @@ public class MainGameStatistics extends JPanel {
     }
 
     private void initUI() {
-        setBorder(BorderFactory.createMatteBorder(0, 0, 2, 2, Color.BLACK));
         setLayout(new BorderLayout());
 
         // 헤더 패널

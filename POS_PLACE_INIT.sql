@@ -103,7 +103,7 @@ create or replace view time_sales_view as
     select tpl.log_id as log_id, tpl.m_id as m_id, pp.plan_name,tpl.pay_time as time,tpl.amount as amount, pp.price * tpl.amount as total_price
     from time_payment_log tpl, price_plan pp
     where pp.plan_id = tpl.plan_id;
-select * from time_sales_view;
+
 /*
 category(메뉴 카테고리)
 menu(등록되어있는 메뉴의 정보)
@@ -319,10 +319,19 @@ create table play_log(
             foreign key(g_id) references game(g_id) on update cascade on delete set null
 );
 -- sales에 사용할 뷰
-create view sales_view as
-select o.o_id sales_id, o.m_id member_id, o.o_time as o_time, m.m_name as m_name, om.quantity as quantity, om.total_price as total_price
-from orders o, menu m, order_menu om
-where o.o_id = om.o_id and m.menu_id = om.menu_id and o.o_status = 'COMPLETED';
+CREATE OR REPLACE VIEW sales_view AS
+SELECT
+    o.o_id AS sales_id,
+    o.m_id AS member_id,
+    o.complete_time AS o_time,
+    m.m_name AS m_name,
+    om.quantity AS quantity,
+    om.total_price AS total_price
+FROM orders o
+         JOIN order_menu om ON o.o_id = om.o_id
+         JOIN menu m ON m.menu_id = om.menu_id
+WHERE o.o_status = 'COMPLETED';
+
 -- GameStatics에 사용할 뷰
 CREATE OR REPLACE VIEW popular_game_view AS
 WITH raw_play_data AS (
@@ -361,7 +370,6 @@ FROM daily_game_stats dgs
          JOIN daily_total_stats dts ON dgs.play_date = dts.play_date;
 
 
-select * from popular_game_view;
 
 CREATE OR REPLACE VIEW statistics_view AS
 SELECT
