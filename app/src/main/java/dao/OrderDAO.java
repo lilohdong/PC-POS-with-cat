@@ -10,11 +10,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+주문 관련 모든 DB 작업을 담당하는 핵심 DAO 클래스
+
+주요 기능:
+신규 주문 접수 (orders + order_menu + sales + 재료 차감)
+주문 상태별 목록 조회
+주문 상세 내역 조회
+주문 완료 처리
+환불 처리
+*/
 public class OrderDAO {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
     private StockDAO stockDAO = new StockDAO();  // 추가: StockDAO 인스턴스
 
+    /*
+    신규 주문을 DB에 저장하고 관련 테이블 일괄 처리
+    트랜잭션 처리 포함 (모두 성공하거나 모두 롤백)
+    @return 성공 시 생성된 주문번호 (O00001 형식), 실패 시 null
+    */
     public String insertNewOrder(OrderDataDTO orderDTO, List<MenuDTO> selectedMenus, List<Integer> quantities) {
         Connection conn = null;
         PreparedStatement ordersPstmt = null;
@@ -24,11 +38,11 @@ public class OrderDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. 다음 o_id 생성 (O00001 형식)
+            //1. 다음 주문번호 생성 (O00001 형식)
             int nextOIdInt = getNextOIdInt(conn);
             String newOId = String.format("O%05d", nextOIdInt);  // varchar(6)에 맞춤, O00001
 
-            // 2. orders 테이블 insert (o_id 직접 설정)
+            //2. orders 테이블에 주문 기본 정보 삽입
             String ordersSql = "INSERT INTO orders (o_id, m_id, seat_num, requestment, pay_method) VALUES (?, ?, ?, ?, ?)";
             ordersPstmt = conn.prepareStatement(ordersSql);
             ordersPstmt.setString(1, newOId);
@@ -42,7 +56,7 @@ public class OrderDAO {
             ordersPstmt.setString(5, orderDTO.getPayMethod());
             ordersPstmt.executeUpdate();
 
-            // 3. order_menu insert
+            //3. order_menu 테이블에 주문 상세 내역 삽입
             int nextOrderMenuIdInt = getNextOrderMenuIdInt(conn);
             int totalOrderAmount = 0;
             String orderMenuSql = "INSERT INTO order_menu (order_menu_id, o_id, menu_id, quantity, unit_price) VALUES (?, ?, ?, ?, ?)";
@@ -65,10 +79,10 @@ public class OrderDAO {
             }
             orderDTO.setTotalAmount(totalOrderAmount);
 
-            // 4. sales insert/update
+            //4. 매출(sales) 테이블 반영
             insertOrUpdateSales(conn, orderDTO);
 
-            // 신규: 주문 접수 후 재료 차감
+            //5. 주문한 메뉴에 사용된 재료 자동 차감
             deductIngredientsForOrder(conn, newOId);
 
             conn.commit();
@@ -89,7 +103,7 @@ public class OrderDAO {
         }
     }
 
-    // 신규: 주문(o_id) 기반 재료 차감 (conn 전달받음)
+    //주문한 메뉴에 사용된 재료를 자동 차감 (재료 소진 로직)
     private void deductIngredientsForOrder(Connection conn, String oId) throws SQLException {
         String sql = "SELECT menu_id, quantity FROM order_menu WHERE o_id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -104,7 +118,7 @@ public class OrderDAO {
         }
     }
 
-    // 신규: 메뉴 단위 재료 차감 (conn 전달받음)
+    //하나의 메뉴에 필요한 재료 차감
     private void deductIngredientsForMenu(Connection conn, String menuId, int menuQty) throws SQLException {
         List<IngredientUsage> usages = getIngredientsForMenu(conn, menuId);
         for (IngredientUsage usage : usages) {
@@ -115,7 +129,7 @@ public class OrderDAO {
         }
     }
 
-    // 신규: 메뉴에 사용되는 재료 목록 조회 (conn 전달받음)
+    //메뉴에 필요한 재료 목록 조회
     private List<IngredientUsage> getIngredientsForMenu(Connection conn, String menuId) throws SQLException {
         List<IngredientUsage> list = new ArrayList<>();
         String sql = "SELECT i_id, required_quantity FROM menu_ingredient WHERE m_id = ?";
@@ -130,18 +144,17 @@ public class OrderDAO {
         return list;
     }
 
-    // 신규 내부 클래스: 재료 사용량
+    //내부 클래스: 재료 사용량
     private static class IngredientUsage {
         String iId;
         int requiredQuantity;
-
         IngredientUsage(String iId, int requiredQuantity) {
             this.iId = iId;
             this.requiredQuantity = requiredQuantity;
         }
     }
 
-    // 신규 메서드: 다음 o_id int max 얻기
+    // 다음 o_id 숫자 부분 추출 (O00001 -> 1)
     private int getNextOIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(o_id, 2) AS UNSIGNED)) FROM orders";
         try (Statement stmt = conn.createStatement();
@@ -154,7 +167,6 @@ public class OrderDAO {
         }
     }
 
-    // 수정: int maxId 반환
     private int getNextOrderMenuIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(order_menu_id, 3) AS UNSIGNED)) FROM order_menu";  // OM00001 -> 00001
         try (Statement stmt = conn.createStatement();
@@ -167,11 +179,7 @@ public class OrderDAO {
         }
     }
 
-    /**
-     * 주문 상태별 목록 조회 (Orders + Order_Menu 총액)
-     * @param status 'PREPARING' 또는 'COMPLETED'
-     * @return 주문 목록
-     */
+    //상태별 주문 목록 조회 (PREPARING / COMPLETED)
     public List<OrderDataDTO> getOrdersByStatus(String status) {
         List<OrderDataDTO> orderList = new ArrayList<>();
         Connection conn = null;
@@ -215,9 +223,7 @@ public class OrderDAO {
         return orderList;
     }
 
-    /**
-     * 주문 상세 내역 조회 (주문 메뉴 목록)
-     */
+    //주문번호로 주문 상세 내역 문자열 생성 (예: "김치볶음밥 (2개), 콜라 (1개)")
     public String getOrderDetails(String oId) {
         StringBuilder details = new StringBuilder();
         Connection conn = null;
@@ -252,9 +258,10 @@ public class OrderDAO {
         return details.toString();
     }
 
-    /**
-     * 주문 상태 변경 (준비 완료/취소)
-     */
+    /*
+    주문 상태 변경 (PREPARING → COMPLETED 등)
+    완료 시 complete_time 자동 기록
+    */
     public boolean updateOrderStatus(String oId, String newStatus) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -284,7 +291,7 @@ public class OrderDAO {
         }
     }
 
-    // 환불 처리 (Refund 테이블 기록 및 Sales 테이블 업데이트)
+    //환불 처리: 상태 변경 + refund 테이블 기록 + 매출 차감
     public boolean processRefund(OrderDataDTO orderDTO) {
         Connection conn = null;
         PreparedStatement refundPstmt = null;
@@ -293,10 +300,10 @@ public class OrderDAO {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. orders 상태를 'REFUNDED'로 변경
+            //1. orders 상태를 'REFUNDED'로 변경
             updateOrderStatus(orderDTO.getOId(), "REFUNDED");
 
-            // 2. refund 테이블에 기록
+            //2. refund 테이블에 기록
             int nextRefundIdInt = getNextRefundIdInt(conn);
             String refundId = String.format("R%04d", nextRefundIdInt);  // R0001 형식 (varchar(5))
 
@@ -307,7 +314,7 @@ public class OrderDAO {
             refundPstmt.setInt(3, orderDTO.getTotalAmount());
             refundPstmt.executeUpdate();
 
-            // 3. sales 테이블에서 정산 금액 차감
+            //3. sales 테이블에서 정산 금액 차감
             deductSales(conn, orderDTO);
 
             conn.commit();
@@ -328,7 +335,7 @@ public class OrderDAO {
         }
     }
 
-    // sales 테이블에 일별 매출 추가/업데이트
+    //sales 테이블에 일별 매출 추가/업데이트
     private void insertOrUpdateSales(Connection conn, OrderDataDTO orderDTO) throws SQLException {
         int amount = orderDTO.getTotalAmount();
         String payMethodField = orderDTO.getPayMethod().equals("CASH") ? "cash_sales" : "card_sales";
@@ -340,7 +347,7 @@ public class OrderDAO {
             updatePstmt.setInt(2, amount);
 
             if (updatePstmt.executeUpdate() == 0) {
-                // 해당 날짜의 기록이 없으면 새로 삽입
+                //해당 날짜의 기록이 없으면 새로 삽입
                 int nextSalesIdInt = getNextSalesIdInt(conn);
                 String nextSalesId = String.format("S%04d", nextSalesIdInt);  // S0001 형식 (varchar(5))
 
@@ -356,7 +363,7 @@ public class OrderDAO {
         }
     }
 
-    // sales 테이블에서 정산 금액 차감 (환불 시)
+    //sales 테이블에서 정산 금액 차감 (환불 시)
     private void deductSales(Connection conn, OrderDataDTO orderDTO) throws SQLException {
         int amount = orderDTO.getTotalAmount();
         String payMethodField = orderDTO.getPayMethod().equals("CASH") ? "cash_sales" : "card_sales";
@@ -366,15 +373,15 @@ public class OrderDAO {
         try (PreparedStatement updatePstmt = conn.prepareStatement(updateSql)) {
             updatePstmt.setInt(1, amount);
             updatePstmt.setInt(2, amount);
-            // 주문이 발생한 날짜에서 차감 (o_time은 DTO에 없음. DB에서 조회 필요)
-            // 실제 구현에서는 DB에서 해당 주문의 o_time을 가져와야 함. 여기서는 임시로 오늘 날짜로 가정.
+            //주문이 발생한 날짜에서 차감 (o_time은 DTO에 없음. DB에서 조회 필요)
+            //실제 구현에서는 DB에서 해당 주문의 o_time을 가져와야 함. 여기서는 임시로 오늘 날짜로 가정.
             updatePstmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
 
             updatePstmt.executeUpdate();
         }
     }
 
-    // refund 테이블의 다음 r_id를 가져오는 int 메서드
+    //refund 테이블의 다음 r_id를 가져오는 int 메서드
     private int getNextRefundIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(r_id, 2) AS UNSIGNED)) FROM refund";
         try (Statement stmt = conn.createStatement();
@@ -387,7 +394,7 @@ public class OrderDAO {
         }
     }
 
-    // sales 테이블의 다음 s_id를 가져오는 int 메서드
+    //sales 테이블의 다음 s_id를 가져오는 int 메서드
     private int getNextSalesIdInt(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(s_id, 2) AS UNSIGNED)) FROM sales";
         try (Statement stmt = conn.createStatement();
