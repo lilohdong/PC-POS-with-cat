@@ -13,7 +13,7 @@ create table member(
     phone VARCHAR(20) UNIQUE,
     join_date datetime not null default current_timestamp
 );
-
+create trigger
 -- 직원 테이블
 CREATE TABLE staff (
    staff_id INT auto_increment PRIMARY KEY,
@@ -23,7 +23,7 @@ CREATE TABLE staff (
    salary INT NOT NULL, -- 월급 (원)
    hire_date DATETIME DEFAULT CURRENT_TIMESTAMP, -- 입사일
    is_active BOOLEAN DEFAULT TRUE, -- 재직 여부 (퇴사시 FALSE)
-   passwd varchar(4) not null,
+   passwd varchar(4) default "1234" not null,
    phone VARCHAR(20)
 );
 
@@ -225,6 +225,17 @@ create table stock_in(
     foreign key (i_id) references ingredient(i_id) on update cascade on delete set null,
     foreign key (stock_info_id) references stock_info(stock_info_id) on update cascade on delete set null
 );
+DELIMITER $$
+CREATE TRIGGER time_insert
+    BEFORE INSERT ON time_payment_log
+    FOR EACH ROW
+BEGIN
+    update member
+    set remain_time = remain_time + (select duration_min from price_plan where new.plan_id)
+    where NEW.m_id = m_id;
+END$$
+DELIMITER ;
+
 
 -- INSERT 전에 total_added 자동 계산하는 트리거
 DELIMITER $$

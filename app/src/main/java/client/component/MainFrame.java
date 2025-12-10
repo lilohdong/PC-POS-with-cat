@@ -23,7 +23,7 @@ public class MainFrame extends JFrame {
 
         SideBar sb = new SideBar();
         MainUI mui = new MainUI();
-
+        // 익명 리스너 다 설정
         sb.setNavListener(e-> {
             String clickedBtn =e.getActionCommand();
             switch (clickedBtn) {

@@ -20,7 +20,7 @@ BEGIN
                               SUBSTRING(last_names, FLOOR(1 + RAND() * 60), 1)),
                        DATE_ADD('1990-01-01', INTERVAL FLOOR(RAND() * 10000) DAY),
                        IF(RAND() > 0.5, 'M', 'F'),
-                       FLOOR(RAND() * 600), -- 남은 시간(초 or 분)
+                       5, -- 남은 시간(초 or 분)
                        CONCAT('010-', LPAD(FLOOR(RAND() * 9999), 4, '0'), '-', LPAD(FLOOR(RAND() * 9999), 4, '0')),
                        DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 300) DAY)
                    );
@@ -65,13 +65,8 @@ CREATE PROCEDURE InsertSeats()
 BEGIN
     DECLARE i INT DEFAULT 1;
     WHILE i <= 100 DO
-            IF RAND() > 0.8 THEN -- 20% 확률로 사용중
-                INSERT INTO seat (seat_no, is_used, m_id, login_time)
-                VALUES (i, TRUE, CONCAT('member', i), NOW());
-            ELSE
                 INSERT INTO seat (seat_no, is_used)
                 VALUES (i, FALSE);
-            END IF;
             SET i = i + 1;
         END WHILE;
 END$$
@@ -79,6 +74,40 @@ DELIMITER ;
 CALL InsertSeats();
 DROP PROCEDURE InsertSeats;
 
+DELIMITER $$
+
+DELIMITER $$
+drop PROCEDURE InsertTime;
+CREATE PROCEDURE InsertTime()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    -- 선택된 plan_id를 저장할 변수 선언
+    DECLARE selected_plan_id INT;
+    declare rand_dt DATE;
+    WHILE i <= 100 DO
+
+        -- 1. 랜덤 plan_id를 1에서 4까지 생성하여 변수에 저장
+        -- (plan_id가 1, 2, 3, 4로 가정)
+            SET selected_plan_id = floor(1 + RAND() * 4);
+            SET rand_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
+            -- 2. 데이터 삽입: plan_id 변수와 해당 plan_id를 사용해 price를 조회
+            INSERT INTO time_payment_log (m_id, plan_id, amount, pay_time)
+            VALUES (
+                       CONCAT('member',FLOOR(1 + RAND() * 100)),
+                       selected_plan_id, -- 변수에 저장된 단일 plan_id 사용
+                       -- 서브쿼리에서 변수(단일 값)를 사용하여 price를 조회
+                       (SELECT price FROM price_plan p WHERE p.plan_id = selected_plan_id LIMIT 1),
+                        rand_dt
+                   );
+
+            SET i = i + 1;
+        END WHILE;
+END$$
+
+DELIMITER ;
+
+-- 프로시저 실행
+CALL InsertTime();
 
 -- 5. Category (메뉴 카테고리) 10개
 INSERT INTO category (c_id, c_name) VALUES
@@ -144,9 +173,9 @@ begin
             values (oId,CONCAT('member', FLOOR(1 + RAND() * 100)), floor(1 + rand() * 100), 'PREPARING', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
             set i = i + 1;
     end while;
-    while i <= 200 do
+    while i <= 300 do
             set oId = concat('O', lpad(i, 5, '0'));
-            SET rand_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (13 * 24 * 60 * 60)) SECOND);
+            SET rand_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
             insert into orders(o_id, m_id,o_time,complete_time,seat_num, o_status, pay_method, requestment)
             values (oId,CONCAT('member', FLOOR(1 + RAND() * 100)), rand_dt,DATE_ADD(rand_dt, INTERVAL 10 MINUTE),floor(1 + rand() * 100), 'COMPLETED', if(rand() > 0.5, 'CARD', 'CASH'), if(rand() > 0.8, '특이사항 없음', '덜 매운맛'));
             set i = i + 1;
@@ -411,8 +440,8 @@ CREATE PROCEDURE InsertPlayLog()
 BEGIN
     DECLARE i INT DEFAULT 1;
     DECLARE start_dt DATETIME;
-    WHILE i <= 20 DO
-            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+    WHILE i <= 120 DO
+            SET start_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
 
             INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
             VALUES (
@@ -426,8 +455,8 @@ BEGIN
             SET i = i + 1;
         END WHILE;
     -- 롤 20개
-    While i <= 40 DO
-            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+    While i <= 350 DO
+            SET start_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
             INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
             VALUES (
                        CONCAT('LOG', LPAD(i, 5, '0')),
@@ -440,8 +469,8 @@ BEGIN
             SET i = i + 1;
         end while;
     -- 발로란트 10개
-    While i <= 50 DO
-            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+    While i <= 350 DO
+            SET start_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
             INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
             VALUES (
                        CONCAT('LOG', LPAD(i, 5, '0')),
@@ -453,8 +482,8 @@ BEGIN
                    );
             SET i = i + 1;
         end while;
-    While i <= 100 DO
-            SET start_dt = DATE_ADD(NOW(), INTERVAL -FLOOR(RAND() * 24) HOUR);
+    While i <= 400 DO
+            SET start_dt = DATE_ADD('2025-11-20 00:00:00', INTERVAL FLOOR(RAND() * (20 * 24 * 60 * 60)) SECOND);
 
             INSERT INTO play_log (log_id, m_id, g_id, seat_no, start_time, end_time)
             VALUES (
